@@ -6,20 +6,13 @@
 */
 #include <AccelStepper.h>
 #include <MultiStepper.h>
-
-
-
-#define CUSTOM_SETTINGS
-#define INCLUDE_GAMEPAD_MODULE
 #include <Dabble.h>
-
 
 #define SDPOWER -1
 
 //ChipSelect, Hardware SS Pin on Mega, 10 for Arduino Boards, always kept as output
 #define SDCS_PIN 53
 #define SD_DETECT_PIN -1  //currently not implemented
-
 
 #define LED_PIN 13
 
@@ -75,6 +68,7 @@ const int BStep = 26;
 const int BDir = 28;
 const int BEnable = 24;
 const int BCS = 42;
+
 // MOTOR D (E1)
 const int DStep = 36;
 const int DDir = 34;
@@ -85,8 +79,6 @@ const int DCS = 44;
 unsigned int StateMachineCount = 0;
 bool OneTime = 0;
 void Backward(int distance, int speed);
-//const int BLUETOOTH_TX = 8;
-//const int BLUETOOTH_RX = 7;
 int incDist = 1;
 int SpinSpeed = 400;
 
@@ -94,7 +86,6 @@ int Radius;
 float angle;
 bool onetime = 0;
 void InitMotors(void);
-void KeepTime(void);
 
 // Motor Assignments
 AccelStepper AStepper(motorInterfaceType, AStep, ADir);
@@ -117,11 +108,6 @@ void testSpin() {
     onetime = 0;
   }
   if (onetime) {
-
-    // AStepper.setSpeed(testspeed);
-    //DStepper.setSpeed(testspeed);
-    //CStepper.setSpeed(testspeed);
-    //BStepper.setSpeed(testspeed);
     if (AStepper.distanceToGo() == 0) {
       digitalWrite(LED_BUILTIN, HIGH);
       AStepper.moveTo(-AStepper.currentPosition());
@@ -136,14 +122,14 @@ void testSpin() {
     DStepper.run();
   }
 }
+
 void testMotors() {
   CStepper.setSpeed(200);
   CStepper.move(10);
   CStepper.run();
 }
+
 void SpinLft() {
-
-
   AStepper.setSpeed(-SpinSpeed);
   DStepper.setSpeed(-SpinSpeed);
   CStepper.setSpeed(-SpinSpeed);
@@ -161,8 +147,6 @@ void SpinLft() {
 
 
 void SpinRt() {
-
-
   AStepper.setSpeed(SpinSpeed);
   DStepper.setSpeed(SpinSpeed);
   CStepper.setSpeed(SpinSpeed);
@@ -177,6 +161,7 @@ void SpinRt() {
   CStepper.run();
   DStepper.run();
 }
+
 void forWard(){
   AStepper.setSpeed(SpinSpeed);
   CStepper.setSpeed(SpinSpeed);
@@ -209,17 +194,6 @@ void BackWard(){
   BStepper.run();
   CStepper.run();
   DStepper.run();
-}
-
-
-
-// This function increments the state machies counter
-void KeepTime(void) {
-  millis();
-  if (StateMachineCount >= 10000) {
-    StateMachineCount = 0;
-  } else StateMachineCount++;
-  return;
 }
 
 // This function initializes the motor pins
@@ -338,11 +312,7 @@ void setup() {
 }
 
 void loop() {
-  KeepTime();
- // if (StateMachineCount >= 10) {
- //   StateMachineCount = 0;
     Dabble.processInput();  //this function is used to refresh data obtained from smartphone.Hence calling this function is mandatory in order to get data properly from your mobile.
- // }
   angle = GamePad.getAngle();
   Radius = GamePad.getRadius();
   Radius = map(Radius, 0, 7, 0, 400);
