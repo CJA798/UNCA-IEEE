@@ -23,6 +23,12 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0) {
-    String raw_data = Serial.readStringUntil('\n');
+    String input_string = Serial.readStringUntil('\n');
+    size_t input_size = input_string.length();
+    uint8_t* input_array = (uint8_t*) input_string.c_str();
+    dataPackage.parse_data_package(input_array, input_size);
+    
+    if (dataPackage.isCameraWorking == 1) digitalWrite(pinLED1, HIGH);
+    else if (dataPackage.isCameraWorking == 0) digitalWrite(pinLED1, LOW);
   }
 }
