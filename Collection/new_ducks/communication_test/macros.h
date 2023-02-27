@@ -4,4 +4,5 @@
 //  Modified: Carlos Anzola (23 Feb 2023)
 ////////////////////////////////////////////////////////////////////////////////
 
-#define LED1_PIN 13;
+#define LED1_PIN 13
+#define MAX_INPUT_SIZE 128

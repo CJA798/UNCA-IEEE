@@ -5,21 +5,25 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <vector>
+#include "macros.h"
 
 // Define an enumeration to track errors in the data package
 enum class Data_Package_Error {
   DATA_PACKAGE_ERROR_NONE,
   DATA_PACKAGE_ERROR_CAMERA_NOT_WORKING,
-  DATA_PACKAGE_ERROR_TOO_MANY_OBJECTS,
-  DATA_PACKAGE_ERROR_TOO_MANY_CLASSES,
+  //DATA_PACKAGE_ERROR_TOO_MANY_OBJECTS,
+  DATA_PACKAGE_ERROR_INVALID_NUMBER_OF_OBJECTS,
+  //DATA_PACKAGE_ERROR_TOO_MANY_CLASSES,
+  DATA_PACKAGE_ERROR_INVALID_CLASS_ID,
   DATA_PACKAGE_ERROR_MISMATCHED_CLASSES_OBJECTS,
+  DATA_PACKAGE_ERROR_NULL_POINTER,
 };
 
 class DataPackage {
 public:
   // Public attributes
   bool isCameraWorking;
-  unsigned int numObjectsInPlatform;
+  int numObjectsInPlatform;
   std::vector<int> classObjectsInPlatform;
   std::vector<int> orientationObjectsInPlatform;
   
@@ -39,57 +43,72 @@ public:
     classObjectsInPlatform.clear();
     orientationObjectsInPlatform.clear();
     status = Data_Package_Error::DATA_PACKAGE_ERROR_NONE;
-    return;
   }
+  
   // Method to parse the data package from an input array
   void parse_data_package(uint8_t* input_array, size_t input_size) {
-    // Reset the attributes and status flag
     reset_data_package();
+    // Parse input string into tokens
+    char input_string[MAX_INPUT_SIZE];
+    strncpy(input_string, (char*) input_array, input_size);
+    input_string[input_size] = '\0';
     
-    // Parse the data package
-    if (input_size >= 3) {
-      // Parse camera status
-      isCameraWorking = (input_array[0] != 0);
-      
-      // Parse number of objects
-      numObjectsInPlatform = input_array[1];
-      if (numObjectsInPlatform < 0 || numObjectsInPlatform > 2) {
-        status = Data_Package_Error::DATA_PACKAGE_ERROR_TOO_MANY_OBJECTS;
-        return;
-      }
-      
-      // Parse classes of objects and their orientation
-      for (int i = 0; i < numObjectsInPlatform; i++) {
-        int class_of_object = input_array[2 + i*2];
-        int orientation_of_object = input_array[2 + i*2 + 1];
-        
-        if (class_of_object < 0 || class_of_object > 255) {
-          status = Data_Package_Error::DATA_PACKAGE_ERROR_TOO_MANY_CLASSES;
-          return;
-        }
-        
-        if (orientation_of_object < 0 || orientation_of_object > 255) {
-          status = Data_Package_Error::DATA_PACKAGE_ERROR_MISMATCHED_CLASSES_OBJECTS;
-          return;
-        }
-        
-        classObjectsInPlatform.push_back(class_of_object);
-        orientationObjectsInPlatform.push_back(orientation_of_object);
-      }
-      
-      if (classObjectsInPlatform.size() != numObjectsInPlatform ||
-          orientationObjectsInPlatform.size() != numObjectsInPlatform) {
-        status = Data_Package_Error::DATA_PACKAGE_ERROR_MISMATCHED_CLASSES_OBJECTS;
-        return;
-      }
-    } else {
-      // Input array is too small
-      status = Data_Package_Error::DATA_PACKAGE_ERROR_TOO_MANY_CLASSES;
+    // Parse camera status
+    char* token = strtok(input_string, ",");    
+    if (token == NULL) {
+      // Invalid input string
+      status = Data_Package_Error::DATA_PACKAGE_ERROR_NULL_POINTER;
       return;
     }
-  }
+    this->isCameraWorking = atoi(token);
+    if (isCameraWorking == 0) {
+      status = Data_Package_Error::DATA_PACKAGE_ERROR_CAMERA_NOT_WORKING;
+      return;
+    } 
 
-  // Public attribute to track statuss
+    // Parse number of objects
+    token = strtok(NULL, ",");
+    if (token == NULL) {
+      // Invalid input string
+      status = Data_Package_Error::DATA_PACKAGE_ERROR_NULL_POINTER;
+      return;
+    }
+    this->numObjectsInPlatform = atoi(token);
+    if (this->numObjectsInPlatform < 0 || this->numObjectsInPlatform > 17) {
+      status = Data_Package_Error::DATA_PACKAGE_ERROR_INVALID_NUMBER_OF_OBJECTS;
+      return;
+    }
+    
+    // Parse classes and orientations of objects
+    for (int i = 0; i < this->numObjectsInPlatform; i++) {
+      // Parse class of object
+      token = strtok(NULL, ",");
+      if (token == NULL) {
+        // Invalid input string
+        status = Data_Package_Error::DATA_PACKAGE_ERROR_NULL_POINTER;
+        return;
+      }
+      int class_of_object = atoi(token);
+      if (class_of_object < 0 || class_of_object > 4) {
+      status = Data_Package_Error::DATA_PACKAGE_ERROR_INVALID_CLASS_ID;
+      return;
+    }
+
+      // Parse orientation of object
+      token = strtok(NULL, ",");
+      if (token == NULL) {
+        // Invalid input string
+        status = Data_Package_Error::DATA_PACKAGE_ERROR_NULL_POINTER;
+        return;
+      }
+      int orientation_of_object = atoi(token);
+      
+      this->classObjectsInPlatform.push_back(class_of_object);
+      this->orientationObjectsInPlatform.push_back(orientation_of_object);
+    }
+  }
+  
+  // Public attribute to track status
   Data_Package_Error status;
 
   // Getter for isCameraWorking attribute
