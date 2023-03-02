@@ -40,16 +40,37 @@ void setup() {
 }
 
 void loop() {
+  // Check if there's a data package
   if (Serial.available() > NO_INCOMING_DATA) {
+    // Read string
     String input_string = Serial.readStringUntil('\n');
     size_t input_size = input_string.length();
     uint8_t* input_array = (uint8_t*) input_string.c_str();
+    
+    // Parse data from string        
     dataPackage.parse_data_package(input_array, input_size);
 
-    digitalWrite(pinLED1, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), 0) != dataPackage.classObjectsInPlatform.end());
+    // Turn on LED corresponding to the object class
+    digitalWrite(pinPinkDuck, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), 0) != dataPackage.classObjectsInPlatform.end());
     digitalWrite(pinYellowDuck, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), 1) != dataPackage.classObjectsInPlatform.end());
     digitalWrite(pinRedPillar, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), 2) != dataPackage.classObjectsInPlatform.end());
     digitalWrite(pinGreenPillar, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), 3) != dataPackage.classObjectsInPlatform.end());
     digitalWrite(pinWhitePillar, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), 4) != dataPackage.classObjectsInPlatform.end());
+
+    // Move servo to correct angle
+    int angle = dataPackage.orientationObjectsInPlatform[0];    
+    orientationServo.write(abs(angle));
+    Serial.println(angle);
   }
+
+  // Turn off all LEDs and reset servo positions
+  //clearSignals();
+}
+
+void clearSignals(){
+  digitalWrite(pinLED1, LOW);
+  digitalWrite(pinYellowDuck, LOW);
+  digitalWrite(pinRedPillar, LOW);
+  digitalWrite(pinGreenPillar, LOW);
+  digitalWrite(pinWhitePillar, LOW);
 }
