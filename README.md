@@ -1,4 +1,5 @@
 # UNCA-IEEE
+# ***REMINDER: System Logistics Meeting on Friday, March 24!!***
 ### This repository contains all the latest code and CAD files for the bot
 #### Important Links:
 - [South East Con 2023 Hardware Competition](https://ieeesoutheastcon.org/)
@@ -8,5 +9,5 @@
 
 ![alt text](https://github.com/CJA798/UNCA-IEEE/blob/6993cb0e6650d60fc773148b27723bdb2c9af193/CAD/MK5%20IEEE%20BOT.PNG?raw=true)
 
-- [( ͡° ͜ʖ ͡°)](https://youtu.be/dQw4w9WgXcQ)
+- <sub>[( ͡° ͜ʖ ͡°)](https://youtu.be/dQw4w9WgXcQ)</sub>
 
