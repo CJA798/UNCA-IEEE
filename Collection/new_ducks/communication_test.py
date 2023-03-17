@@ -77,7 +77,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         #cv2.imshow('segmentation', area)
         
         # Ignore contours that are too small or too large
-        if area < 10000 or area > 120000:
+        if area < 10 or area > 20000:
           continue
       
         # cv.minAreaRect returns:
@@ -114,7 +114,8 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
 
       # Run object detection estimation using the model.
       detection_result = detector.detect(input_tensor)
-
+      print(type(detection_result))
+      print(detection_result)
       # Draw keypoints and edges on input image
       image = utils.visualize(image, detection_result)
 
