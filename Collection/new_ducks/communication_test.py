@@ -91,27 +91,14 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
           x, y, w, h = bbox
           bw_roi = bw[y:y+h, x:x+w]
           # Find the contours in the binary image
-          _, contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+          contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+          #create an empty image for contours
+          img_contours = np.zeros(oriented_image.shape)
+
+          # draw the contours on the empty image
+          cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
+          
           contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
-
-
-      # Draw the contours on the individual images and concatenate horizontally
-      contour_images = []
-      for bbox, contour in zip(bounding_boxes, contours):
-          # Create a mask image and draw the contour on it
-          mask = np.zeros(image.shape[:2], dtype=np.uint8)
-          cv2.drawContours(mask, [contour], -1, 255, -1)
-          
-          # Extract the region of the image defined by the bounding box and apply the mask
-          x, y, w, h = bbox
-          roi = image[y:y+h, x:x+w]
-          masked_roi = cv2.bitwise_and(roi, roi, mask=mask[y:y+h, x:x+w])
-          
-          # Add the masked ROI to the list of contour images
-          contour_images.append(masked_roi)
-
-      # Concatenate the contour images horizontally
-      contour_image = cv2.hconcat(contour_images)
 
       # Enumerate contours
       for i, c in enumerate(contours):
@@ -151,8 +138,8 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       if cv2.waitKey(1) == 27:
         break
       cv2.imshow('object_detector', image)
-      #cv2.imshow('contours', img_contours)
-      cv2.imshow('contours', contour_image)
+      cv2.imshow('contours', img_contours)
+      #cv2.imshow('contours', contour_image)
 
       # Send serial data to Teensy
       # Create the serial data string
