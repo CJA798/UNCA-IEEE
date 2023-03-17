@@ -111,7 +111,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
             area = cv2.contourArea(c)
 
             # Ignore contours that are too small or too large
-            if area < 100 or area > 20000:
+            if area < 2000 or area > 20000:
               continue
           
             # cv.minAreaRect returns:
