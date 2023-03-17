@@ -44,27 +44,28 @@ void loop() {
   if (Serial.available() > NO_INCOMING_DATA) {
     // Read string
     String input_string = Serial.readStringUntil('\n');
-    size_t input_size = input_string.length();
-    uint8_t* input_array = (uint8_t*) input_string.c_str();
-    
-    // Parse data from string        
-    dataPackage.parse_data_package(input_array, input_size);
+    if (input_string == "EXIT") {
+      clearSignals();  // call clearSignals() function if exit message received
+    } else {
+      size_t input_size = input_string.length();
+      uint8_t* input_array = (uint8_t*) input_string.c_str();
+      
+      // Parse data from string        
+      dataPackage.parse_data_package(input_array, input_size);
 
-    // Turn on LED corresponding to the object class
-    digitalWrite(pinPinkDuck, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), PINK_DUCK) != dataPackage.classObjectsInPlatform.end());
-    digitalWrite(pinYellowDuck, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), YELLOW_DUCK) != dataPackage.classObjectsInPlatform.end());
-    digitalWrite(pinRedPillar, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), RED_PILLAR) != dataPackage.classObjectsInPlatform.end());
-    digitalWrite(pinGreenPillar, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), GREEN_PILLAR) != dataPackage.classObjectsInPlatform.end());
-    digitalWrite(pinWhitePillar, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), WHITE_PILLAR) != dataPackage.classObjectsInPlatform.end());
+      // Turn on LED corresponding to the object class
+      digitalWrite(pinPinkDuck, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), PINK_DUCK) != dataPackage.classObjectsInPlatform.end());
+      digitalWrite(pinYellowDuck, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), YELLOW_DUCK) != dataPackage.classObjectsInPlatform.end());
+      digitalWrite(pinRedPillar, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), RED_PILLAR) != dataPackage.classObjectsInPlatform.end());
+      digitalWrite(pinGreenPillar, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), GREEN_PILLAR) != dataPackage.classObjectsInPlatform.end());
+      digitalWrite(pinWhitePillar, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), WHITE_PILLAR) != dataPackage.classObjectsInPlatform.end());
 
-    // Move servo to correct angle
-    int angle = dataPackage.orientationObjectsInPlatform[0];    
-    orientationServo.write(abs(angle));
-    Serial.println(angle);
+      // Move servo to correct angle
+      int angle = dataPackage.orientationObjectsInPlatform[0];    
+      orientationServo.write(abs(angle));
+      Serial.println(angle);
+    }
   }
-
-  // Turn off all LEDs and reset servo positions
-  //clearSignals();
 }
 
 void clearSignals(){

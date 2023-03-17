@@ -13,7 +13,19 @@ from math import atan2, cos, sin, sqrt, pi
 import numpy as np
 
 import serial
+import signal
 
+# Configure the serial port
+ser = serial.Serial('/dev/ttyACM0', 9600)
+ser.reset_input_buffer()
+
+# Safe Arduino exit on keyboard interrupt
+def arduino_exit(signal, frame):
+    print('Exiting...')
+    ser.write(b'EXIT')  # send exit message to Arduino
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, arduino_exit)
 
 def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         enable_edgetpu: bool) -> None:
@@ -27,9 +39,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
     num_threads: The number of CPU threads to run the model.
     enable_edgetpu: True/False whether the model is a EdgeTPU model.
   """
-  # Configure the serial port
-  ser = serial.Serial('/dev/ttyACM0', 9600)
-  ser.reset_input_buffer()
 
   # Initialize the object detection model
   base_options = core.BaseOptions(
