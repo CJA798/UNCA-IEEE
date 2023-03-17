@@ -51,8 +51,32 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Take picture
       image = picam2.capture_array()
 
+      # OBJECT DETECTION:
+      image = cv2.flip(image, 1)
+
       # Duplicate image. First one, for object detection; second one, for object orientation.
       oriented_image = image
+
+      # Convert the image from BGR to RGB as required by the TFLite model.
+      rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+      # Create a TensorImage object from the RGB image.
+      input_tensor = vision.TensorImage.create_from_array(rgb_image)
+
+      # Run object detection estimation using the model.
+      detection_result = detector.detect(input_tensor)
+
+      # Extract the indexes from the DetectionResult object
+      class_index = [d.categories[0].index for d in detection_result.detections]
+      print(class_index)
+
+      # Draw keypoints and edges on input image
+      image = utils.visualize(image, detection_result)
+
+
+      # OBJECT ORIENTATION:
+      # Extract the bounding boxes from the DetectionResult object
+      bounding_boxes = [(d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height) for d in detection_result.detections]
 
       # Convert oriented_image to grayscale
       gray = cv2.cvtColor(oriented_image, cv2.COLOR_BGR2GRAY)
@@ -60,16 +84,35 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Convert oriented_image to binary
       _, bw = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-      # Find all the contours in the thresholded oriented_image
-      contours, _ = cv2.findContours(bw, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+      # Find the contours of each bounding box
+      contours = []
+      for bbox in bounding_boxes:
+          # Extract the region of the image defined by the bounding box
+          x, y, w, h = bbox
+          bw_roi = bw[y:y+h, x:x+w]
+          # Find the contours in the binary image
+          _, contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+          contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
 
-      #create an empty image for contours
-      img_contours = np.zeros(oriented_image.shape)
 
-      # draw the contours on the empty image
-      cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
-      #cv2.imshow('contours', img_contours)
-      
+      # Draw the contours on the individual images and concatenate horizontally
+      contour_images = []
+      for bbox, contour in zip(bounding_boxes, contours):
+          # Create a mask image and draw the contour on it
+          mask = np.zeros(image.shape[:2], dtype=np.uint8)
+          cv2.drawContours(mask, [contour], -1, 255, -1)
+          
+          # Extract the region of the image defined by the bounding box and apply the mask
+          x, y, w, h = bbox
+          roi = image[y:y+h, x:x+w]
+          masked_roi = cv2.bitwise_and(roi, roi, mask=mask[y:y+h, x:x+w])
+          
+          # Add the masked ROI to the list of contour images
+          contour_images.append(masked_roi)
+
+      # Concatenate the contour images horizontally
+      contour_image = cv2.hconcat(contour_images)
+
       # Enumerate contours
       for i, c in enumerate(contours):
         # Calculate the area of each contour
@@ -104,37 +147,20 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         #cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
         #cv2.drawContours(oriented_image,[box],0,(0,0,255),2)
 
-      image = cv2.flip(image, 1)
-
-      # Convert the image from BGR to RGB as required by the TFLite model.
-      rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-      # Create a TensorImage object from the RGB image.
-      input_tensor = vision.TensorImage.create_from_array(rgb_image)
-
-      # Run object detection estimation using the model.
-      detection_result = detector.detect(input_tensor)
-      class_index = [d.categories[0].index for d in detection_result.detections]
-      print(class_index)
-      
-      # Draw keypoints and edges on input image
-      image = utils.visualize(image, detection_result)
-
       # Stop the program if the ESC key is pressed.
       if cv2.waitKey(1) == 27:
         break
       cv2.imshow('object_detector', image)
-      cv2.imshow('contours', img_contours)
+      #cv2.imshow('contours', img_contours)
+      cv2.imshow('contours', contour_image)
 
       # Send serial data to Teensy
-
       # Create the serial data string
       if class_index: 
           serial_data = "1,1,{},45".format(class_index[0])
 
       # Send the serial data
           ser.write(serial_data.encode())
-      #break
 
   # When the camera is unreachable, send alert code 0 -> cameraIsOn = False
   ser.write(b'0')  
