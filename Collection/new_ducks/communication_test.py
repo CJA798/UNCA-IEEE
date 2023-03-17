@@ -105,43 +105,46 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
           # Find the contours in the binary image
           contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
           
+          # Enumerate contours
+          for i, c in enumerate(contour):
+            # Calculate the area of each contour
+            area = cv2.contourArea(c)
+
+            # Ignore contours that are too small or too large
+            if area < 100 or area > 20000:
+              continue
+          
+            # cv.minAreaRect returns:
+            # (center(x, y), (width, height), angle of rotation) = cv2.minAreaRect(c)
+            rect = cv2.minAreaRect(c)
+            box = cv2.boxPoints(rect)
+            box = np.int0(box)
+          
+            # Retrieve the key parameters of the rotated bounding box
+            center = (int(rect[0][0]),int(rect[0][1])) 
+            width = int(rect[1][0])
+            height = int(rect[1][1])
+            angle = int(rect[2])
+          
+              
+            if width < height:
+              angle = 90 - angle
+            else:
+              angle = -angle
+
+
           # Draw the contours on image
           cv2.drawContours(image, contour, -1, (255,255,0), 3)
           
           contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
 
-      # Enumerate contours
-      for i, c in enumerate(contours):
-        # Calculate the area of each contour
-        area = cv2.contourArea(c)
+      
 
-        # Ignore contours that are too small or too large
-        if area < 100 or area > 20000:
-          continue
-      
-        # cv.minAreaRect returns:
-        # (center(x, y), (width, height), angle of rotation) = cv2.minAreaRect(c)
-        rect = cv2.minAreaRect(c)
-        box = cv2.boxPoints(rect)
-        box = np.int0(box)
-      
-        # Retrieve the key parameters of the rotated bounding box
-        center = (int(rect[0][0]),int(rect[0][1])) 
-        width = int(rect[1][0])
-        height = int(rect[1][1])
-        angle = int(rect[2])
-      
-          
-        if width < height:
-          angle = 90 - angle
-        else:
-          angle = -angle
-
-        # Display orientation
-        label = "  Angle: " + str(angle) + " degrees"
-        textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
-        cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
-        cv2.drawContours(oriented_image,[box],0,(0,0,255),2)
+      # Display orientation
+      #label = "  Angle: " + str(angle) + " degrees"
+      #textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
+      #cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
+      cv2.drawContours(image,[box],0,(0,0,255),2)
 
       # Stop the program if the ESC key is pressed.
       if cv2.waitKey(1) == 27:
