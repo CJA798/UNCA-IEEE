@@ -77,7 +77,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         #cv2.imshow('segmentation', area)
         
         # Ignore contours that are too small or too large
-        if area < 10 or area > 20000:
+        if area < 100 or area > 20000:
           continue
       
         # cv.minAreaRect returns:
@@ -99,10 +99,10 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
           angle = -angle
 
         # Display orientation
-        label = "  Angle: " + str(angle) + " degrees"
-        textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
-        cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
-        cv2.drawContours(oriented_image,[box],0,(0,0,255),2)
+        #label = "  Angle: " + str(angle) + " degrees"
+        #textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
+        #cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
+        #cv2.drawContours(oriented_image,[box],0,(0,0,255),2)
 
       image = cv2.flip(image, 1)
 
@@ -114,8 +114,9 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
 
       # Run object detection estimation using the model.
       detection_result = detector.detect(input_tensor)
-      print(type(detection_result))
-      print(detection_result)
+      class_index = [d.categories[0].index for d in detection_result.detections]
+      print(class_index)
+      
       # Draw keypoints and edges on input image
       image = utils.visualize(image, detection_result)
 
