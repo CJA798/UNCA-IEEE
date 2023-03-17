@@ -129,10 +129,11 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Send serial data to Teensy
 
       # Create the serial data string
-      serial_data = "1,1,1,45"
+      if class_index: 
+          serial_data = "1,1,{},45".format(class_index[0])
 
       # Send the serial data
-      ser.write(serial_data.encode())
+          ser.write(serial_data.encode())
       #break
 
   # When the camera is unreachable, send alert code 0 -> cameraIsOn = False
