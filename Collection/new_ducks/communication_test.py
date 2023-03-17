@@ -78,18 +78,17 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       class_index = [d.categories[0].index for d in detection_result.detections]
       print(class_index)
 
-      # Draw keypoints and edges on input image
-      image = utils.visualize(image, detection_result)
-
 
       # OBJECT ORIENTATION:
       # Extract the bounding boxes from the DetectionResult object
       bounding_boxes = [(d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height) for d in detection_result.detections]
 
-      # Convert oriented_image to grayscale
+      # Convert oriented_image to hsv to identify colors easily
       hsv = cv2.cvtColor(oriented_image, cv2.COLOR_BGR2HSV)
+      # Convert oriented_image to grayscale to identify white
+      h, s, gray = cv2.split(hsv)
       # Convert oriented_image to grayscale
-      gray = cv2.cvtColor(hsv, cv2.COLOR_BGR2GRAY)
+      #gray = cv2.cvtColor(hsv, cv2.COLOR_BGR2GRAY)
 
       # Convert oriented_image to binary
       _, bw = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
@@ -139,13 +138,12 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
           
             contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
             # Display orientation
-            #label = "  Angle: " + str(angle) + " degrees"
-            #textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
-            #cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
+            label = "Angle: " + str(angle)
+            cv2.putText(oriented_image, label, (center[0]-10, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,0,255), 1, cv2.LINE_AA)
             cv2.drawContours(image,[box+ np.array([x, y]) ],0,(0,0,255),2)
 
-      
-
+      # Draw keypoints and edges on input image
+      image = utils.visualize(image, detection_result)
       
 
       # Stop the program if the ESC key is pressed.
