@@ -4,17 +4,17 @@
 //  Modified: Carlos Anzola (23 Feb 2023)
 ////////////////////////////////////////////////////////////////////////////////
 //  Class ID:
-//    0 = Pink_Duck
-//    1 = Yellow_Duck
-//    2 = Red_Pillar
+//    0 = Yellow_DuckPink_Duck
+//    1 = Pink_Duck
+//    2 = White_Pillar
 //    3 = Green_Pillar
-//    4 = White_Pillar
+//    4 = Red_Pillar
 //
 //  Data string format:
 //    isCameraOn,numObjectsInPlatform,classObjectsInPlatform,orientationObjectsInPlatform
 //    - Example:
 //        camera works, 2 objects: pink duck at 90°, and green pillar at 38°
-//        String raw_data = "1,2,0,90,3,38"
+//        String raw_data = "1,2,1,90,3,38"
 //    - NOTE: class and orientation are alternating
 ////////////////////////////////////////////////////////////////////////////////
 

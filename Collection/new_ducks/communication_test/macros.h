@@ -19,3 +19,8 @@
 #define MAX_INPUT_SIZE 128
 #define NO_INCOMING_DATA 0
 
+#define YELLOW_DUCK 0
+#define PINK_DUCK 1
+#define WHITE_PILLAR 2
+#define GREEN_PILLAR 3
+#define RED_PILLAR 4
