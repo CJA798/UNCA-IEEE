@@ -77,7 +77,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         #cv2.imshow('segmentation', area)
         
         # Ignore contours that are too small or too large
-        if area < 70 or area > 20000:
+        if area < 10 or area > 20000:
           continue
       
         # cv.minAreaRect returns:
@@ -99,9 +99,9 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
           angle = -angle
 
         # Display orientation
-        #label = "  Angle: " + str(angle) + " degrees"
-        #textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
-        #cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
+        label = "  Angle: " + str(angle) + " degrees"
+        textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
+        cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
         cv2.drawContours(oriented_image,[box],0,(0,0,255),2)
 
       image = cv2.flip(image, 1)
@@ -114,9 +114,8 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
 
       # Run object detection estimation using the model.
       detection_result = detector.detect(input_tensor)
-      class_index = [d.categories[0].index for d in detection_result.detections]
-      print(class_index)
-      #print(detection_result)
+      print(type(detection_result))
+      print(detection_result)
       # Draw keypoints and edges on input image
       image = utils.visualize(image, detection_result)
 
@@ -129,11 +128,10 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Send serial data to Teensy
 
       # Create the serial data string
-      serial_data = "1,1,1,45"
+      #serial_data = f"{int(camera_working)}, {num_objects}, {obj_class}, {obj_angle}"
 
       # Send the serial data
-      ser.write(serial_data.encode())
-      #break
+      #ser.write(serial_data.encode())
 
   # When the camera is unreachable, send alert code 0 -> cameraIsOn = False
   ser.write(b'0')  
