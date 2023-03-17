@@ -41,16 +41,13 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
   detector = vision.ObjectDetector.create_from_options(options)
 
   with Picamera2() as picam2:
-    # Continuously capture images from the camera and run inference
+    # Configure camera mode
+    preview_config = picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (160, 120)})
+    picam2.configure(preview_config)
+    picam2.start()
+    
     while True:
-      # Configure camera mode
-      preview_config = picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (160, 120)})
-      picam2.configure(preview_config)
-      picam2.start()
-
-      # Turn on full-time autofocus.
-      picam2.set_controls({"AfMode": 2 ,"AfTrigger": 0})
-
+      # Continuously capture images from the camera and run inference
       # Take picture
       image = picam2.capture_array()
 
@@ -107,7 +104,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
         cv2.drawContours(oriented_image,[box],0,(0,0,255),2)
 
-      counter += 1
       image = cv2.flip(image, 1)
 
       # Convert the image from BGR to RGB as required by the TFLite model.
