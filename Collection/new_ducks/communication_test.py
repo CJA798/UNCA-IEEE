@@ -86,16 +86,18 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
 
       # Find the contours of each bounding box
       contours = []
+      # Create an empty image for contours
+      img_contours = np.zeros(oriented_image.shape)
+
       for bbox in bounding_boxes:
           # Extract the region of the image defined by the bounding box
           x, y, w, h = bbox
           bw_roi = bw[y:y+h, x:x+w]
+
           # Find the contours in the binary image
           contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-          #create an empty image for contours
-          img_contours = np.zeros(oriented_image.shape)
-
-          # draw the contours on the empty image
+          
+          # Draw the contours on the empty image
           cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
           
           contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
@@ -104,8 +106,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       for i, c in enumerate(contours):
         # Calculate the area of each contour
         area = cv2.contourArea(c)
-        #cv2.imshow('segmentation', area)
-        
+
         # Ignore contours that are too small or too large
         if area < 100 or area > 20000:
           continue
