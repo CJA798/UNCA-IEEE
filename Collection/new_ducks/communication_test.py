@@ -21,7 +21,6 @@ ser.reset_input_buffer()
 
 # Safe Arduino exit on keyboard interrupt
 def arduino_exit(signal, frame):
-    print('Exiting...')
     ser.write(b'EXIT')  # send exit message to Arduino
     sys.exit(0)
 
@@ -88,7 +87,9 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       bounding_boxes = [(d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height) for d in detection_result.detections]
 
       # Convert oriented_image to grayscale
-      gray = cv2.cvtColor(oriented_image, cv2.COLOR_BGR2GRAY)
+      hsv = cv2.cvtColor(oriented_image, cv2.COLOR_BGR2HSV)
+      # Convert oriented_image to grayscale
+      gray = cv2.cvtColor(hsv, cv2.COLOR_BGR2GRAY)
 
       # Convert oriented_image to binary
       _, bw = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
@@ -99,21 +100,25 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       for bbox in bounding_boxes:
           # Extract the region of the image defined by the bounding box
           x, y, w, h = bbox
-          #bw_roi = bw[y:y+h, x:x+w]
-          bw_roi = bw
+          bw_roi = bw[y:y+h, x:x+w]
+          cv2.imshow('B/W Region of Interest', bw_roi)
+          #bw_roi = bw
 
           # Find the contours in the binary image
-          contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-          
+          contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
           # Enumerate contours
           for i, c in enumerate(contour):
             # Calculate the area of each contour
             area = cv2.contourArea(c)
 
             # Ignore contours that are too small or too large
-            if area < 2000 or area > 20000:
+            if area < 1000 or area > 20000:
               continue
-          
+
+            # Draw the contours on image
+            cv2.drawContours(image, contour[i]+ np.array([x, y]), -1, (255,255,0), 3)
+
             # cv.minAreaRect returns:
             # (center(x, y), (width, height), angle of rotation) = cv2.minAreaRect(c)
             rect = cv2.minAreaRect(c)
@@ -131,25 +136,24 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
               angle = 90 - angle
             else:
               angle = -angle
-
-
-          # Draw the contours on image
-          cv2.drawContours(image, contour, -1, (255,255,0), 3)
           
-          contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
+            contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
+            # Display orientation
+            #label = "  Angle: " + str(angle) + " degrees"
+            #textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
+            #cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
+            cv2.drawContours(image,[box+ np.array([x, y]) ],0,(0,0,255),2)
 
       
 
-      # Display orientation
-      #label = "  Angle: " + str(angle) + " degrees"
-      #textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
-      #cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
-      cv2.drawContours(image,[box],0,(0,0,255),2)
+      
 
       # Stop the program if the ESC key is pressed.
       if cv2.waitKey(1) == 27:
         break
       cv2.imshow('object_detector', image)
+      cv2.imshow('HSV', hsv)
+      cv2.imshow('Gray', gray)
 
       # Send serial data to Teensy
       # Create the serial data string
