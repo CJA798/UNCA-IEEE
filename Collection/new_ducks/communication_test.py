@@ -29,23 +29,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
   """
   # Configure the serial port
   ser = serial.Serial('/dev/ttyACM0', 9600)
-
-  # Variables to calculate FPS
-  counter, fps = 0, 0
-  start_time = time.time()
-
-  # Start capturing video input from the camera
-  picam2 = Picamera2()
-  picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
-  picam2.start()
-
-  # Visualization parameters
-  row_size = 20  # pixels
-  left_margin = 24  # pixels
-  text_color = (0, 0, 255)  # red
-  font_size = 1
-  font_thickness = 1
-  fps_avg_frame_count = 10
+  ser.reset_input_buffer()
 
   # Initialize the object detection model
   base_options = core.BaseOptions(
@@ -56,106 +40,106 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       base_options=base_options, detection_options=detection_options)
   detector = vision.ObjectDetector.create_from_options(options)
 
-  # Continuously capture images from the camera and run inference
-  while True:
-    image = picam2.capture_array()
-    
+  with Picamera2() as picam2:
+    # Continuously capture images from the camera and run inference
+    while True:
+      # Configure camera mode
+      preview_config = picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (160, 120)})
+      picam2.configure(preview_config)
+      picam2.start()
 
-    # Duplicate image. First one, for object detection; second one, for object orientation.
-    oriented_image = image
+      # Turn on full-time autofocus.
+      picam2.set_controls({"AfMode": 2 ,"AfTrigger": 0})
 
-    # Convert oriented_image to grayscale
-    gray = cv2.cvtColor(oriented_image, cv2.COLOR_BGR2GRAY)
+      # Take picture
+      image = picam2.capture_array()
 
-    # Convert oriented_image to binary
-    _, bw = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+      # Duplicate image. First one, for object detection; second one, for object orientation.
+      oriented_image = image
 
-    # Find all the contours in the thresholded oriented_image
-    contours, _ = cv2.findContours(bw, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    #create an empty image for contours
-    img_contours = np.zeros(oriented_image.shape)
-    # draw the contours on the empty image
-    cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
-    #cv2.imshow('contours', img_contours)
-    
-    # Enumerate contours
-    for i, c in enumerate(contours):
-      # Calculate the area of each contour
-      area = cv2.contourArea(c)
-      #cv2.imshow('segmentation', area)
+      # Convert oriented_image to grayscale
+      gray = cv2.cvtColor(oriented_image, cv2.COLOR_BGR2GRAY)
+
+      # Convert oriented_image to binary
+      _, bw = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+      # Find all the contours in the thresholded oriented_image
+      contours, _ = cv2.findContours(bw, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+
+      #create an empty image for contours
+      img_contours = np.zeros(oriented_image.shape)
+
+      # draw the contours on the empty image
+      cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
+      #cv2.imshow('contours', img_contours)
       
-      # Ignore contours that are too small or too large
-      if area < 10000 or area > 120000:
-        continue
-    
-      # cv.minAreaRect returns:
-      # (center(x, y), (width, height), angle of rotation) = cv2.minAreaRect(c)
-      rect = cv2.minAreaRect(c)
-      box = cv2.boxPoints(rect)
-      box = np.int0(box)
-    
-      # Retrieve the key parameters of the rotated bounding box
-      center = (int(rect[0][0]),int(rect[0][1])) 
-      width = int(rect[1][0])
-      height = int(rect[1][1])
-      angle = int(rect[2])
-    
+      # Enumerate contours
+      for i, c in enumerate(contours):
+        # Calculate the area of each contour
+        area = cv2.contourArea(c)
+        #cv2.imshow('segmentation', area)
         
-      if width < height:
-        angle = 90 - angle
-      else:
-        angle = -angle
+        # Ignore contours that are too small or too large
+        if area < 10000 or area > 120000:
+          continue
+      
+        # cv.minAreaRect returns:
+        # (center(x, y), (width, height), angle of rotation) = cv2.minAreaRect(c)
+        rect = cv2.minAreaRect(c)
+        box = cv2.boxPoints(rect)
+        box = np.int0(box)
+      
+        # Retrieve the key parameters of the rotated bounding box
+        center = (int(rect[0][0]),int(rect[0][1])) 
+        width = int(rect[1][0])
+        height = int(rect[1][1])
+        angle = int(rect[2])
+      
+          
+        if width < height:
+          angle = 90 - angle
+        else:
+          angle = -angle
 
-      # Display orientation
-      label = "  Angle: " + str(angle) + " degrees"
-      textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
-      cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
-      cv2.drawContours(oriented_image,[box],0,(0,0,255),2)
+        # Display orientation
+        label = "  Angle: " + str(angle) + " degrees"
+        textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
+        cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
+        cv2.drawContours(oriented_image,[box],0,(0,0,255),2)
 
-    counter += 1
-    image = cv2.flip(image, 1)
+      counter += 1
+      image = cv2.flip(image, 1)
 
-    # Convert the image from BGR to RGB as required by the TFLite model.
-    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+      # Convert the image from BGR to RGB as required by the TFLite model.
+      rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    # Create a TensorImage object from the RGB image.
-    input_tensor = vision.TensorImage.create_from_array(rgb_image)
+      # Create a TensorImage object from the RGB image.
+      input_tensor = vision.TensorImage.create_from_array(rgb_image)
 
-    # Run object detection estimation using the model.
-    detection_result = detector.detect(input_tensor)
+      # Run object detection estimation using the model.
+      detection_result = detector.detect(input_tensor)
 
-    # Draw keypoints and edges on input image
-    image = utils.visualize(image, detection_result)
+      # Draw keypoints and edges on input image
+      image = utils.visualize(image, detection_result)
 
-    # Calculate the FPS
-    if counter % fps_avg_frame_count == 0:
-      end_time = time.time()
-      fps = fps_avg_frame_count / (end_time - start_time)
-      start_time = time.time()
+      # Stop the program if the ESC key is pressed.
+      if cv2.waitKey(1) == 27:
+        break
+      cv2.imshow('object_detector', image)
+      cv2.imshow('contours', img_contours)
 
-    # Show the FPS
-    fps_text = 'FPS = {:.1f}'.format(fps)
-    text_location = (left_margin, row_size)
-    cv2.putText(image, fps_text, text_location, cv2.FONT_HERSHEY_PLAIN,
-                font_size, text_color, font_thickness)
+      # Send serial data to Teensy
 
-    # Stop the program if the ESC key is pressed.
-    if cv2.waitKey(1) == 27:
-      break
-    cv2.imshow('object_detector', image)
-    cv2.imshow('contours', img_contours)
+      # Create the serial data string
+      #serial_data = f"{int(camera_working)}, {num_objects}, {obj_class}, {obj_angle}"
 
-    # Send serial data to Teensy
+      # Send the serial data
+      #ser.write(serial_data.encode())
 
-    # Create the serial data string
-    serial_data = f"{int(camera_working)}, {num_objects}, {obj_class}, {obj_angle}"
-
-    # Send the serial data
-    ser.write(serial_data.encode())
-    
-
-  cap.release()
+  # When the camera is unreachable, send alert code 0 -> cameraIsOn = False
+  ser.write(b'0')  
   cv2.destroyAllWindows()
+
 
 
 def main():
