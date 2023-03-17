@@ -86,19 +86,18 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
 
       # Find the contours of each bounding box
       contours = []
-      # Create an empty image for contours
-      img_contours = np.zeros(oriented_image.shape)
 
       for bbox in bounding_boxes:
           # Extract the region of the image defined by the bounding box
           x, y, w, h = bbox
-          bw_roi = bw[y:y+h, x:x+w]
+          #bw_roi = bw[y:y+h, x:x+w]
+          bw_roi = bw
 
           # Find the contours in the binary image
           contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
           
-          # Draw the contours on the empty image
-          cv2.drawContours(img_contours, contours, -1, (0,255,0), 3)
+          # Draw the contours on image
+          cv2.drawContours(image, contour, -1, (255,255,0), 3)
           
           contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
 
@@ -130,17 +129,15 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
           angle = -angle
 
         # Display orientation
-        #label = "  Angle: " + str(angle) + " degrees"
-        #textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
-        #cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
-        #cv2.drawContours(oriented_image,[box],0,(0,0,255),2)
+        label = "  Angle: " + str(angle) + " degrees"
+        textbox = cv2.rectangle(oriented_image, (center[0]-35, center[1]-25), (center[0] + 295, center[1] + 10), (255,255,255), -1)
+        cv2.putText(oriented_image, label, (center[0]-50, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,0), 1, cv2.LINE_AA)
+        cv2.drawContours(oriented_image,[box],0,(0,0,255),2)
 
       # Stop the program if the ESC key is pressed.
       if cv2.waitKey(1) == 27:
         break
       cv2.imshow('object_detector', image)
-      cv2.imshow('contours', img_contours)
-      #cv2.imshow('contours', contour_image)
 
       # Send serial data to Teensy
       # Create the serial data string
