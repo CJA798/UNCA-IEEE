@@ -36,8 +36,18 @@ void setup() {
   pinMode(pinWhitePillar, OUTPUT);
 
   orientationServo.attach(ORIENTATION_SERVO_PIN);
-  
   Serial.begin(9600);
+  
+  bool raspi_ready = false;
+  while (!raspi_ready) {
+    if (Serial.available()) {
+      String message = Serial.readStringUntil('\n');
+      if (message == "ready") {
+        raspi_ready = true;
+        Serial.println("ready");
+      }
+    }
+  }
 }
 
 void loop() {
@@ -64,11 +74,10 @@ void loop() {
       // Move servo to correct angle
       int angle = dataPackage.orientationObjectsInPlatform[0];    
       orientationServo.write(abs(angle));
-      Serial.println(angle);
     }
+    dataPackage.print_data_package();    
   }
-
-  
+  //dataPackage.print_data_package();
 }
 
 void clearSignals(){

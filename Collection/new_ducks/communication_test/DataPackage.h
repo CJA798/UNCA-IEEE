@@ -125,6 +125,20 @@ public:
   // Public attribute to track status
   Data_Package_Error status;
 
+  /// Method to print the current data package
+  void print_data_package() const {
+    Serial.print(isCameraWorking);
+    Serial.print(", ");
+    Serial.print(numObjectsInPlatform);
+
+    for (int i = 0; i < numObjectsInPlatform; i++) {
+        Serial.print(classObjectsInPlatform[i]);
+        Serial.print(", ");
+        Serial.print(orientationObjectsInPlatform[i]);
+        Serial.print(", ");
+    }
+    Serial.println();
+  }
   // Getter for isCameraWorking attribute
   bool getIsCameraWorking() const {
     return isCameraWorking;
