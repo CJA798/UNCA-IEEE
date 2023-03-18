@@ -67,6 +67,8 @@ void loop() {
       Serial.println(angle);
     }
   }
+
+  
 }
 
 void clearSignals(){
