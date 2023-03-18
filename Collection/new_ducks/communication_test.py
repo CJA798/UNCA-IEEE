@@ -74,6 +74,9 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Run object detection estimation using the model.
       detection_result = detector.detect(input_tensor)
 
+      # Extract the indexes from the DetectionResult object
+      class_index = [d.categories[0].index for d in detection_result.detections]
+
 
       # OBJECT ORIENTATION:
       # Extract the bounding boxes from the DetectionResult object
@@ -92,12 +95,11 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Find the contours of each bounding box
       contours = []
       angles = []
-      for j, bbox in enumerate(bounding_boxes):
+      for bbox in bounding_boxes:
           # Extract the region of the image defined by the bounding box
           x, y, w, h = bbox
           bw_roi = bw[y:y+h, x:x+w]
-          #cv2.imshow('B/W Region of Interest', bw_roi)
-          #bw_roi = bw
+          cv2.imshow('B/W Region of Interest', bw_roi)
 
           # Find the contours in the binary image
           contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -139,11 +141,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
             label = "Angle: " + str(angle)
             cv2.putText(oriented_image, label, (center[0]-10, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,0,255), 1, cv2.LINE_AA)
             cv2.drawContours(image,[box+ np.array([x, y]) ],0,(0,0,255),2)
-
-          # Store class index and angle
-          (index, orientation) = (detection_result.detections[j].categories[0].index, angle)
-          print((index, orientation))
-
+        
 
       # Draw keypoints and edges on input image
       image = utils.visualize(image, detection_result)
@@ -152,19 +150,25 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Stop the program if the ESC key is pressed.
       if cv2.waitKey(1) == 27:
         break
-      #cv2.imshow('object_detector', image)
-      #cv2.imshow('HSV', hsv)
-      #cv2.imshow('Gray', gray)
+      cv2.imshow('object_detector', image)
+      cv2.imshow('HSV', hsv)
+      cv2.imshow('Gray', gray)
 
-      # Extract the indexes from the DetectionResult object
-      class_index = [d.categories[0].index for d in detection_result.detections]
+      # Zip the two data arrays together into one iterable
+      zip_index_angle_data = zip(class_index,angles)
+
+      # Use list comprehension to flatten the iterable into a list of integers
+      flat_index_angle_data = [num for pair in zip_index_angle_data for num in pair]
+
+      # Convert the list of integers into a comma-separated string
+      index_angle_data = ','.join(map(str, flat_index_angle_data))
 
       # Send serial data to Teensy
-      # Create the serial data string
       if class_index: 
-          serial_data = "1,1,{},45".format(class_index[0])
-
-      # Send the serial data
+          # Create the serial data string
+          serial_data = "1,{},{}".format(len(class_index), index_angle_data)
+          print(serial_data)
+          # Send the serial data
           ser.write(serial_data.encode())
 
   # When the camera is unreachable, send alert code 0 -> cameraIsOn = False
