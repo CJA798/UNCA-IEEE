@@ -15,6 +15,12 @@ import numpy as np
 import serial
 import signal
 
+'''TODO 
+    1) Send respective string when no objects detected
+    2) Don't send data until Teensy has processed the previous data package
+    3) Figure out why the Teensy is slow '''
+
+
 # Configure the serial port
 ser = serial.Serial('/dev/ttyACM0', 9600)
 ser.reset_input_buffer()
@@ -146,7 +152,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Draw keypoints and edges on input image
       image = utils.visualize(image, detection_result)
       
-
       # Stop the program if the ESC key is pressed.
       if cv2.waitKey(1) == 27:
         break
