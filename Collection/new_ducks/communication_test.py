@@ -49,16 +49,38 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
   base_options = core.BaseOptions(
       file_name=model, use_coral=enable_edgetpu, num_threads=num_threads)
   detection_options = processor.DetectionOptions(
-      max_results=10, score_threshold=0.7)
+      max_results=10, score_threshold=0.6)
   options = vision.ObjectDetectorOptions(
       base_options=base_options, detection_options=detection_options)
   detector = vision.ObjectDetector.create_from_options(options)
 
+  # Set camera frame size
+  frame_width = 240
+  frame_height = 120
+  frame_area = frame_width * frame_height
+
+  # Set area threshold based on frame size
+  min_area = 0.05 * frame_area
+  max_area = 1 * frame_area
+
+  teensy_ready = False
+
   with Picamera2() as picam2:
     # Configure camera mode
-    preview_config = picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (160, 120)})
+    preview_config = picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (frame_width, frame_height)})
     picam2.configure(preview_config)
     picam2.start()
+
+    # Tell Teensy RPi is ready
+    ser.reset_output_buffer()
+    ser.write(b'ready')
+
+    while not teensy_ready:
+      if ser.in_waiting > 0:
+        message = ser.readline().decode('utf-8').rstrip()
+        print('print {}'.format(message))
+        if message == 'ready':
+          teensy_ready = True
     
     while True:
       # Continuously capture images from the camera and run inference
@@ -116,7 +138,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
             area = cv2.contourArea(c)
 
             # Ignore contours that are too small or too large
-            if area < 1000 or area > 20000:
+            if area < min_area or area > max_area:
               continue
 
             # Draw the contours on image
@@ -169,12 +191,19 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       index_angle_data = ','.join(map(str, flat_index_angle_data))
 
       # Send serial data to Teensy
-      if class_index: 
-          # Create the serial data string
-          serial_data = "1,{},{}".format(len(class_index), index_angle_data)
-          print(serial_data)
-          # Send the serial data
-          ser.write(serial_data.encode())
+      teensy_data_package = ''
+      if ser.in_waiting > 0:
+        teensy_ready = True
+        teensy_data_package = ser.readline().decode('utf-8').rstrip()
+        print('Current Data Package (Arduino): {}'.format(teensy_data_package))
+      if teensy_ready and class_index:
+        teensy_ready = False
+        # Create the serial data string
+        serial_data = "1,{},{}".format(len(class_index), index_angle_data)
+        print('Upcoming Data Package (RPi): {}'.format(serial_data))
+        # Send the serial data
+        ser.reset_output_buffer()
+        ser.write(serial_data.encode())
 
   # When the camera is unreachable, send alert code 0 -> cameraIsOn = False
   ser.write(b'0')  
