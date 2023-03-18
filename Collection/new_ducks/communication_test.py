@@ -74,10 +74,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Run object detection estimation using the model.
       detection_result = detector.detect(input_tensor)
 
-      # Extract the indexes from the DetectionResult object
-      class_index = [d.categories[0].index for d in detection_result.detections]
-      print(class_index)
-
 
       # OBJECT ORIENTATION:
       # Extract the bounding boxes from the DetectionResult object
@@ -95,12 +91,12 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
 
       # Find the contours of each bounding box
       contours = []
-
-      for bbox in bounding_boxes:
+      angles = []
+      for j, bbox in enumerate(bounding_boxes):
           # Extract the region of the image defined by the bounding box
           x, y, w, h = bbox
           bw_roi = bw[y:y+h, x:x+w]
-          cv2.imshow('B/W Region of Interest', bw_roi)
+          #cv2.imshow('B/W Region of Interest', bw_roi)
           #bw_roi = bw
 
           # Find the contours in the binary image
@@ -137,10 +133,17 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
               angle = -angle
           
             contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
+            angles.append(angle)
+
             # Display orientation
             label = "Angle: " + str(angle)
             cv2.putText(oriented_image, label, (center[0]-10, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,0,255), 1, cv2.LINE_AA)
             cv2.drawContours(image,[box+ np.array([x, y]) ],0,(0,0,255),2)
+
+          # Store class index and angle
+          (index, orientation) = (detection_result.detections[j].categories[0].index, angle)
+          print((index, orientation))
+
 
       # Draw keypoints and edges on input image
       image = utils.visualize(image, detection_result)
@@ -149,9 +152,12 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Stop the program if the ESC key is pressed.
       if cv2.waitKey(1) == 27:
         break
-      cv2.imshow('object_detector', image)
-      cv2.imshow('HSV', hsv)
-      cv2.imshow('Gray', gray)
+      #cv2.imshow('object_detector', image)
+      #cv2.imshow('HSV', hsv)
+      #cv2.imshow('Gray', gray)
+
+      # Extract the indexes from the DetectionResult object
+      class_index = [d.categories[0].index for d in detection_result.detections]
 
       # Send serial data to Teensy
       # Create the serial data string
