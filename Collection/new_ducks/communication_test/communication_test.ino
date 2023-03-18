@@ -27,6 +27,7 @@ Servo orientationServo;
 DataPackage dataPackage;
 
 void setup() {
+     
   pinMode(pinLED1, OUTPUT);      // Set pin 13 to output
   pinMode(pinPinkDuck, OUTPUT);
   pinMode(pinYellowDuck, OUTPUT);

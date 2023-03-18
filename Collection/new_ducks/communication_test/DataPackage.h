@@ -4,7 +4,7 @@
 //  Modified: Carlos Anzola (23 Feb 2023)
 ////////////////////////////////////////////////////////////////////////////////
 //  Class ID:
-//    0 = Yellow_DuckPink_Duck
+//    0 = Yellow_Duck
 //    1 = Pink_Duck
 //    2 = White_Pillar
 //    3 = Green_Pillar
