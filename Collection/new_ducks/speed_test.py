@@ -127,7 +127,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
           # Extract the region of the image defined by the bounding box
           x, y, w, h = bbox
           bw_roi = bw[y:y+h, x:x+w]
-          cv2.imshow('B/W Region of Interest', bw_roi)
 
           # Find the contours in the binary image
           contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -140,9 +139,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
             # Ignore contours that are too small or too large
             if area < min_area or area > max_area:
               continue
-
-            # Draw the contours on image
-            cv2.drawContours(image, contour[i]+ np.array([x, y]), -1, (255,255,0), 3)
 
             # cv.minAreaRect returns:
             # (center(x, y), (width, height), angle of rotation) = cv2.minAreaRect(c)
@@ -167,19 +163,10 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
 
             # Display orientation
             label = "Angle: " + str(angle)
-            cv2.putText(oriented_image, label, (center[0]-10, center[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255,0,255), 1, cv2.LINE_AA)
-            cv2.drawContours(image,[box+ np.array([x, y]) ],0,(0,0,255),2)
-        
 
-      # Draw keypoints and edges on input image
-      image = utils.visualize(image, detection_result)
-      
       # Stop the program if the ESC key is pressed.
       if cv2.waitKey(1) == 27:
         break
-      cv2.imshow('object_detector', image)
-      cv2.imshow('HSV', hsv)
-      cv2.imshow('Gray', gray)
 
       # Zip the two data arrays together into one iterable
       zip_index_angle_data = zip(class_index,angles)
@@ -194,13 +181,13 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       teensy_data_package = ''
       if ser.in_waiting > 0:
         teensy_ready = True
-        teensy_data_package = ser.readline().decode('utf-8').rstrip()
-        print('Current Data Package (Arduino): {}'.format(teensy_data_package))
+        #teensy_data_package = ser.readline().decode('utf-8').rstrip()
+        #print('Current Data Package (Arduino): {}'.format(teensy_data_package))
       if teensy_ready and class_index:
         teensy_ready = False
         # Create the serial data string
         serial_data = "1,{},{}".format(len(class_index), index_angle_data)
-        print('Upcoming Data Package (RPi): {}'.format(serial_data))
+        #print('Upcoming Data Package (RPi): {}'.format(serial_data))
         # Send the serial data
         ser.reset_output_buffer()
         ser.write(serial_data.encode())
