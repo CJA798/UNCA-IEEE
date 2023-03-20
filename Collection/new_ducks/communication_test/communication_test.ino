@@ -36,7 +36,7 @@ void setup() {
   pinMode(pinWhitePillar, OUTPUT);
 
   orientationServo.attach(ORIENTATION_SERVO_PIN);
-  Serial.begin(9600);
+  Serial.begin(115200);
   
   bool raspi_ready = false;
   while (!raspi_ready) {
