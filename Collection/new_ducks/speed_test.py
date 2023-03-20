@@ -90,9 +90,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # OBJECT DETECTION:
       image = cv2.flip(image, 1)
 
-      # Duplicate image. First one, for object detection; second one, for object orientation.
-      oriented_image = image
-
       # Convert the image from BGR to RGB as required by the TFLite model.
       rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -111,9 +108,9 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       bounding_boxes = [(d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height) for d in detection_result.detections]
 
       # Convert oriented_image to hsv to identify colors easily
-      hsv = cv2.cvtColor(oriented_image, cv2.COLOR_BGR2HSV)
+      hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
       # Convert oriented_image to grayscale to identify white
-      h, s, gray = cv2.split(hsv)
+      _, _, gray = cv2.split(hsv)
       # Convert oriented_image to grayscale
       #gray = cv2.cvtColor(hsv, cv2.COLOR_BGR2GRAY)
 
@@ -132,7 +129,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
           contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
           # Enumerate contours
-          for i, c in enumerate(contour):
+          for _, c in enumerate(contour):
             # Calculate the area of each contour
             area = cv2.contourArea(c)
 
@@ -147,7 +144,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
             box = np.int0(box)
           
             # Retrieve the key parameters of the rotated bounding box
-            center = (int(rect[0][0]),int(rect[0][1])) 
             width = int(rect[1][0])
             height = int(rect[1][1])
             angle = int(rect[2])
@@ -161,8 +157,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
             contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
             angles.append(angle)
 
-            # Display orientation
-            label = "Angle: " + str(angle)
 
       # Stop the program if the ESC key is pressed.
       if cv2.waitKey(1) == 27:
@@ -181,13 +175,13 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       teensy_data_package = ''
       if ser.in_waiting > 0:
         teensy_ready = True
-        #teensy_data_package = ser.readline().decode('utf-8').rstrip()
-        #print('Current Data Package (Arduino): {}'.format(teensy_data_package))
+        teensy_data_package = ser.readline().decode('utf-8').rstrip()
+        print('Current Data Package (Arduino): {}'.format(teensy_data_package))
       if teensy_ready and class_index:
         teensy_ready = False
         # Create the serial data string
         serial_data = "1,{},{}".format(len(class_index), index_angle_data)
-        #print('Upcoming Data Package (RPi): {}'.format(serial_data))
+        print('Upcoming Data Package (RPi): {}'.format(serial_data))
         # Send the serial data
         ser.reset_output_buffer()
         ser.write(serial_data.encode())
