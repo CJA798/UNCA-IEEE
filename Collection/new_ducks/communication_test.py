@@ -127,8 +127,9 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
           # Extract the region of the image defined by the bounding box
           x, y, w, h = bbox
           bw_roi = bw[y:y+h, x:x+w]
-          cv2.imshow('B/W Region of Interest', bw_roi)
-
+          if bw_roi.shape[0] > 0 and bw_roi.shape[1] > 0:
+            cv2.imshow('B/W Region of Interest', bw_roi)
+            
           # Find the contours in the binary image
           contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
