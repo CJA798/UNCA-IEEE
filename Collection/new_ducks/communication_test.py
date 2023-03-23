@@ -81,6 +81,10 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         print('print {}'.format(message))
         if message == 'ready':
           teensy_ready = True
+        else:
+          ser.reset_output_buffer()
+          print('ready sent again')
+          ser.write(b'ready')
     
     while True:
       # Continuously capture images from the camera and run inference
@@ -205,6 +209,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         # Send the serial data
         ser.reset_output_buffer()
         ser.write(serial_data.encode())
+      
 
   # When the camera is unreachable, send alert code 0 -> cameraIsOn = False
   ser.write(b'0')  
