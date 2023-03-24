@@ -130,6 +130,7 @@ public:
     Serial.print(isCameraWorking);
     Serial.print(", ");
     Serial.print(numObjectsInPlatform);
+    Serial.print(", ");
 
     for (int i = 0; i < numObjectsInPlatform; i++) {
         Serial.print(classObjectsInPlatform[i]);
