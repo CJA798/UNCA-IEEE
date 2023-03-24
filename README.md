@@ -1,5 +1,5 @@
 # UNCA-IEEE
-# ***2 WEEKS LEFT BEFORE THE COMPETITION***
+# ***TWO WEEKS LEFT BEFORE THE COMPETITION!!***
 ### This repository contains all the latest code and CAD files for the bot
 #### Important Links:
 - [South East Con 2023 Hardware Competition](https://ieeesoutheastcon.org/)
