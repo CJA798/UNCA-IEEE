@@ -38,16 +38,8 @@ void setup() {
   orientationServo.attach(ORIENTATION_SERVO_PIN);
   Serial.begin(115200);
   
-  bool raspi_ready = false;
-  while (!raspi_ready) {
-    if (Serial.available()) {
-      String message = Serial.readStringUntil('\n');
-      if (message == "ready") {
-        raspi_ready = true;
-        Serial.println("ready");
-      }
-    }
-  }
+  waitForPi();
+  
 }
 
 void loop() {
@@ -57,7 +49,14 @@ void loop() {
     String input_string = Serial.readStringUntil('\n');
     if (input_string == "EXIT") {
       clearSignals();  // call clearSignals() function if exit message received
-    } else {
+    }
+    
+    else if (input_string == "RESET") {
+      clearSignals();  // call clearSignals() function if exit message received
+      waitForPi();
+    } 
+
+    else {
       size_t input_size = input_string.length();
       uint8_t* input_array = (uint8_t*) input_string.c_str();
       
@@ -86,4 +85,17 @@ void clearSignals(){
   digitalWrite(pinRedPillar, LOW);
   digitalWrite(pinGreenPillar, LOW);
   digitalWrite(pinWhitePillar, LOW);
+}
+
+void waitForPi(){
+  bool raspi_ready = false;
+  while (!raspi_ready) {
+    if (Serial.available()) {
+      String message = Serial.readStringUntil('\n');
+      if (message == "ready") {
+        raspi_ready = true;
+        Serial.println("ready");
+      }
+    }
+  }
 }
