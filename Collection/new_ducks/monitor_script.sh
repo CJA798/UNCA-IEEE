@@ -12,12 +12,9 @@ while true; do
     # Check the exit status of the Python script
     if [ $? -eq 0 ]; then
         echo "communication_test.py exited successfully"
-	sleep 5
-	echo "RESET" > $SERIAL_PORT
     else
         echo "ERROR: communication_test.py exited with an error. Restarting..."
 	# Send a reset signal to the Teensy
-	sleep 5
 	echo "RESET" > $SERIAL_PORT
     fi
 
