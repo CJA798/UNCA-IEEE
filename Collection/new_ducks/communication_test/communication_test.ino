@@ -28,7 +28,7 @@ DataPackage dataPackage;
 
 void setup() {
      
-  pinMode(pinLED1, OUTPUT);      // Set pin 13 to output
+  pinMode(pinLED1, OUTPUT);      // Built-in LED
   pinMode(pinPinkDuck, OUTPUT);
   pinMode(pinYellowDuck, OUTPUT);
   pinMode(pinRedPillar, OUTPUT);
@@ -76,7 +76,6 @@ void loop() {
     }
     dataPackage.print_data_package();    
   }
-  //dataPackage.print_data_package();
 }
 
 void clearSignals(){
