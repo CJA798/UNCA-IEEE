@@ -38,10 +38,23 @@
 #define FIRST_YELLOW_DUCK 0
 #define SECOND_YELLOW_DUCK 2
 
-#define NO_STORAGE_AVAILABLE 15
+#define NO_STORAGE_AVAILABLE 15 // 4'b1111
 #define FIRST_SLOT 0
 #define SECOND_SLOT 1
 #define THIRD_SLOT 2
+#define FOURTH_SLOT 3   // whites
+#define FIFTH_SLOT 4    // greens
+#define SIXTH_SLOT 5    // red & green
+#define BRACING_SLOT 6  // white
 
 #define FIRST_POSITION 0
 #define SECOND_POSITION 1
+
+#define PUSH_IN 0
+#define PUSH_OUT 1
+
+#define CANT_ADD_ITEM 0
+#define ITEM_ADDED 1
+
+#define ITEM_REMOVED 0
+#define CANT_REMOVE_ITEM 1
