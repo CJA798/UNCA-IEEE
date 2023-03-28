@@ -1,343 +1,216 @@
 #include <main.h>
-#include <Map.h>
 
-/*
-void setup()
+Stepper motor_1(MTR1STEP, MTR1DIR); // Stepper objects
+Stepper motor_2(MTR2STEP, MTR2DIR);
+Stepper motor_3(MTR3STEP, MTR3DIR);
+Stepper motor_4(MTR4STEP, MTR4DIR);
+StepControl controller; // Stepper controller object
+
+// DEBOUNCE OBJECTS FOR SWITCHES
+Bounce FrontLeftSw = Bounce();
+Bounce FrontRightSw = Bounce();
+Bounce BackRightSw = Bounce();
+Bounce BackLeftSw = Bounce();
+Bounce RightSideRightSw = Bounce();
+Bounce RightSideLeftSw = Bounce();
+Bounce LeftSideRightSw = Bounce();
+Bounce LeftSideLeftSw = Bounce();
+
+bool SwitchesState[8] = {0};
+
+void InitSwitches(void)
 {
-  // put your setup code here, to run once:
+  //THIS FUNCTION SETS THE PIN MODE FOR INPUT SWITCHES AND ATTACHES THEM TO THEIR DEBOUNCE OBJECT 
+
+  pinMode(FRONT_LEFT_SWITCH, INPUT_PULLUP);
+  pinMode(FRONT_RIGHT_SWITCH, INPUT_PULLUP);
+  pinMode(RIGHTSIDE_LEFT_SWITCH, INPUT_PULLUP);
+  pinMode(RIGHTSIDE_RIGHT_SWITCH, INPUT_PULLUP);
+  pinMode(LEFTSIDE_LEFT_SWITCH, INPUT_PULLUP);
+  pinMode(RIGHTSIDE_RIGHT_SWITCH, INPUT_PULLUP);
+  pinMode(BACK_RIGHT_SWITCH, INPUT_PULLUP);
+  pinMode(BACK_LEFT_SWTICH, INPUT_PULLUP);
+
+  FrontRightSw.attach(FRONT_RIGHT_SWITCH); // 1
+  FrontRightSw.interval(DEBOUNCE_TIME);
+  FrontLeftSw.attach(FRONT_LEFT_SWITCH); // 2
+  FrontLeftSw.interval(DEBOUNCE_TIME);
+  BackRightSw.attach(BACK_RIGHT_SWITCH); // 3
+  BackRightSw.interval(DEBOUNCE_TIME);
+  BackLeftSw.attach(BACK_LEFT_SWTICH); // 3
+  BackLeftSw.interval(DEBOUNCE_TIME);
+  RightSideRightSw.attach(RIGHTSIDE_RIGHT_SWITCH); // 4
+  RightSideRightSw.interval(DEBOUNCE_TIME);
+  RightSideLeftSw.attach(RIGHTSIDE_LEFT_SWITCH); // 5
+  RightSideLeftSw.interval(DEBOUNCE_TIME);
+  LeftSideRightSw.attach(LEFTSIDE_RIGHT_SWITCH); // 6
+  LeftSideRightSw.interval(DEBOUNCE_TIME);
+  LeftSideLeftSw.attach(LEFTSIDE_LEFT_SWITCH); // 6
+  LeftSideLeftSw.interval(DEBOUNCE_TIME);
 }
 
-void loop()
+void SwitchesProcess(void)
 {
-  // put your main code here, to run repeatedly:
+  FrontRightSw.update(); //1
+  FrontLeftSw.update(); //2
+  BackLeftSw.update(); //3
+  BackRightSw.update();  //4
+  RightSideLeftSw.update(); //5
+  RightSideRightSw.update(); //6
+  LeftSideLeftSw.update(); //7
+  LeftSideRightSw.update(); // 8
+
+  SwitchesState[0] = FrontLeftSw.read();
+  SwitchesState[1] = FrontRightSw.read();
+  SwitchesState[2] = RightSideLeftSw.read();
 }
-*/
-
-// TOF sensor test code
-
-// Objects for the L1x
-Adafruit_VL53L1X sens1 = Adafruit_VL53L1X(XSHUT_PIN1);
-Adafruit_VL53L1X sens2 = Adafruit_VL53L1X(XSHUT_PIN2);
-Adafruit_VL53L1X sens3 = Adafruit_VL53L1X(XSHUT_PIN3);
-Adafruit_VL53L1X sens4 = Adafruit_VL53L1X(XSHUT_PIN4);
-
-// objects for the vl53l0x
-Adafruit_VL53L0X lox1 = Adafruit_VL53L0X();
-Adafruit_VL53L0X lox2 = Adafruit_VL53L0X();
-Adafruit_VL53L0X lox3 = Adafruit_VL53L0X();
-Adafruit_VL53L0X lox4 = Adafruit_VL53L0X();
-
-// this holds the measurement
-VL53L0X_RangingMeasurementData_t measure1;
-VL53L0X_RangingMeasurementData_t measure2;
-VL53L0X_RangingMeasurementData_t measure3;
-VL53L0X_RangingMeasurementData_t measure4;
-
-void setIDL0()
-{
-  Serial.println("Second set of sensors");
-  // all reset
-  digitalWrite(SHT_LOX1, LOW);
-  digitalWrite(SHT_LOX2, LOW);
-  digitalWrite(SHT_LOX3, LOW);
-  digitalWrite(SHT_LOX4, LOW);
-  delay(RESET_TIME);
-  // all unreset
-  digitalWrite(SHT_LOX1, HIGH);
-  digitalWrite(SHT_LOX2, HIGH);
-  digitalWrite(SHT_LOX3, HIGH);
-  digitalWrite(SHT_LOX4, HIGH);
-  delay(RESET_TIME);
-
-  // activating LOX1
-  digitalWrite(SHT_LOX1, HIGH);
-  digitalWrite(SHT_LOX2, LOW);
-  digitalWrite(SHT_LOX3, LOW);
-  digitalWrite(SHT_LOX4, LOW);
-
-  // initing LOX1
-  if (!lox1.begin(LOX1_ADDRESS))
-  {
-    Serial.println(F("Failed to boot first VL53L0X"));
-    while (1)
-      ;
-  }
-  delay(RESET_TIME);
-
-  // activating LOX2
-  digitalWrite(SHT_LOX2, HIGH);
-  digitalWrite(SHT_LOX3, LOW);
-  digitalWrite(SHT_LOX4, LOW);
-  delay(RESET_TIME);
-
-  // initing LOX2
-  if (!lox2.begin(LOX2_ADDRESS))
-  {
-    Serial.println(F("Failed to boot second VL53L0X"));
-    while (1)
-      ;
-  }
-
-  digitalWrite(SHT_LOX3, HIGH);
-  digitalWrite(SHT_LOX4, LOW);
-  delay(10);
-  if (!lox1.begin(LOX3_ADDRESS))
-  {
-    Serial.println(F("Failed to boot first VL53L0X"));
-    while (1)
-      ;
-  }
-  delay(10);
-
-  // activating LOX2
-  digitalWrite(SHT_LOX4, HIGH);
-  delay(10);
-
-  // initing LOX2
-  if (!lox2.begin(LOX4_ADDRESS))
-  {
-    Serial.println(F("Failed to boot second VL53L0X"));
-    while (1)
-      ;
-  }
-}
-
-void read_L0x_sensors()
+void InitSteppers(void)
 {
 
-  lox1.rangingTest(&measure1, false); // pass in 'true' to get debug data printout!
-  lox2.rangingTest(&measure2, false); // pass in 'true' to get debug data printout!
-  lox3.rangingTest(&measure3, false); // pass in 'true' to get debug data printout!
-  lox4.rangingTest(&measure4, false); // pass in 'true' to get debug data printout!
-
-  // print sensor one reading
-  Serial.print(F("1: "));
-  if (measure1.RangeStatus != 4)
-  { // if not out of range
-    Serial.print(measure1.RangeMilliMeter);
-  }
-  else
-  {
-    Serial.print(F("Out of range"));
-  }
-
-  Serial.print(F(" "));
-
-  // print sensor two reading
-  Serial.print(F("2: "));
-  if (measure2.RangeStatus != 4)
-  {
-    Serial.print(measure2.RangeMilliMeter);
-  }
-  else
-  {
-    Serial.print(F("Out of range"));
-  }
-  Serial.print(F(" "));
-
-  Serial.print(F("3: "));
-  if (measure1.RangeStatus != 4)
-  { // if not out of range
-    Serial.print(measure3.RangeMilliMeter);
-  }
-  else
-  {
-    Serial.print(F("Out of range"));
-  }
-
-  Serial.print(F(" "));
-
-  // print sensor two reading
-  Serial.print(F("4: "));
-  if (measure2.RangeStatus != 4)
-  {
-    Serial.print(measure4.RangeMilliMeter);
-  }
-  else
-  {
-    Serial.print(F("Out of range"));
-  }
-
-  Serial.println();
-}
-
-// Initializing the L1x sensors
-void setIDL1()
-{
-  Serial.println("First set of sensors");
-  delay(RESET_TIME);
-  Serial.println("TEST");
-  if (!sens1.begin(L1X1_ADDRESS, &Wire))
-  {
-    Serial.print(F("Error on init of VL sensor: "));
-    Serial.println(sens1.vl_status);
-    while (1)
-    {
-      delay(10);
-      Serial.println("FAILURE");
-    }
-  }
-  Serial.println("Sens1 Works");
-  if (!sens2.begin(L1X2_ADDRESS, &Wire))
-  {
-    Serial.print(F("Error on init of VL sensor: "));
-    Serial.println(sens2.vl_status);
-    while (1)
-      delay(10);
-  }
-  Serial.println("Sens2 Works");
-  if (!sens3.begin(L1X3_ADDRESS, &Wire))
-  {
-    Serial.print(F("Error on init of VL sensor: "));
-    Serial.println(sens3.vl_status);
-    while (1)
-      delay(10);
-  }
-  if (!sens4.begin(L1X4_ADDRESS, &Wire))
-  {
-    Serial.print(F("Error on init of VL sensor: "));
-    Serial.println(sens4.vl_status);
-    while (1)
-      delay(10);
-  }
-  Serial.println(F("VL53L1X sensors OK!"));
-  delay(RESET_TIME);
-  Serial.print(F("Sensor ID: 0x"));
-  delay(RESET_TIME);
-  Serial.println(sens1.sensorID(), HEX);
-  delay(RESET_TIME);
-  Serial.println(sens2.sensorID(), HEX);
-  delay(RESET_TIME);
-  Serial.println(sens3.sensorID(), HEX);
-  delay(RESET_TIME);
-  Serial.println(sens4.sensorID(), HEX);
-  delay(RESET_TIME);
-
-  
-  Serial.println("Didnt get stuck");
-  if (!sens1.startRanging())
-  {
-    Serial.print(F("Couldn't start ranging: "));
-    Serial.println(sens1.vl_status);
-    while (1)
-      delay(10);
-  }
-  if (!sens2.startRanging())
-  {
-    Serial.print(F("Couldn't start ranging: "));
-    Serial.println(sens2.vl_status);
-    while (1)
-      delay(10);
-  }
-  if (!sens3.startRanging())
-  {
-    Serial.print(F("Couldn't start ranging: "));
-    Serial.println(sens3.vl_status);
-    while (1)
-      delay(10);
-  }
-  if (!sens4.startRanging())
-  {
-    Serial.print(F("Couldn't start ranging: "));
-    Serial.println(sens4.vl_status);
-    while (1)
-      delay(10);
-  }
-  Serial.println(F("Ranging started"));
-
-  // Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
-  sens1.setTimingBudget(50);
-  sens2.setTimingBudget(50);
-  sens3.setTimingBudget(50);
-  sens4.setTimingBudget(50);
-  Serial.print(F("Timing budget (ms): "));
-  Serial.println(sens1.getTimingBudget());
-  Serial.println(sens2.getTimingBudget());
-  Serial.println(sens3.getTimingBudget());
-  Serial.println(sens4.getTimingBudget());
+  // setup the motors
+  motor_1
+      .setMaxSpeed(MAX_MTR_SPEED)      // steps/s
+      .setAcceleration(MAX_MTR_ACCEL); // steps/s^2
+  motor_2
+      .setMaxSpeed(MAX_MTR_SPEED)      // steps/s
+      .setAcceleration(MAX_MTR_ACCEL); // steps/s^2
+  motor_3
+      .setMaxSpeed(MAX_MTR_SPEED)      // steps/s
+      .setAcceleration(MAX_MTR_ACCEL); // steps/s^2
+  motor_4
+      .setMaxSpeed(MAX_MTR_SPEED)      // steps/s
+      .setAcceleration(MAX_MTR_ACCEL); // steps/s^2
 }
 
 void setup()
 {
-  Wire.begin();
-  Wire.setSCL(19);
-  Wire.setSDA(18);
+  InitSwitches();
   Serial.begin(9600);
-  while (!Serial)
-    delay(10);
-
-  Serial.println(F("Adafruit VL53L1X sensor demo"));
-  setIDL1();
-  setIDL0();
-  read_L0x_sensors();
-
-  byte count = 0;
-
-  for (byte i = 1; i < 120; i++)
-  {
-
-    Wire.beginTransmission(i);
-    if (Wire.endTransmission() == 0)
-    {
-      Serial.print("Found address: ");
-      Serial.print(i, DEC);
-      Serial.print(" (0x");
-      Serial.print(i, HEX);
-      Serial.println(")");
-      count++;
-      delay(1); // maybe unneeded?
-    }           // end of good response
-  }             // end of for loop
-  Serial.println("Done.");
-  Serial.print("Found ");
-  Serial.print(count, DEC);
-  Serial.println(" device(s).");
-
-  /*
-  vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
-  vl.VL53L1X_SetInterruptPolarity(0);
-  */
+  InitSteppers();
 }
 
 void loop()
 {
-  int16_t distance;
-  int16_t distance1;
+  double Origin[3][1] = {{0}, {0}, {0}};
+  double One[3][1] = {{0}, {0}, {25}};
+  double Two[3][1] = {{0}, {25}, {0}};
+  double Three[3][1] = {{0}, {25}, {25}};
+  double Four[3][1] = {{0}, {-50}, {-50}};
 
-  if (sens1.dataReady())
-  {
-    // new measurement for the taking!
-    distance = sens1.distance();
-    if (distance == -1)
-    {
-      // something went wrong!
-      Serial.print(F("Couldn't get distance: "));
-      Serial.println(sens1.vl_status);
-      return;
+  double SpinRt[3][1] = {{TWO_PI}, {0}, {0}};
+  double SpinLft[3][1] = {{-TWO_PI}, {0}, {0}};
+
+  double HalfSpinRt[3][1] = {{PI}, {0}, {0}};
+  double HalfSpinLft[3][1] = {{-PI}, {0}, {0}};
+
+  ComputeMoveAbs(Origin);
+  // controller.move(motor_1, motor_2, motor_3, motor_4);
+  // ComputeMoveAbs(One);
+  // controller.move(motor_1, motor_2, motor_3, motor_4);
+  // ComputeMoveAbs(Two);
+  // controller.move(motor_1, motor_2, motor_3, motor_4);
+  ComputeMoveAbs(Three);
+  controller.move(motor_1, motor_2, motor_3, motor_4);
+  ComputeMoveAbs(Four);
+  controller.move(motor_1, motor_2, motor_3, motor_4);
+  ComputeMoveAbs(HalfSpinRt);
+  controller.move(motor_1, motor_2, motor_3, motor_4);
+}
+
+void ComputeMoveAbs(mtx_type ThetaXY[3][1]) // Will not let you make a complex move (i.e. spinning while moving)Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
+// and updates the stepper objects with this distance. The controller object must be updated for the steppers to start this move. ROTATIONAL MOVES ARE ALWAYS RELATIVE.
+//  Input is in form [ Theta ]
+//                   [    X  ]
+//                   [    Y  ]
+{
+  // if ((ThetaXY[0][0] >= 0) && ((ThetaXY[1][0] >= 0) || (ThetaXY[2][0] >= 0)))
+  //{
+  // Return without doing anything if a complex input is detected.
+  // return;
+  Serial.println("ERROR: COMPLEX MOVE");
+  //  }
+
+  if (BotPose[0][0] > 0)
+  { // if bot is skewed at an angle; calculate the actual desired movement vector. This is done by calculating the length of the vector, its angle, and then subtracting this angle from
+    // the angle the bot is positioned at.
+    double X = ThetaXY[1][0];
+    double Y = ThetaXY[2][0];
+    double R;
+    double XYVectorAngle;
+    if (X < 0)
+    { // Quadrant 2
+      R = sqrt((X * X) + (Y * Y));
+      XYVectorAngle = atan(Y / X) + PI;
     }
-    Serial.print(F("Distance: "));
-    Serial.print(distance);
-    Serial.println(" mm");
-
-    // data is read out, time for another reading!
-    sens1.clearInterrupt();
-  }
-  if (sens2.dataReady())
-  {
-    // new measurement for the taking!
-    distance1 = sens2.distance();
-    if (distance1 == -1)
-    {
-      // something went wrong!
-      Serial.print(F("Couldn't get distance: "));
-      Serial.println(sens2.vl_status);
-      return;
+    else if ((X < 0) && (Y < 0))
+    { // Quadrant 3
+      R = sqrt((X * X) + (Y * Y));
+      XYVectorAngle = atan(Y / X) + PI;
     }
-    Serial.print(F("Distance: "));
-    Serial.print(distance1);
-    Serial.println(" mm");
+    else if (Y < 0)
+    { // Quadrant 4
+      R = sqrt((X * X) + (Y * Y));
+      XYVectorAngle = atan(Y / X) + (2 * PI);
+    }
+    else
+    { // Quadrant 1
+      R = sqrt((X * X) + (Y * Y));
+      XYVectorAngle = atan(Y / X);
+    }
+    X = R * cos(XYVectorAngle + BotPose[0][0]);
+    Y = R * sin(XYVectorAngle + BotPose[0][0]);
+    // ThetaXY[0][0] = 0;
 
-    // data is read out, time for another reading!
-    sens2.clearInterrupt();
+    BotPose[0][0] += ThetaXY[0][0]; // Populate pose array
+    BotPose[1][0] = ThetaXY[1][0];  // Populate pose array
+    BotPose[2][0] = ThetaXY[2][0];  // Populate pose array
+
+    ThetaXY[1][0] = X;
+    ThetaXY[2][0] = Y;
   }
+  else
+  {
+
+    BotPose[0][0] += ThetaXY[0][0]; // Populate pose array
+    BotPose[1][0] = ThetaXY[1][0];  // Populate pose array
+    BotPose[2][0] = ThetaXY[2][0];  // Populate pose array
+  }
+  Serial.println(ThetaXY[0][0]);
+  Serial.println(ThetaXY[1][0]);
+  Serial.println(ThetaXY[2][0]);
+
+  mtx_type NewWheelSteps[4][1];
+
+  MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)ThetaXY, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
+
+  motor_1.setTargetRel(NewWheelSteps[0][0]); // update the stepper object
+  motor_2.setTargetRel(NewWheelSteps[1][0]);
+  motor_3.setTargetRel(NewWheelSteps[2][0]);
+  motor_4.setTargetRel(NewWheelSteps[3][0]);
+  // Serial.println(NewWheelSpeed[0][0]);
+}
+
+// void TOFit(void)
+//{
+//   Wire.begin();
+// TOF1.startRanging();
+// vl53.setTimingBudget(15);
+//}
+
+void MatrixMultiply(mtx_type *A, mtx_type *B, int m, int p, int n, mtx_type *C)
+{
+  // A = input matrix (m x p)
+  // B = input matrix (p x n)
+  // m = number of rows in A
+  // p = number of columns in A = number of rows in B
+  // n = number of columns in B
+  // C = output matrix = A*B (m x n)
+  int i, j, k;
+  for (i = 0; i < m; i++)
+    for (j = 0; j < n; j++)
+    {
+      C[n * i + j] = 0;
+      for (k = 0; k < p; k++)
+        C[n * i + j] = C[n * i + j] + A[p * i + k] * B[n * k + j];
+    }
 }

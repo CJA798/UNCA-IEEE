@@ -1,34 +1,34 @@
 #include <TeensyStep.h>
 // #include <TeensyThreads.h>
 #include <math.h>
-//#include "Adafruit_VL53L1X.h"
+// #include "Adafruit_VL53L1X.h"
 
 #define IRQ_PIN1 2
 #define XSHUT_PIN1 1
 
-#define X_STEP 29     // A0 from mega
-#define X_DIR 30      // A1 "   "
-#define Y_EN 12      // A2
-#define Y_STEP 9     // A6
-#define Y_DIR 10      // A7
-#define Z_STEP 7     // D46
-#define Z_DIR 8     // D48
-#define E0_DIR 6    // D28
-#define E0_STEP 5    // D26
-//Adafruit_VL53L1X TOF1 = Adafruit_VL53L1X(XSHUT_PIN1, IRQ_P
+#define X_STEP 29 // A0 from mega
+#define X_DIR 30  // A1 "   "
+#define Y_EN 12   // A2
+#define Y_STEP 9  // A6
+#define Y_DIR 10  // A7
+#define Z_STEP 7  // D46
+#define Z_DIR 8   // D48
+#define E0_DIR 6  // D28
+#define E0_STEP 5 // D26
+// Adafruit_VL53L1X TOF1 = Adafruit_VL53L1X(XSHUT_PIN1, IRQ_P
 Stepper motor_1(29, 30); // Stepper objects
 Stepper motor_2(9, 10);
 Stepper motor_3(7, 8);
 Stepper motor_4(5, 6);
 StepControl controller; // Stepper controller object
 
-#define mtx_type double                // Matrix type definition
-#define ONE_OVR_RT_2 (0.707106)        // (1/sqrt(2))
-#define STEPS_PER_ROTATION (3200)      // (200steps per rotation) * (16 microsteps per step)
-#define STEPS_PER_CM (25.46)      // Steps per inch in arclength any given wheel travels = StepsPerWheelRotation/WheelCircumference
-#define WHEEL_RADIUS (2.5)             // Radius of wheel(cm) (1in)
-#define STEPS_PER_BOT_RAD (859.44)   // = ((BotCircumference*StepsPerCm*)/(2*Pi))*3 (gear ratio)
-#define STEPS_PER_DIST_MULT (27) // = (1/sqrt(2))*StepsPerCM*3 (gear ratio)
+#define mtx_type double            // Matrix type definition
+#define ONE_OVR_RT_2 (0.707106)    // (1/sqrt(2))
+#define STEPS_PER_ROTATION (3200)  // (200steps per rotation) * (16 microsteps per step)
+#define STEPS_PER_CM (25.46)       // Steps per inch in arclength any given wheel travels = StepsPerWheelRotation/WheelCircumference
+#define WHEEL_RADIUS (2.5)         // Radius of wheel(cm) (1in)
+#define STEPS_PER_BOT_RAD (859.44) // = ((BotCircumference*StepsPerCm*)/(2*Pi))*3 (gear ratio)
+#define STEPS_PER_DIST_MULT (27)   // = (1/sqrt(2))*StepsPerCM*3 (gear ratio)
 
 // Stepper Settings
 #define MAX_MTR_SPEED (7500) // Steps/s maximum is 300000
@@ -48,11 +48,11 @@ mtx_type InverseJacobian[4][3] = {
     {-STEPS_PER_BOT_RAD, -STEPS_PER_DIST_MULT, STEPS_PER_DIST_MULT},
     {-STEPS_PER_BOT_RAD, -STEPS_PER_DIST_MULT, -STEPS_PER_DIST_MULT}};
 
-//void TOFit(void)
+// void TOFit(void)
 //{
-  //  Wire.begin();
-    //TOF1.startRanging();
-   // vl53.setTimingBudget(15);
+//   Wire.begin();
+// TOF1.startRanging();
+// vl53.setTimingBudget(15);
 //}
 
 void MatrixMultiply(mtx_type *A, mtx_type *B, int m, int p, int n, mtx_type *C)
@@ -78,12 +78,12 @@ void ComputeMoveAbs(mtx_type ThetaXY[3][1]) // Will not let you make a complex m
 //                   [    X  ]
 //                   [    Y  ]
 {
-   // if ((ThetaXY[0][0] >= 0) && ((ThetaXY[1][0] >= 0) || (ThetaXY[2][0] >= 0)))
+    // if ((ThetaXY[0][0] >= 0) && ((ThetaXY[1][0] >= 0) || (ThetaXY[2][0] >= 0)))
     //{
-        // Return without doing anything if a complex input is detected.
-        // return;
-        Serial.println("ERROR: COMPLEX MOVE");
-  //  }
+    // Return without doing anything if a complex input is detected.
+    // return;
+    Serial.println("ERROR: COMPLEX MOVE");
+    //  }
 
     if (BotPose[0][0] > 0)
     { // if bot is skewed at an angle; calculate the actual desired movement vector. This is done by calculating the length of the vector, its angle, and then subtracting this angle from
@@ -114,21 +114,21 @@ void ComputeMoveAbs(mtx_type ThetaXY[3][1]) // Will not let you make a complex m
         }
         X = R * cos(XYVectorAngle + BotPose[0][0]);
         Y = R * sin(XYVectorAngle + BotPose[0][0]);
-       // ThetaXY[0][0] = 0;
-       
-         BotPose[0][0] += ThetaXY[0][0]; // Populate pose array
-         BotPose[1][0] = ThetaXY[1][0];  // Populate pose array
-         BotPose[2][0] = ThetaXY[2][0];  // Populate pose array
+        // ThetaXY[0][0] = 0;
+
+        BotPose[0][0] += ThetaXY[0][0]; // Populate pose array
+        BotPose[1][0] = ThetaXY[1][0];  // Populate pose array
+        BotPose[2][0] = ThetaXY[2][0];  // Populate pose array
 
         ThetaXY[1][0] = X;
         ThetaXY[2][0] = Y;
     }
-    else{
-      
-    BotPose[0][0] += ThetaXY[0][0]; // Populate pose array
-    BotPose[1][0] = ThetaXY[1][0];  // Populate pose array
-    BotPose[2][0] = ThetaXY[2][0];  // Populate pose array
+    else
+    {
 
+        BotPose[0][0] += ThetaXY[0][0]; // Populate pose array
+        BotPose[1][0] = ThetaXY[1][0];  // Populate pose array
+        BotPose[2][0] = ThetaXY[2][0];  // Populate pose array
     }
     Serial.println(ThetaXY[0][0]);
     Serial.println(ThetaXY[1][0]);
@@ -164,7 +164,6 @@ void ComputeMoveRel(mtx_type ThetaXY[3][1]) // Computes bots movement distances 
 void InitSteppers(void)
 {
 
-
     // setup the motors
     motor_1
         .setMaxSpeed(MAX_MTR_SPEED)      // steps/s
@@ -190,57 +189,60 @@ void InitSteppers(void)
 
 void setup()
 {
-    pinMode(0, INPUT); //Input for start button
-     Serial.begin(9600);
+    pinMode(0, INPUT); // Input for start button
+    Serial.begin(9600);
     pinMode(13, OUTPUT);
     InitSteppers();
     // Serial.println("START");
     //  threads.addThread(kinematics_cqompute_thread);
 }
-    int state = 0;
+int state = 0;
 void loop()
 {
 
     int buttonstate = digitalRead(0);
-         Serial.println(buttonstate);
-    if(buttonstate >= 1){
-      if(state == 1){
-        state = 0;
-              digitalWrite(13, LOW);
-      }
-      else{
-      state = 1;
+    Serial.println(buttonstate);
+    if (buttonstate >= 1)
+    {
+        if (state == 1)
+        {
+            state = 0;
+            digitalWrite(13, LOW);
+        }
+        else
+        {
+            state = 1;
             digitalWrite(13, HIGH);
-      }
-      delay(1000);
+        }
+        delay(1000);
     }
-    if(state == 1){
-      Serial.println("START");
+    if (state == 1)
+    {
+        Serial.println("START");
 
-    double Origin[3][1] = {{0}, {0}, {0}};
-    double One[3][1] = {{0}, {0}, {25}};
-    double Two[3][1] = {{0}, {25}, {0}};
-    double Three[3][1] = {{0}, {25}, {25}};
-    double Four[3][1] = {{0}, {-50}, {-50}};
+        double Origin[3][1] = {{0}, {0}, {0}};
+        double One[3][1] = {{0}, {0}, {25}};
+        double Two[3][1] = {{0}, {25}, {0}};
+        double Three[3][1] = {{0}, {25}, {25}};
+        double Four[3][1] = {{0}, {-50}, {-50}};
 
-    double SpinRt[3][1] = {{TWO_PI}, {0}, {0}};
-    double SpinLft[3][1] = {{-TWO_PI}, {0}, {0}};
+        double SpinRt[3][1] = {{TWO_PI}, {0}, {0}};
+        double SpinLft[3][1] = {{-TWO_PI}, {0}, {0}};
 
-    double HalfSpinRt[3][1] = {{PI}, {0}, {0}};
-    double HalfSpinLft[3][1] = {{-PI}, {0}, {0}};
+        double HalfSpinRt[3][1] = {{PI}, {0}, {0}};
+        double HalfSpinLft[3][1] = {{-PI}, {0}, {0}};
 
-    ComputeMoveAbs(Origin);
-    //controller.move(motor_1, motor_2, motor_3, motor_4);
-   // ComputeMoveAbs(One);
-    //controller.move(motor_1, motor_2, motor_3, motor_4);
-   // ComputeMoveAbs(Two);
-    //controller.move(motor_1, motor_2, motor_3, motor_4);
-    ComputeMoveAbs(Three);
-    controller.move(motor_1, motor_2, motor_3, motor_4);
-    ComputeMoveAbs(Four);
-    controller.move(motor_1, motor_2, motor_3, motor_4);
-    ComputeMoveAbs(HalfSpinRt);
-    controller.move(motor_1, motor_2, motor_3, motor_4);
+        ComputeMoveAbs(Origin);
+        // controller.move(motor_1, motor_2, motor_3, motor_4);
+        // ComputeMoveAbs(One);
+        // controller.move(motor_1, motor_2, motor_3, motor_4);
+        // ComputeMoveAbs(Two);
+        // controller.move(motor_1, motor_2, motor_3, motor_4);
+        ComputeMoveAbs(Three);
+        controller.move(motor_1, motor_2, motor_3, motor_4);
+        ComputeMoveAbs(Four);
+        controller.move(motor_1, motor_2, motor_3, motor_4);
+        ComputeMoveAbs(HalfSpinRt);
+        controller.move(motor_1, motor_2, motor_3, motor_4);
     }
-    
 }
