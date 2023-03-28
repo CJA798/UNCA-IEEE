@@ -11,7 +11,7 @@
 
 #include <Servo.h>
 
-enum class Flipper_Platform_Error {
+enum class Flipper_Platform_Status {
   NO_OBJECTS_IN_PLATFORM,
   UNORIENTED_OBJECT,
   ORIENTED_OBJECT,
@@ -39,13 +39,13 @@ class FlipperPlatform {
 
   public:
     // Public attributes
-    State currentState;
+    Flipper_Platform_Status status;
     int currentAngle;
     int numObjects;
 
   // Constructor to initialize the class attributes    
     FlipperPlatform(int rotationServoPin, int flipServoPin, int clearServoPin) {
-      currentState = NO_OBJECTS;
+      status = NO_OBJECTS;
       currentAngle = 0;
       numObjects = 0;      
       rotationServo.attach(rotationServoPin);
@@ -61,8 +61,9 @@ class FlipperPlatform {
       rotationServo.writeMicroseconds(1500);      
     }
 
-    void flipPlatform() {
-      currentState = FLIPPING_PLATFORM
+    void flipPlatform(/*ElevatorPlatform& elevatorPlatform*/) {
+      //while(elevatorPlatform.status == READY){}
+      status = FLIPPING_PLATFORM
       flipServo.write(80);
       wait(500);
       flipServo.write(10);
@@ -76,12 +77,12 @@ class FlipperPlatform {
       wait(500);
     }
 
-    void getCurrentState(Flipper_Platform_Error state) {
-      return currentState;
+    void getStatus(Flipper_Platform_Status state) {
+      return status;
     }
     
-    void setCurrentState(Flipper_Platform_Error state) {
-      currentState = state;
+    void setStatus(Flipper_Platform_Status state) {
+      status = state;
     }
 
     int getCurrentAngle() {

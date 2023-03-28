@@ -58,3 +58,9 @@
 
 #define ITEM_REMOVED 0
 #define CANT_REMOVE_ITEM 1
+
+
+
+
+#define SMALL_BRACING 0
+#define BIG_BRACING 1

@@ -192,7 +192,7 @@ class StorageDrum {
       controller.rotate(steps);
     }
 
-    void pushItem(int position){
+    void pushItem(bool position){
       if(position == PUSH_IN){
         pusherServo.write(45);
         wait(500);
