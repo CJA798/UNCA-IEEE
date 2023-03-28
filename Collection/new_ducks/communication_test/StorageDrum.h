@@ -298,32 +298,51 @@ class StorageDrum {
             pillars[1].inStorage = FALSE;
             return ITEM_REMOVED;
           }
-  
           return CANT_REMOVE_ITEM;
         break;
         
         case GREEN_PILLAR:
-          rotateToSlot(THIRD_SLOT);
+          if (pillars[2].inStorage) {
+            rotateToSlot(FIFTH_SLOT);
             pushItem(PUSH_OUT);
-            if (pillars[2].inStorage){    // if position 1 is filled, move item to position 0 and clear position 1
+            if (pillars[3].inStorage){    // if position 1 is filled, move item to position 0 and clear position 1
               pillars[3].inStorage = FALSE;
-            } else if{
+            } else{
               pillars[2].inStorage = FALSE;
-            } else if (!pillars[4].inStorage && pillars[5].inStorage){
-              pillars[5].inStorage = FALSE;
             }
+            // TODO: add code for full green slot but green incoming 
             return ITEM_REMOVED;
+          } else if (pillars[3].inStorage){   // ideally, this should never happen
+            rotateToSlot(FIFTH_SLOT);
+            // TODO: enable bracing when needed
+            pushItem(PUSH_OUT);
+            pillars[3].inStorage = FALSE;
+            return ITEM_REMOVED;
+          } else if (!pillars[4].inStorage && pillars[5].inStorage){
+            rotateToSlot(SIXTH_SLOT);
+            // TODO: enable bracing when needed
+            pushItem(PUSH_OUT);
+            pillars[5].inStorage = FALSE;
+            return ITEM_REMOVED;
+          }
+          return CANT_REMOVE_ITEM;
         break;
 
         case RED_PILLAR:
           if (pillars[4].inStorage) {
-            return;
+            rotateToSlot(SIXTH_SLOT);
+            // TODO: enable bracing when needed
+            pushItem(PUSH_OUT);
+            pillars[4].inStorage = FALSE;
+            return ITEM_REMOVED;
           } else if (pillars[5].inStorage) {
-            return;
+            // TODO: figure out what to do when green comes before red
+            return CANT_REMOVE_ITEM;
           }
         break;
         
         default:
+          return CANT_REMOVE_ITEM;
         break;
       }
     }
