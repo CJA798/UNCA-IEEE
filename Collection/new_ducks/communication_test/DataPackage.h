@@ -130,11 +130,15 @@ public:
     Serial.print(isCameraWorking);
     Serial.print(", ");
     Serial.print(numObjectsInPlatform);
+    Serial.print(", ");
 
     for (int i = 0; i < numObjectsInPlatform; i++) {
         Serial.print(classObjectsInPlatform[i]);
         Serial.print(", ");
         Serial.print(orientationObjectsInPlatform[i]);
+        if(i == numObjectsInPlatform - 1){
+          break;
+        }        
         Serial.print(", ");
     }
     Serial.println();

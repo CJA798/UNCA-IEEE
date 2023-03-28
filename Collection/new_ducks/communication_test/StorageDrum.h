@@ -32,9 +32,12 @@
 //      0 -> Closer to building area
 //      1 -> Closer to elevator area
 ////////////////////////////////////////////////////////////////////////////////
+// Everything is pushed in by the bottom servo
+// The top servo pushes out the pink duck and cylinders
+// The two yellow ducks are pushed out by the bottom servo
 
 #include <Servo.h>
-#include <TeensyStep.h>
+//#include <TeensyStep.h>
 #include "macros.h"
 
 // Stepper Settings
@@ -60,7 +63,6 @@ class StorageDrum {
     Pillar pillars[7];
     Duck ducks[3];
     Servo pusherServo;
-    StepControl controller; // Stepper controller object
 
     // Private helper function to wait for a certain amount of time
     void wait(unsigned long duration) {
@@ -73,11 +75,13 @@ class StorageDrum {
   public:
     StorageDrum(int pusherServoPin, int stepPin, int dirPin) {      
       pusherServo.attach(pusherServoPin);
-      Stepper rotationStepper(stepPin, dirPin)
+      /*
+      Stepper rotationStepper(stepPin, dirPin);
       rotationStepper
         .setMaxSpeed(MAX_MTR_SPEED)      // steps/s
         .setAcceleration(MAX_MTR_ACCEL); // steps/s^2  
-
+      StepControl controller; // Stepper controller object
+      */
       ducks[0] = {
         YELLOW,     // color
         false,      // inStorage
@@ -188,8 +192,8 @@ class StorageDrum {
 
     void rotateToSlot(int slot){
       //TODO: rotate to slot
-      int steps = slot * STEPS_PER_SLOT;
-      controller.rotate(steps);
+      //int steps = slot * STEPS_PER_SLOT;
+      //controller.rotate(steps);
     }
 
     void pushItem(bool position){
@@ -214,8 +218,7 @@ class StorageDrum {
         // TODO: handle duck by kicking it out of system
         return CANT_ADD_ITEM;
       }else{
-          int position = result & 0x1;    // extract LSB (position)
-          int slot = result >> 1;         // shift bits to the right by 1 to get the 3 bits representing the slot
+          int slot = storageLocation >> 1;         // shift bits to the right by 1 to get the 3 bits representing the slot
           //TODO: rotate stepper to respective slot
           rotateToSlot(slot);
           //TODO: use pushServo to put item in. if position is 0, push for longer. if position is 1, push for a shorter time
@@ -231,8 +234,8 @@ class StorageDrum {
         // TODO: handle pillar by activating bracing and pushing another pillar out
         return CANT_ADD_ITEM;      
       }else{
-          int position = result & 0x1;    // extract LSB (position)
-          int slot = result >> 1;         // shift bits to the right by 1 to get the 3 bits representing the slot
+          int position = storageLocation & 0x1;    // extract LSB (position)
+          int slot = storageLocation >> 1;         // shift bits to the right by 1 to get the 3 bits representing the slot
           //TODO: rotate stepper to respective slot
           rotateToSlot(slot);
           //TODO: use pushServo to put item in. if position is 0, push for longer. if position is 1, push for a shorter time

@@ -3,7 +3,10 @@
 //
 //  Modified: Carlos Anzola (27 Mar 2023)
 ////////////////////////////////////////////////////////////////////////////////
-
+// bottom servo controls first and second level bracing (bot to top)
+// upper servo controls third level bracing
+// upper servo probably controls additional duck support
+// if not, its functionality will be split in two servos
 #include <Servo.h>
 #include "macros.h"
 

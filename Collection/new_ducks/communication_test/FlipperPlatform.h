@@ -10,6 +10,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <Servo.h>
+#include "macros.h"
 
 enum class Flipper_Platform_Status {
   NO_OBJECTS_IN_PLATFORM,
@@ -45,16 +46,17 @@ class FlipperPlatform {
 
   // Constructor to initialize the class attributes    
     FlipperPlatform(int rotationServoPin, int flipServoPin, int clearServoPin) {
-      status = NO_OBJECTS;
+      status = Flipper_Platform_Status::NO_OBJECTS_IN_PLATFORM;
       currentAngle = 0;
       numObjects = 0;      
       rotationServo.attach(rotationServoPin);
+      rotationServo.writeMicroseconds(1500);
       flipServo.attach(flipServoPin);
       clearServo.attach(clearServoPin);
     }
 
     void rotatePlatform() {
-      rotationServo.writeMicroseconds(1400);
+      rotationServo.writeMicroseconds(1600);
     }
 
     void stopRotation(){
@@ -63,21 +65,21 @@ class FlipperPlatform {
 
     void flipPlatform(/*ElevatorPlatform& elevatorPlatform*/) {
       //while(elevatorPlatform.status == READY){}
-      status = FLIPPING_PLATFORM
+      status = Flipper_Platform_Status::FLIPPING_OBJECT;
       flipServo.write(80);
-      wait(500);
+      wait(2000);
       flipServo.write(10);
-      wait(500);
+      wait(2000);
     }
 
     void clearPlatform() {
       clearServo.write(80);
-      wait(500);
+      wait(2000);
       clearServo.write(10);
-      wait(500);
+      wait(2000);
     }
 
-    void getStatus(Flipper_Platform_Status state) {
+    Flipper_Platform_Status getStatus(Flipper_Platform_Status state) {
       return status;
     }
     

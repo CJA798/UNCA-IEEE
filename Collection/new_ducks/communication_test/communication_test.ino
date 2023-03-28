@@ -14,6 +14,8 @@
 #include <algorithm>
 #include "macros.h"
 #include "DataPackage.h"
+#include "FlipperPlatform.h"
+#include "StorageDrum.h"
 
 const int pinLED1 = BUILT_IN_LED_PIN;
 const int pinPinkDuck = PINK_DUCK_PIN;
@@ -22,9 +24,15 @@ const int pinRedPillar = RED_PILLAR_PIN;
 const int pinGreenPillar = GREEN_PILLAR_PIN;
 const int pinWhitePillar = WHITE_PILLAR_PIN;
 
-Servo orientationServo;
+const int rotationServoPin = ROTATION_SERVO_PIN;
+const int flipServoPin = FLIP_SERVO_PIN;
+const int clearServoPin = CLEAR_SERVO_PIN;
 
+
+Servo orientationServo, rotationServo, flipServo, clearServo;
 DataPackage dataPackage;
+FlipperPlatform flipper(rotationServoPin, flipServoPin, clearServoPin);
+//StorageDrum drum;
 
 void setup() {
      
@@ -71,8 +79,15 @@ void loop() {
       digitalWrite(pinWhitePillar, std::find(dataPackage.classObjectsInPlatform.begin(), dataPackage.classObjectsInPlatform.end(), WHITE_PILLAR) != dataPackage.classObjectsInPlatform.end());
 
       // Move servo to correct angle
-      int angle = dataPackage.orientationObjectsInPlatform[0];    
-      orientationServo.write(abs(angle));
+      flipper.currentAngle = abs(dataPackage.orientationObjectsInPlatform[0]);
+      if(flipper.currentAngle > 10){
+        flipper.rotatePlatform();
+        Serial.println(flipper.currentAngle);
+      } else{
+        flipper.stopRotation();
+        flipper.flipPlatform();
+        Serial.println("Stopped");
+      }
     }
     dataPackage.print_data_package();    
   }
