@@ -219,7 +219,7 @@ def main():
       '--model',
       help='Path of the object detection model.',
       required=False,
-      default='improv_4k_02EfficientDet.tflite')
+      default='improv_12k_00EfficientDet_edgetpu.tflite')
   parser.add_argument(
       '--cameraId', help='Id of camera.', required=False, type=int, default=0)
   parser.add_argument(
@@ -245,7 +245,7 @@ def main():
       help='Whether to run the model on EdgeTPU.',
       action='store_true',
       required=False,
-      default=False)
+      default=True)
   args = parser.parse_args()
 
   run(args.model, int(args.cameraId), args.frameWidth, args.frameHeight,
