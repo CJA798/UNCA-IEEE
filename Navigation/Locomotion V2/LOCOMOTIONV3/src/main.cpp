@@ -17,10 +17,10 @@ Bounce LeftSideRightSw = Bounce();
 Bounce LeftSideLeftSw = Bounce();
 
 bool SwitchesState[8] = {0};
-
+int i;
 void InitSwitches(void)
 {
-  //THIS FUNCTION SETS THE PIN MODE FOR INPUT SWITCHES AND ATTACHES THEM TO THEIR DEBOUNCE OBJECT 
+  // THIS FUNCTION SETS THE PIN MODE FOR INPUT SWITCHES AND ATTACHES THEM TO THEIR DEBOUNCE OBJECT
 
   pinMode(FRONT_LEFT_SWITCH, INPUT_PULLUP);
   pinMode(FRONT_RIGHT_SWITCH, INPUT_PULLUP);
@@ -51,18 +51,30 @@ void InitSwitches(void)
 
 void SwitchesProcess(void)
 {
-  FrontRightSw.update(); //1
-  FrontLeftSw.update(); //2
-  BackLeftSw.update(); //3
-  BackRightSw.update();  //4
-  RightSideLeftSw.update(); //5
-  RightSideRightSw.update(); //6
-  LeftSideLeftSw.update(); //7
-  LeftSideRightSw.update(); // 8
+  Serial.println("SwitchesProcess");
+  FrontRightSw.update();     // 1
+  FrontLeftSw.update();      // 2
+  BackLeftSw.update();       // 3
+  BackRightSw.update();      // 4
+  RightSideLeftSw.update();  // 5
+  RightSideRightSw.update(); // 6
+  LeftSideLeftSw.update();   // 7
+  LeftSideRightSw.update();  // 8
 
-  SwitchesState[0] = FrontLeftSw.read();
-  SwitchesState[1] = FrontRightSw.read();
-  SwitchesState[2] = RightSideLeftSw.read();
+  SwitchesState[0] = LeftSideRightSw.read();
+  SwitchesState[1] = FrontLeftSw.read();
+  SwitchesState[2] = FrontRightSw.read();
+  SwitchesState[3] = RightSideLeftSw.read();
+  SwitchesState[4] = RightSideRightSw.read();
+  SwitchesState[5] = BackRightSw.read();
+  SwitchesState[6] = BackLeftSw.read();
+  SwitchesState[7] = LeftSideLeftSw.read();
+  delay(1000);
+  for (i = 0; i <= 7; i++)
+  {
+    Serial.println(SwitchesState[i]);
+    Serial.print(i);
+  }
 }
 void InitSteppers(void)
 {
@@ -91,6 +103,8 @@ void setup()
 
 void loop()
 {
+  SwitchesProcess();
+  /*
   double Origin[3][1] = {{0}, {0}, {0}};
   double One[3][1] = {{0}, {0}, {25}};
   double Two[3][1] = {{0}, {25}, {0}};
@@ -104,17 +118,19 @@ void loop()
   double HalfSpinLft[3][1] = {{-PI}, {0}, {0}};
 
   ComputeMoveAbs(Origin);
-  // controller.move(motor_1, motor_2, motor_3, motor_4);
-  // ComputeMoveAbs(One);
-  // controller.move(motor_1, motor_2, motor_3, motor_4);
-  // ComputeMoveAbs(Two);
-  // controller.move(motor_1, motor_2, motor_3, motor_4);
+  controller.move(motor_1, motor_2, motor_3, motor_4);
+  ComputeMoveAbs(One);
+  controller.move(motor_1, motor_2, motor_3, motor_4);
+  ComputeMoveAbs(Two);
+  controller.move(motor_1, motor_2, motor_3, motor_4);
   ComputeMoveAbs(Three);
   controller.move(motor_1, motor_2, motor_3, motor_4);
   ComputeMoveAbs(Four);
   controller.move(motor_1, motor_2, motor_3, motor_4);
   ComputeMoveAbs(HalfSpinRt);
   controller.move(motor_1, motor_2, motor_3, motor_4);
+
+  */
 }
 
 void ComputeMoveAbs(mtx_type ThetaXY[3][1]) // Will not let you make a complex move (i.e. spinning while moving)Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
