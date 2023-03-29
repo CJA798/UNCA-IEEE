@@ -1,9 +1,9 @@
 #include <main.h>
 
-Stepper motor_1(MTR1STEP, MTR1DIR); // Stepper objects
-Stepper motor_2(MTR2STEP, MTR2DIR);
-Stepper motor_3(MTR3STEP, MTR3DIR);
-Stepper motor_4(MTR4STEP, MTR4DIR);
+Stepper motor_1(MTR1DIR, MTR1STEP); // Stepper objects
+Stepper motor_2(MTR2DIR, MTR2STEP);
+Stepper motor_3(MTR3DIR, MTR3STEP);
+Stepper motor_4(MTR4DIR, MTR4STEP);
 StepControl controller; // Stepper controller object
 
 // DEBOUNCE OBJECTS FOR SWITCHES
@@ -51,7 +51,7 @@ void InitSwitches(void)
 
 void SwitchesProcess(void)
 {
-  Serial.println("SwitchesProcess");
+  // Serial.println("SwitchesProcess");
   FrontRightSw.update();     // 1
   FrontLeftSw.update();      // 2
   BackLeftSw.update();       // 3
@@ -69,12 +69,12 @@ void SwitchesProcess(void)
   SwitchesState[5] = BackRightSw.read();
   SwitchesState[6] = BackLeftSw.read();
   SwitchesState[7] = LeftSideLeftSw.read();
-  delay(1000);
-  for (i = 0; i <= 7; i++)
-  {
-    Serial.println(SwitchesState[i]);
-    Serial.print(i);
-  }
+  // delay(1000);
+  // for (i = 0; i <= 7; i++)
+  // {
+  //   Serial.println(SwitchesState[i]);
+  //   Serial.print(i);
+  // }
 }
 void InitSteppers(void)
 {
@@ -99,14 +99,16 @@ void setup()
   InitSwitches();
   Serial.begin(9600);
   InitSteppers();
+
+  delay(5000);
 }
 
 void loop()
 {
-  SwitchesProcess();
-  /*
-  double Origin[3][1] = {{0}, {0}, {0}};
-  double One[3][1] = {{0}, {0}, {25}};
+  // SwitchesProcess();
+
+  double Origin[3][1] = {{0}, {0}, {50}};
+  double One[3][1] = {{0}, {0}, {-50}};
   double Two[3][1] = {{0}, {25}, {0}};
   double Three[3][1] = {{0}, {25}, {25}};
   double Four[3][1] = {{0}, {-50}, {-50}};
@@ -119,18 +121,18 @@ void loop()
 
   ComputeMoveAbs(Origin);
   controller.move(motor_1, motor_2, motor_3, motor_4);
+  delay(3000);
   ComputeMoveAbs(One);
   controller.move(motor_1, motor_2, motor_3, motor_4);
-  ComputeMoveAbs(Two);
-  controller.move(motor_1, motor_2, motor_3, motor_4);
-  ComputeMoveAbs(Three);
-  controller.move(motor_1, motor_2, motor_3, motor_4);
-  ComputeMoveAbs(Four);
-  controller.move(motor_1, motor_2, motor_3, motor_4);
-  ComputeMoveAbs(HalfSpinRt);
-  controller.move(motor_1, motor_2, motor_3, motor_4);
-
-  */
+  delay(3000);
+  // ComputeMoveAbs(Two);
+  // controller.move(motor_1, motor_2, motor_3, motor_4);
+  // ComputeMoveAbs(Three);
+  // controller.move(motor_1, motor_2, motor_3, motor_4);
+  // ComputeMoveAbs(Four);
+  // controller.move(motor_1, motor_2, motor_3, motor_4);
+  //  ComputeMoveAbs(HalfSpinRt);
+  // controller.move(motor_1, motor_2, motor_3, motor_4);
 }
 
 void ComputeMoveAbs(mtx_type ThetaXY[3][1]) // Will not let you make a complex move (i.e. spinning while moving)Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
@@ -143,58 +145,58 @@ void ComputeMoveAbs(mtx_type ThetaXY[3][1]) // Will not let you make a complex m
   //{
   // Return without doing anything if a complex input is detected.
   // return;
-  Serial.println("ERROR: COMPLEX MOVE");
+  // Serial.println("ERROR: COMPLEX MOVE");
   //  }
+  /*
+    if (BotPose[0][0] > 0)
+    { // if bot is skewed at an angle; calculate the actual desired movement vector. This is done by calculating the length of the vector, its angle, and then subtracting this angle from
+      // the angle the bot is positioned at.
+      double X = ThetaXY[1][0];
+      double Y = ThetaXY[2][0];
+      double R;
+      double XYVectorAngle;
+      if (X < 0)
+      { // Quadrant 2
+        R = sqrt((X * X) + (Y * Y));
+        XYVectorAngle = atan(Y / X) + PI;
+      }
+      else if ((X < 0) && (Y < 0))
+      { // Quadrant 3
+        R = sqrt((X * X) + (Y * Y));
+        XYVectorAngle = atan(Y / X) + PI;
+      }
+      else if (Y < 0)
+      { // Quadrant 4
+        R = sqrt((X * X) + (Y * Y));
+        XYVectorAngle = atan(Y / X) + (2 * PI);
+      }
+      else
+      { // Quadrant 1
+        R = sqrt((X * X) + (Y * Y));
+        XYVectorAngle = atan(Y / X);
+      }
+      X = R * cos(XYVectorAngle + BotPose[0][0]);
+      Y = R * sin(XYVectorAngle + BotPose[0][0]);
+      // ThetaXY[0][0] = 0;
 
-  if (BotPose[0][0] > 0)
-  { // if bot is skewed at an angle; calculate the actual desired movement vector. This is done by calculating the length of the vector, its angle, and then subtracting this angle from
-    // the angle the bot is positioned at.
-    double X = ThetaXY[1][0];
-    double Y = ThetaXY[2][0];
-    double R;
-    double XYVectorAngle;
-    if (X < 0)
-    { // Quadrant 2
-      R = sqrt((X * X) + (Y * Y));
-      XYVectorAngle = atan(Y / X) + PI;
-    }
-    else if ((X < 0) && (Y < 0))
-    { // Quadrant 3
-      R = sqrt((X * X) + (Y * Y));
-      XYVectorAngle = atan(Y / X) + PI;
-    }
-    else if (Y < 0)
-    { // Quadrant 4
-      R = sqrt((X * X) + (Y * Y));
-      XYVectorAngle = atan(Y / X) + (2 * PI);
+      BotPose[0][0] += ThetaXY[0][0]; // Populate pose array
+      BotPose[1][0] = ThetaXY[1][0];  // Populate pose array
+      BotPose[2][0] = ThetaXY[2][0];  // Populate pose array
+
+      ThetaXY[1][0] = X;
+      ThetaXY[2][0] = Y;
     }
     else
-    { // Quadrant 1
-      R = sqrt((X * X) + (Y * Y));
-      XYVectorAngle = atan(Y / X);
+    {
+
+      BotPose[0][0] += ThetaXY[0][0]; // Populate pose array
+      BotPose[1][0] = ThetaXY[1][0];  // Populate pose array
+      BotPose[2][0] = ThetaXY[2][0];  // Populate pose array
     }
-    X = R * cos(XYVectorAngle + BotPose[0][0]);
-    Y = R * sin(XYVectorAngle + BotPose[0][0]);
-    // ThetaXY[0][0] = 0;
-
-    BotPose[0][0] += ThetaXY[0][0]; // Populate pose array
-    BotPose[1][0] = ThetaXY[1][0];  // Populate pose array
-    BotPose[2][0] = ThetaXY[2][0];  // Populate pose array
-
-    ThetaXY[1][0] = X;
-    ThetaXY[2][0] = Y;
-  }
-  else
-  {
-
-    BotPose[0][0] += ThetaXY[0][0]; // Populate pose array
-    BotPose[1][0] = ThetaXY[1][0];  // Populate pose array
-    BotPose[2][0] = ThetaXY[2][0];  // Populate pose array
-  }
-  Serial.println(ThetaXY[0][0]);
-  Serial.println(ThetaXY[1][0]);
-  Serial.println(ThetaXY[2][0]);
-
+    Serial.println(ThetaXY[0][0]);
+    Serial.println(ThetaXY[1][0]);
+    Serial.println(ThetaXY[2][0]);
+  */
   mtx_type NewWheelSteps[4][1];
 
   MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)ThetaXY, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
@@ -203,7 +205,7 @@ void ComputeMoveAbs(mtx_type ThetaXY[3][1]) // Will not let you make a complex m
   motor_2.setTargetRel(NewWheelSteps[1][0]);
   motor_3.setTargetRel(NewWheelSteps[2][0]);
   motor_4.setTargetRel(NewWheelSteps[3][0]);
-  // Serial.println(NewWheelSpeed[0][0]);
+  Serial.println(NewWheelSteps[0][0]);
 }
 
 // void TOFit(void)

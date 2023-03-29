@@ -24,8 +24,6 @@
 #define MAX_MTR_SPEED (7500) // Steps/s maximum is 300000
 #define MAX_MTR_ACCEL (50)   // Steps/s^2 skips at around 15000
 
-
-
 void MatrixMultiply(mtx_type *A, mtx_type *B, int m, int p, int n, mtx_type *C);
 void ComputeMoveAbs(mtx_type ThetaXY[3][1]);
 void ComputeMoveRel(mtx_type ThetaXY[3][1]);
