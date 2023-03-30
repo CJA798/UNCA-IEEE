@@ -16,8 +16,9 @@ from pi_servo_hat import PiServoHat
 
 # Instantiate the object
 hat = PiServoHat()
+hat.restart()
 # Set the PWM frequency to 50Hz
-hat.set_pwm_frequency(200)
+hat.set_pwm_frequency(50)
 
 
 def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
@@ -134,6 +135,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       if angles:
         if angles[0] > 15:
             hat.move_servo_position(0, 60)
+            print(angles)
             
         else:
             print("Stop")
@@ -145,8 +147,8 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
               hat.move_servo_position(1, 180, 180)
               time.sleep(0.5)
               print("Platform flipped")
-              flip = False
-    print(angles)
+              #flip = False
+    #print(angles)
 
   # When the camera is unreachable, stop the program
   cv2.destroyAllWindows()
