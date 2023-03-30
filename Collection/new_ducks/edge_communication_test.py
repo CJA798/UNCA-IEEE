@@ -173,10 +173,13 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
 
       # Send serial data to Teensy
       teensy_data_package = ''
-      if ser.in_waiting > 0:
-        teensy_ready = True
-        teensy_data_package = ser.readline().decode('utf-8').rstrip()
-        print('Current Data Package (Arduino): {}'.format(teensy_data_package))
+      while(not teensy_ready):
+        if ser.in_waiting > 0:
+          teensy_ready = True
+          teensy_data_package = ser.readline().decode('utf-8').rstrip()
+          print('Current Data Package (Arduino): {}'.format(teensy_data_package))
+      
+      
       if teensy_ready and class_index:
         teensy_ready = False
         # Create the serial data string
@@ -185,6 +188,7 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         # Send the serial data
         ser.reset_output_buffer()
         ser.write(serial_data.encode())
+      print('CYCLE DONE')
 
   # When the camera is unreachable, send alert code 0 -> cameraIsOn = False
   ser.write(b'0')  
