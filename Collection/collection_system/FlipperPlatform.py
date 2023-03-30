@@ -1,4 +1,5 @@
 import time
+import asyncio
 from pi_servo_hat import PiServoHat
 
 
@@ -31,10 +32,8 @@ class FlipperPlatform:
         # Save the hat object as an attribute
         self.hat = hat
 
-    def wait(self, duration: int):
-        start_time = time.monotonic()
-        while time.monotonic() - start_time < duration:
-            pass
+    async def wait(self, duration: int):
+        await asyncio.sleep(duration)
 
     def rotate_platform(self):
         self.set_status(FlipperPlatformStatus.ORIENTING_OBJECT)
@@ -43,13 +42,12 @@ class FlipperPlatform:
     def stop_rotation(self):
         self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 54)
 
-    def flip_platform(self):
+    async def flip_platform(self):
         self.set_status(FlipperPlatformStatus.FLIPPING_OBJECT)
-        print(self.status)
         self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 0, 180)
-        self.wait(0.4)
+        await self.wait(0.4)
         self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 180, 180)
-        self.wait(0.4)
+        await self.wait(0.4)
         self.set_status(FlipperPlatformStatus.NO_OBJECTS_IN_PLATFORM)
         print("Platform flipped")
 

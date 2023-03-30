@@ -12,6 +12,7 @@ import utils
 from math import atan2, cos, sin, sqrt, pi
 import numpy as np
 
+import asyncio
 from FlipperPlatform import FlipperPlatform, FlipperPlatformStatus
 
 flipper = FlipperPlatform()
@@ -128,19 +129,19 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       # Zip the two data arrays together into one iterable
       zip_index_angle_data = zip(class_index,angles)
       
-      if angles:
+      if not angles:
+         flipper.set_status(FlipperPlatformStatus.NO_OBJECTS_IN_PLATFORM)
+
+      else:
         if flipper.get_current_angle() > 15:
             flipper.rotate_platform()
-            #print(angles)
-            
         else:
-            print("Stop")
             flipper.stop_rotation()
-            flipper.set_status(FlipperPlatformStatus.FLIPPING_OBJECT)
-            if(flip):
-              flipper.flip_platform()
-              #flip = False
-    print(angles)
+            asyncio.run(flipper.flip_platform())
+
+
+      
+    
 
   # When the camera is unreachable, stop the program
   cv2.destroyAllWindows()
