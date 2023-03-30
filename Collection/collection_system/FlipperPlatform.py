@@ -1,0 +1,77 @@
+import time
+from pi_servo_hat import PiServoHat
+
+
+_ROTATION_SERVO_CHANNEL = 0
+_FLIPPER_SERVO_CHANNEL = 1
+_CLEAR_SERVO_CHANNEL = 2
+
+class FlipperPlatformStatus:
+    NO_OBJECTS_IN_PLATFORM = 0
+    UNORIENTED_OBJECT = 1
+    ORIENTED_OBJECT = 2
+    FLIPPING_OBJECT = 3
+    FLIPPER_PLATFORM_ERROR_MORE_THAN_ONE_OBJECT = 4
+    FLIPPER_PLATFORM_ERROR_UNKNOWN = 5
+    ORIENTING_OBJECT = 6
+
+
+class FlipperPlatform:
+    def __init__(self):
+        self.status = FlipperPlatformStatus.NO_OBJECTS_IN_PLATFORM
+        self.current_angle = 0
+        self.num_objects = 0
+
+        # Instantiate the object
+        hat = PiServoHat()
+        # Restart Servo Hat (in case Hat is frozen/locked)
+        hat.restart()
+        # Set the PWM frequency to 50Hz
+        hat.set_pwm_frequency(50)
+        # Save the hat object as an attribute
+        self.hat = hat
+
+    def wait(self, duration: int):
+        start_time = time.monotonic()
+        while time.monotonic() - start_time < duration:
+            pass
+
+    def rotate_platform(self):
+        self.set_status(FlipperPlatformStatus.ORIENTING_OBJECT)
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 60)
+
+    def stop_rotation(self):
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 54)
+
+    def flip_platform(self):
+        self.set_status(FlipperPlatformStatus.FLIPPING_OBJECT)
+        print(self.status)
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 0, 180)
+        self.wait(0.4)
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 180, 180)
+        self.wait(0.4)
+        self.set_status(FlipperPlatformStatus.NO_OBJECTS_IN_PLATFORM)
+        print("Platform flipped")
+
+
+    def clear_platform(self):
+        self.clear_servo.write(80)
+        self.wait(2)
+        self.clear_servo.write(10)
+        self.wait(2)
+
+    def get_status(self):
+        return self.status
+
+    def set_status(self, state: FlipperPlatformStatus):
+        self.status = state
+
+    def get_current_angle(self):
+        return self.current_angle
+
+    def set_current_angle(self, angle: int):
+        self.current_angle = angle
+
+    def get_num_objects(self):
+        return self.num_objects
+

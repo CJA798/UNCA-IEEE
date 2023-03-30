@@ -12,14 +12,9 @@ import utils
 from math import atan2, cos, sin, sqrt, pi
 import numpy as np
 
-from pi_servo_hat import PiServoHat
+from FlipperPlatform import FlipperPlatform, FlipperPlatformStatus
 
-# Instantiate the object
-hat = PiServoHat()
-hat.restart()
-# Set the PWM frequency to 50Hz
-hat.set_pwm_frequency(50)
-
+flipper = FlipperPlatform()
 
 def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         enable_edgetpu: bool) -> None:
@@ -112,10 +107,11 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
             cv2.drawContours(image, contour[i]+ np.array([x, y]), -1, (255,255,0), 3)
             
             # Find the orientation of each shape
-            angle = getOrientation(c, image, x, y)
+            angle = utils.getOrientation(c, image, x, y)
           
             contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
             angles.append(angle)
+            flipper.set_current_angle(angles[0])
             
         
 
@@ -133,22 +129,18 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
       zip_index_angle_data = zip(class_index,angles)
       
       if angles:
-        if angles[0] > 15:
-            hat.move_servo_position(0, 60)
-            print(angles)
+        if flipper.get_current_angle() > 15:
+            flipper.rotate_platform()
+            #print(angles)
             
         else:
             print("Stop")
-            hat.move_servo_position(0, 54)
+            flipper.stop_rotation()
+            flipper.set_status(FlipperPlatformStatus.FLIPPING_OBJECT)
             if(flip):
-              print("Flipping platform")
-              hat.move_servo_position(1, 0, 180)
-              time.sleep(0.5)
-              hat.move_servo_position(1, 180, 180)
-              time.sleep(0.5)
-              print("Platform flipped")
+              flipper.flip_platform()
               #flip = False
-    #print(angles)
+    print(angles)
 
   # When the camera is unreachable, stop the program
   cv2.destroyAllWindows()
@@ -195,61 +187,7 @@ def main():
       int(args.numThreads), bool(args.enableEdgeTPU))
 
 
-def drawAxis(img, p_, q_, color, scale):
-  p = list(p_)
-  q = list(q_)
- 
-  ## [visualization1]
-  angle = atan2(p[1] - q[1], p[0] - q[0]) # angle in radians
-  hypotenuse = sqrt((p[1] - q[1]) * (p[1] - q[1]) + (p[0] - q[0]) * (p[0] - q[0]))
- 
-  # Here we lengthen the arrow by a factor of scale
-  q[0] = p[0] - scale * hypotenuse * cos(angle)
-  q[1] = p[1] - scale * hypotenuse * sin(angle)
-  cv2.line(img, (int(p[0]), int(p[1])), (int(q[0]), int(q[1])), color, 3, cv2.LINE_AA)
- 
-  # create the arrow hooks
-  p[0] = q[0] + 9 * cos(angle + pi / 4)
-  p[1] = q[1] + 9 * sin(angle + pi / 4)
-  cv2.line(img, (int(p[0]), int(p[1])), (int(q[0]), int(q[1])), color, 3, cv2.LINE_AA)
- 
-  p[0] = q[0] + 9 * cos(angle - pi / 4)
-  p[1] = q[1] + 9 * sin(angle - pi / 4)
-  cv2.line(img, (int(p[0]), int(p[1])), (int(q[0]), int(q[1])), color, 3, cv2.LINE_AA)
-  ## [visualization1]
 
-def getOrientation(pts, img, x, y):
-  ## [pca]
-  # Construct a buffer used by the pca analysis
-  sz = len(pts)
-  data_pts = np.empty((sz, 2), dtype=np.float64)
-  for i in range(data_pts.shape[0]):
-    data_pts[i,0] = pts[i,0,0]
-    data_pts[i,1] = pts[i,0,1]
- 
-  # Perform PCA analysis
-  mean = np.empty((0))
-  mean, eigenvectors, eigenvalues = cv2.PCACompute2(data_pts, mean)
- 
-  # Store the center of the object
-  cntr = (int(mean[0,0])+x, int(mean[0,1])+y)
-  ## [pca]
- 
-  ## [visualization]
-  # Draw the principal components
-  cv2.circle(img, cntr, 3, (255, 0, 255), 2)
-  p1 = (cntr[0] + 0.02 * eigenvectors[0,0] * eigenvalues[0,0], cntr[1] + 0.02 * eigenvectors[0,1] * eigenvalues[0,0])
-  p2 = (cntr[0] - 0.02 * eigenvectors[1,0] * eigenvalues[1,0], cntr[1] - 0.02 * eigenvectors[1,1] * eigenvalues[1,0])
-  drawAxis(img, cntr, p1, (255, 255, 0), 5)
-  drawAxis(img, cntr, p2, (0, 0, 255), 5)
- 
-  angle = atan2(eigenvectors[0,1], eigenvectors[0,0]) # orientation in radians
-  angle = int(abs(np.rad2deg(angle)))
-  label = "Angle: " + str(angle)
-  cv2.putText(img, label, (cntr[0], cntr[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,255), 1, cv2.LINE_AA)
- 
-  return angle
- 
 
 
 if __name__ == '__main__':
