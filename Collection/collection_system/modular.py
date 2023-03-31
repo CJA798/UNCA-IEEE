@@ -84,10 +84,7 @@ def run_cv(picam2: Picamera2, detector: vision.ObjectDetector, min_area: int, ma
             
             contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
             angles.append(angle)
-            flipper.set_current_angle(angles[0])
-        
     
-
     # Draw keypoints and edges on input image
     image = utils.visualize(image, detection_result)
     
@@ -98,19 +95,17 @@ def run_cv(picam2: Picamera2, detector: vision.ObjectDetector, min_area: int, ma
 
     # Zip the two data arrays together into one iterable
     object_data = zip(class_index,angles)
-
+    object_data = list(object_data)
+    
     return object_data
-        
-        
-  
-
 
 
 def main():
     model = 'improv_12k_00EfficientDet_edgetpu.tflite'
     #camera_id = 0
-    frame_width = 240 *2
-    frame_height = 120 *2
+    ''' DO NOT modify the size. It will affect performance and many parameters'''
+    frame_width = 240
+    frame_height = 120
     num_threads = 4
     enable_edgetpu = True
 
@@ -137,14 +132,17 @@ def main():
         picam2.configure(preview_config)
         picam2.start()
         while True:
+            angles = run_cv(picam2, detector, min_area, max_area)
+            print(tuple(angles))
+
             if cv2.waitKey(1) == 27:
                 break
-            angles = run_cv(picam2, detector, min_area, max_area)
-            
+
             if not angles:
                 flipper.set_status(FlipperPlatformStatus.NO_OBJECTS_IN_PLATFORM)
 
             else:
+                flipper.set_current_angle(angles[0][1])
                 if flipper.get_current_angle() > 15:
                     flipper.rotate_platform()
                 else:
