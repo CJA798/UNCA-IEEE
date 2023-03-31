@@ -139,10 +139,6 @@ def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
             flipper.stop_rotation()
             asyncio.run(flipper.flip_platform())
 
-
-      
-    
-
   # When the camera is unreachable, stop the program
   cv2.destroyAllWindows()
 
