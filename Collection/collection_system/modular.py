@@ -104,8 +104,10 @@ def main():
     model = 'improv_12k_00EfficientDet_edgetpu.tflite'
     #camera_id = 0
     ''' DO NOT modify the size. It will affect performance and many parameters'''
-    frame_width = 240
-    frame_height = 120
+    #frame_width = 240
+    #frame_height = 120
+    frame_width = 640
+    frame_height = 480
     num_threads = 4
     enable_edgetpu = True
 

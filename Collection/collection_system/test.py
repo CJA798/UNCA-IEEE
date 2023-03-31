@@ -7,12 +7,20 @@ hat.restart()
 # Set the PWM frequency to 50Hz
 hat.set_pwm_frequency(50)
 
-for i in range(0,10):
-    hat.set_duty_cycle(0, i)
-    print(i)
-    sleep(0.1)
+channel = 1
+swing = 180
 
-for i in range(0,180):
-    hat.move_servo_position(0, i, 180)
-    print(i)
-    sleep(0.1)
+
+hat.move_servo_position(channel, -45, swing)
+print("-45, {}".format(swing))
+sleep(2)
+hat.move_servo_position(channel, 0, swing)
+print("0, {}".format(swing))
+sleep(2)
+hat.move_servo_position(channel, 90, swing)
+print("90, {}".format(swing))
+sleep(2)
+hat.move_servo_position(channel, 180, swing)
+print("180, {}".format(swing))
+sleep(2)
+
