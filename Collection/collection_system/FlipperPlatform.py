@@ -24,13 +24,12 @@ class FlipperPlatform:
         self.num_objects = 0
 
         # Instantiate the object
-        hat = PiServoHat()
+        self.hat = PiServoHat()
         # Restart Servo Hat (in case Hat is frozen/locked)
-        hat.restart()
+        self.hat.restart()
         # Set the PWM frequency to 50Hz
-        hat.set_pwm_frequency(50)
-        # Save the hat object as an attribute
-        self.hat = hat
+        self.hat.set_pwm_frequency(50)
+        
 
     async def wait(self, duration: int):
         await asyncio.sleep(duration)
