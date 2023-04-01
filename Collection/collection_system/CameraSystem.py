@@ -22,7 +22,7 @@ class CameraSystem:
         self._max_results = 10
         self._score_threshold = 0.6
         self.camera = Picamera2()
-        self._preview_config = self.camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (frame_width, frame_height)})
+        self._preview_config = self.camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (self._frame_width, self._frame_height)})
        
         self.camera.configure(self._preview_config)
         self.camera.start()
@@ -30,7 +30,7 @@ class CameraSystem:
     
 
     def initialize_detector(self):
-        base_options = core.BaseOptions(file_name=self._model, use_coral=self.enable_edgetpu, num_threads=self.num_threads)
+        base_options = core.BaseOptions(file_name=self._model, use_coral=self._enable_edgetpu, num_threads=self._num_threads)
         detection_options = processor.DetectionOptions(max_results=self._max_results, score_threshold=self._score_threshold)
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self._detector = vision.ObjectDetector.create_from_options(options)
