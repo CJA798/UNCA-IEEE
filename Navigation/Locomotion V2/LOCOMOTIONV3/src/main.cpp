@@ -1,6 +1,6 @@
 #include <main.h>
 DriverObject Driver;
-
+BumperSwitches Bumpers;
 // Points of interest for testing
 double Origin[3][1] = {{0}, {0}, {50}};
 double One[3][1] = {{0}, {0}, {-50}};
@@ -25,11 +25,10 @@ void setup()
 
 void loop()
 {
-  Driver.SwitchesProcess();
+  Driver.InputPose[0][0] = 0;
+  Bumpers.SwitchesProcess();
   Driver.ComputeMoveAbs(Origin);
-
   Driver.ComputeMoveAbs(One);
-
   Driver.ComputeRotation(SpinRt);
   Driver.ComputeRotation(SpinRt);
   delay(7000);

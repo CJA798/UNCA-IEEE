@@ -17,15 +17,15 @@
 #define IRQ_PIN 2
 // Temp pins until we decide actual pins for the shutdown of all the sensors
 // These are for the big sensors L1s
-#define XSHUT_PIN1 33 // needs updating
-#define XSHUT_PIN2 35
-#define XSHUT_PIN3 37
-#define XSHUT_PIN4 39
+#define XSHUT_PIN1 12 // may need updating
+#define XSHUT_PIN2 11
+#define XSHUT_PIN3 10
+#define XSHUT_PIN4 9
 // These are for the small sensors L0s
-#define SHT_LOX1 3
-#define SHT_LOX2 4 // needs updating
-#define SHT_LOX3 9
-#define SHT_LOX4 29
+#define SHT_LOX1 20
+#define SHT_LOX2 21
+#define SHT_LOX3 22
+#define SHT_LOX4 23
 
 // STEPPER MOTOR PINOUT
 #define MTR1STEP (43)
