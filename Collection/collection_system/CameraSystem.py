@@ -13,7 +13,7 @@ class CameraSystem:
         #self._camera_id = 0
         #self._frame_width = 240
         #self._frame_height = 120
-        self._frame_width = 640
+        self._frame_width = 800
         self._frame_height = 480
         self._num_threads = 4
         self._enable_edgetpu = True
@@ -44,9 +44,6 @@ class CameraSystem:
         # OBJECT DETECTION:
         image = cv2.flip(image, 1)
 
-        # Duplicate image. First one, for object detection; second one, for object orientation.
-        oriented_image = image
-
         # Convert the image from BGR to RGB as required by the TFLite model.
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -65,7 +62,7 @@ class CameraSystem:
         bounding_boxes = [(d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height) for d in detection_result.detections]
 
         # Convert oriented_image to hsv to identify colors easily
-        hsv = cv2.cvtColor(oriented_image, cv2.COLOR_BGR2HSV)
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         # Convert oriented_image to grayscale to identify white
         h, _, gray = cv2.split(hsv)
         # Convert oriented_image to grayscale

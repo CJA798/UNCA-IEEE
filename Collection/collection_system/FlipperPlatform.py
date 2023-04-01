@@ -44,9 +44,9 @@ class FlipperPlatform:
 
     async def flip_platform(self):
         self.set_status(FlipperPlatformStatus.FLIPPING_OBJECT)
-        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, -45, 180)
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 0, 180)
         await self.wait(0.5)
-        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 180, 180)
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 240, 180)
         await self.wait(0.5)
         self.set_status(FlipperPlatformStatus.NO_OBJECTS_IN_PLATFORM)
         print("Platform flipped")

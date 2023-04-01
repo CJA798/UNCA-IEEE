@@ -10,17 +10,10 @@ hat.set_pwm_frequency(50)
 channel = 1
 swing = 180
 
-
-hat.move_servo_position(channel, -45, swing)
-print("-45, {}".format(swing))
-sleep(2)
 hat.move_servo_position(channel, 0, swing)
 print("0, {}".format(swing))
 sleep(2)
-hat.move_servo_position(channel, 90, swing)
-print("90, {}".format(swing))
-sleep(2)
-hat.move_servo_position(channel, 180, swing)
+hat.move_servo_position(channel, 240, swing)
 print("180, {}".format(swing))
 sleep(2)
 
