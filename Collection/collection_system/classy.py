@@ -101,42 +101,13 @@ def run_cv(picam2: Picamera2, detector: vision.ObjectDetector, min_area: int, ma
 
 
 def main():
-    model = 'improv_12k_00EfficientDet_edgetpu.tflite'
-    #camera_id = 0
-    ''' DO NOT modify the size. It will affect performance and many parameters'''
-    #frame_width = 240
-    #frame_height = 120
-    frame_width = 640
-    frame_height = 480
-    num_threads = 4
-    enable_edgetpu = True
-
-    # Initialize the object detection model
-    base_options = core.BaseOptions(
-        file_name=model, use_coral=enable_edgetpu, num_threads=num_threads)
-    detection_options = processor.DetectionOptions(
-        max_results=10, score_threshold=0.6)
-    options = vision.ObjectDetectorOptions(
-        base_options=base_options, detection_options=detection_options)
-    detector = vision.ObjectDetector.create_from_options(options)
-
-    # Set area threshold based on frame area
-    frame_area = frame_width * frame_height
-    min_area = 0.05 * frame_area
-    max_area = 1 * frame_area
-
     # Create objects
     camera = CameraSystem()
-    camera.initialize_detector()
     flipper = FlipperPlatform()
 
-    with Picamera2() as picam2:
-        # Configure camera mode
-        preview_config = picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (frame_width, frame_height)})
-        picam2.configure(preview_config)
-        picam2.start()
+    try:
         while True:
-            angles = run_cv(picam2, detector, min_area, max_area)
+            angles = camera.get_data()
             print(tuple(angles))
 
             if cv2.waitKey(1) == 27:
@@ -153,7 +124,8 @@ def main():
                     flipper.stop_rotation()
                     asyncio.run(flipper.flip_platform())
     # When the camera is unreachable, stop the program
-    cv2.destroyAllWindows()
+    finally:
+        cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
