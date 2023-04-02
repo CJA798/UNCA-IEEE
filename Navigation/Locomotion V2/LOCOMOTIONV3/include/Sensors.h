@@ -6,35 +6,34 @@
 // #include <Adafruit_I2CDevice.h>
 // #include <Adafruit_Sensor.h>
 #include <Wire.h>
-#define X_MAX (122)
-#define Y_MAX (122)
-#define X_MIN (-122)
-#define Y_MIN (0)
-#define FRONT_PRESSED (1)
-#define BACK_PRESSED (2)
-#define RIGHT_PRESSED (3)
-#define LEFT_PRESSED (4)
 /* The Libraries for the magnetometer/gyroscope cause errors.
 
 #include <Adafruit_SPIDevice.h>
 
 #include <Adafruit_BNO055.h>
 */
-Bounce FrontLeftSw;
-Bounce FrontRightSw;
-Bounce BackRightSw;
-Bounce BackLeftSw;
-Bounce RightSideRightSw;
-Bounce RightSideLeftSw;
-Bounce LeftSideRightSw;
-Bounce LeftSideLeftSw;
-bool SwitchesState[8] = {0};
-bool ChangeInSwitchState = 0;
+
+
 
 class BumperSwitches
-{ // This class will contain the functions to read the construct the bumpers switches, read from the switches, and set flags for when the X_min, X_max, Y_min, Y_max bounds are reached.
+{
 
 private:
+    Bounce FrontLeftSw;
+    Bounce FrontRightSw;
+    Bounce BackRightSw;
+    Bounce BackLeftSw;
+    Bounce RightSideRightSw;
+    Bounce RightSideLeftSw;
+    Bounce LeftSideRightSw;
+    Bounce LeftSideLeftSw;
+    bool SwitchesState[8] = {0};
+    bool ChangeInSwitchState = 0;
+    bool WallActivated = false;
+    bool CornerActivated = false;
+    int WallLocation[8] ={front_wall ,right_wall ,left_wall ,back_wall, TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT};
+    int wall_or_corners = 0;
+
 public:
     BumperSwitches()
     {
@@ -84,14 +83,14 @@ public:
         RightSideRightSw.update(); // 6
         LeftSideLeftSw.update();   // 7
         LeftSideRightSw.update();  // 8
-        SwitchesState[0] = LeftSideRightSw.read();
-        SwitchesState[1] = FrontLeftSw.read();
-        SwitchesState[2] = FrontRightSw.read();
-        SwitchesState[3] = RightSideLeftSw.read();
+        SwitchesState[0] = FrontLeftSw.read();//LeftSideRightSw.read();
+        SwitchesState[1] = FrontRightSw.read();//FrontLeftSw.read();
+        SwitchesState[2] = LeftSideLeftSw.read();//FrontRightSw.read();
+        SwitchesState[3] = LeftSideRightSw.read();//RightSideLeftSw.read();
         SwitchesState[4] = RightSideRightSw.read();
-        SwitchesState[5] = BackRightSw.read();
+        SwitchesState[5] = RightSideLeftSw.read();//BackRightSw.read();
         SwitchesState[6] = BackLeftSw.read();
-        SwitchesState[7] = LeftSideLeftSw.read();
+        SwitchesState[7] = BackRightSw.read();//LeftSideLeftSw.read();
 
         for (int i = 0; i < 8; i++)
         {
@@ -99,12 +98,114 @@ public:
             Serial.print("Switch: ");
             Serial.println(i);
         };
-    };
-    void CheckBumperState(char Side){
-        // This function returns 0 if none of the switches are pressed, it returns 1 if the front is pressed, and so on.
-        // The position  of the bot is accessed via ThetaXY[3][1];
-        // To check that a switch is really "pressed", we will check if we are within SWITCH_THRESHOLD of X_MAX, X_MIN, Y_MAX or Y_MIN;
-        // as well as if both switches on that side are pressed.
+
+    //if switch is pressed, value is 1
+    //if two of the switches of interest are pressed then, relocate to the origin(whitebox in the middle)
+    //relocation has to avoid debris 
+    switch(wall_or_corners) {
+  case wait_case:
+
+  //walls and corners
+  for(int i = 0; i < 8; ++i){
+    if((SwitchesState[i] && SwitchesState[i+1]) || (SwitchesState[i] && SwitchesState[i+4])){
+        WallActivated = true;
+    if(i + 4 == 4){
+       wall_or_corners = WallLocation[i+5];
+    }
+    if(i + 4 == 7){
+        wall_or_corners = WallLocation[i+3];
+    }
+        wall_or_corners = WallLocation[i+1];
+        break;
+    }
+  }
+
+    break;
+  case front_wall: //walls start
+    //go back to origin 
+    //after that, reset and deactivate Wall
+    WallActivated = false;
+
+    // code block
+    break;
+
+    case right_wall:
+    //go back to origin 
+    //after that, reset and deactivate Wall
+    WallActivated = false;
+    break;
+
+    case left_wall:
+    //go back to origin 
+    //after that, reset and deactivate Wall
+    WallActivated = false;
+
+    break;
+
+    case back_wall:
+    //go back to origin 
+    //after that, reset and deactivate Wall
+    WallActivated = false;
+
+    break;
+
+    case TOP_LEFT: //corners start
+     //go back to origin 
+    //after that, reset and deactivate Wall
+    WallActivated = false;
+
+    break;
+    
+
+    case TOP_RIGHT:
+     //go back to origin 
+    //after that, reset and deactivate Wall
+    WallActivated = false;
+
+    break;
+
+    case BOTTOM_RIGHT:
+     //go back to origin 
+    //after that, reset and deactivate Wall
+    WallActivated = false;
+
+    break;
+
+    case BOTTOM_LEFT:
+     //go back to origin 
+    //after that, reset and deactivate Wall
+    WallActivated = false;
+
+    break;
+
+
+
+    
+
+
+  default:
+    // code block
+    break;
+}
+    
+        
+
+  
+
+        
+
+    
+
+
+
+
+
+
+
+
+
+
+
 
     };
 };
