@@ -6,7 +6,8 @@
 #include <iostream>
 using namespace std;
 #define mtx_type double // Matrix type definition
-
+#define BLOCKING (1)
+#define NON_BLOCKING (0)
 mtx_type InputPose[3][1] = {
     {0},
     {0},
@@ -45,8 +46,12 @@ public:
   };
   // This function will first fill the MoveToRetrieve array with the data from the MoveQueueArray. It will then increment the ReadCounter. If the ReadCounter exceeds the bounds of the array, it will be reset to zero.
   // The function will return a pointer to the MoveToRetrieve array.
-  void GetMove()
-  { // Updates InputPose to the next move in the queue.
+  bool GetMove(void) // function updates the global InputPose array with the next move in the queue. Returns 1 if there is a move in the queue, returns 0 if there is not a move in the queue.
+  {                  // Updates InputPose to the next move in the queue.
+    if (ReadCounter == WriteCounter)
+    {
+      return 0;
+    };
     InputPose[0][0] = MoveQueueArray[0][ReadCounter];
     InputPose[1][0] = MoveQueueArray[1][ReadCounter];
     InputPose[2][0] = MoveQueueArray[2][ReadCounter];
@@ -57,6 +62,7 @@ public:
     {
       ReadCounter = 0;
     };
+    return 1;
   };
 };
 
@@ -114,19 +120,13 @@ public:
     NewMove = Coordinates();             // Initialize NewMove Coordinates object. This is for using the Cordinates library to do polar to cart conversions.
     TempPose = Coordinates();            // Initialize TempPose Coordinates object. This is for using the Cordinates library to do polar to cart conversions.
   }
-  void NavigationProcess(void)
-  {
-    if (NewMoveQueue.ReadCounter != NewMoveQueue.WriteCounter)
-    {                         // Check if the move queue read counters and write
-      NewMoveQueue.GetMove(); // Get the next move from the move queue
-      IsMoving = 1;
-    }
-    else
+  void BlockingNavigationProcess(void) // This is the blocking version of our navigation process (AKA the function will not return untill the move is complete) I
+  {                                    // The function does not need to check if we are moving; as it cannot exit until the move is complete. The function will also not run
+    if (NewMoveQueue.GetMove())        // if there is no move in the queue.
     {
-      return;
+      ComputeMoveAbs(InputPose);    // Use the compute move function if the input is a move
+      UpdateMotorObjects(BLOCKING); // Update the stepper objects with the new move
     }
-    ComputeMoveAbs(InputPose); // Use the compute move function if the input is a move
-    UpdateMotorObjects();      // Update the stepper objects with the new move
   };
   bool IsRunning(void)
   {
@@ -159,23 +159,24 @@ public:
     MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)ThetaXY, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
     Serial.println("WHEELSTEPS");
     PrintMatrix((mtx_type *)NewWheelSteps, 4, 1);
-    UpdateMotorObjects();
+    UpdateMotorObjects(1);
   }
-  void ComputeRotation(mtx_type ThetaXY[3][1])
-  {
-    MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)ThetaXY, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
-
-    Serial.println("WHEELSTEPS ROTATION");
-    PrintMatrix((mtx_type *)NewWheelSteps, 4, 1);
-    UpdateMotorObjects();
-  }
-  void UpdateMotorObjects(void)
+  void UpdateMotorObjects(bool BlockingOrNot)
   {
     motor_1.setTargetRel(NewWheelSteps[0][0]); // update the stepper object
     motor_2.setTargetRel(NewWheelSteps[1][0]);
     motor_3.setTargetRel(NewWheelSteps[2][0]);
     motor_4.setTargetRel(NewWheelSteps[3][0]);
-    Controller.move(motor_1, motor_2, motor_3, motor_4);
+
+    switch (BlockingOrNot)
+    {
+    case BLOCKING:
+      Controller.move(motor_1, motor_2, motor_3, motor_4);
+      break;
+    default:
+      Controller.moveAsync(motor_1, motor_2, motor_3, motor_4);
+      break;
+    };
   }
   void MatrixMultiply(mtx_type *A, mtx_type *B, int m, int p, int n, mtx_type *C)
   {
