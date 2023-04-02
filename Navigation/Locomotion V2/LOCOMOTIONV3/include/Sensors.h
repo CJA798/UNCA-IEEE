@@ -3,8 +3,8 @@
 #include <math.h>
 #include "Adafruit_VL53L1X.h"
 #include "Adafruit_VL53L0X.h"
-//#include <Adafruit_I2CDevice.h>
-//#include <Adafruit_Sensor.h>
+// #include <Adafruit_I2CDevice.h>
+// #include <Adafruit_Sensor.h>
 #include <Wire.h>
 /* The Libraries for the magnetometer/gyroscope cause errors.
 
@@ -25,6 +25,7 @@ private:
     Bounce LeftSideRightSw;
     Bounce LeftSideLeftSw;
     bool SwitchesState[8] = {0};
+    bool ChangeInSwitchState = 0;
 
 public:
     BumperSwitches()
@@ -83,7 +84,14 @@ public:
         SwitchesState[5] = BackRightSw.read();
         SwitchesState[6] = BackLeftSw.read();
         SwitchesState[7] = LeftSideLeftSw.read();
-    }
+
+        for (int i = 0; i < 8; i++)
+        {
+            Serial.print(SwitchesState[i]);
+            Serial.print("Switch: ");
+            Serial.println(i);
+        };
+    };
 };
 
 class TOFArray

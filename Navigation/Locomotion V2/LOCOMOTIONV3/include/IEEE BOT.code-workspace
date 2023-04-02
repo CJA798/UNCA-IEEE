@@ -2,6 +2,14 @@
     "folders": [
         {
             "path": ".."
+        },
+        {
+            "name": "Blink test",
+            "path": "../../../../../../../PlatformIO/Projects/Blink test"
+        },
+        {
+            "name": "I2C Test",
+            "path": "../../../../../../../PlatformIO/Projects/I2C Test"
         }
     ]
 }
