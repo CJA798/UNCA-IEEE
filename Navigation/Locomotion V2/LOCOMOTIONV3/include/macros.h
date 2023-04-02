@@ -64,4 +64,4 @@
 #define STEPS_PER_BOT_RAD (1314)   // = ((BotCircumference*StepsPerCm*)/(2*Pi))*3 (gear ratio)
 #define STEPS_PER_DIST_MULT (58.5) // = (1/sqrt(2))*StepsPerCM*3 (gear ratio)
 #define MAX_MTR_SPEED (7500)       // Steps/s maximum is 300000
-#define MAX_MTR_ACCEL (50)         // Steps/s^2 skips at around 15000
+#define MAX_MTR_ACCEL (200)         // Steps/s^2 skips at around 15000

@@ -10,12 +10,12 @@ StepsPerDistMult = (1/sqrt(2)*StepsPercm)*3
 STEPSPERBOTRAD= (13750.98);
 STEPSPERDISTMULT= (432.1518) ;
 
-Vx = 0; % Speed in X
-Vy = 0; % Speed in Y
-Vomega = 2*pi; % Rotational Speed
+Vx = 20; % Speed in X
+Vy = -30; % Speed in Y
+Vomega = 0; % Rotational Speed
 Trans = [-wheeldist 1/sqrt(2) 1/sqrt(2);    %Jacobian Matrix (inverse kinematics)
          -wheeldist 1/sqrt(2) -1/sqrt(2);
-        1 -wheeldist -1/sqrt(2) 1/sqrt(2);
+         -wheeldist -1/sqrt(2) 1/sqrt(2);
          -wheeldist -1/sqrt(2) -1/sqrt(2)];
 
 %Calculation of wheel speeds using new method

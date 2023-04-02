@@ -22,30 +22,24 @@ char InputBit = 0;
 byte num = 0;
 void I2CScannerProcess(void);
 // void NavigationStateMachine(void);
-
+void CalibrateDistances(void){
+    Driver.NewMoveQueue.AddMove(LINEAR, 0, 0, 20);
+  Driver.NewMoveQueue.AddMove(ROTATIONAL, PI / 2, 0, 20);
+  Driver.NewMoveQueue.AddMove(LINEAR, PI / 2, 10, 20);
+  Driver.NewMoveQueue.AddMove(ROTATIONAL, 0, 10, 20);
+}
 void setup()
 {
- // Wire2.begin();
- Serial.begin(115200);
- delay(5000);
- Serial.println("START");
+  // Wire2.begin();
+  Serial.begin(115200);
+  delay(5000);
+  Serial.println("START");
+  CalibrateDistances();
 }
 
 void loop()
 {
-/*
-  if(Serial.available()){
-    InputBit = Serial.read();
-  }
-  */
- //Driver.NewMoveQueue.AddMove(0, 10, 0);
- //delay(10000);
-  Bumpers.SwitchesProcess();
-//  Driver.NavigationProcess();
- // NavigationStateMachine();
- // I2CScannerProcess();
-
-  delay(1000);
+   Driver.BlockingNavigationProcess();
 }
 
 void NavigationStateMachine()
@@ -86,15 +80,15 @@ void I2CScannerProcess(void)
 {
 
   // set the 24C256 eeprom address to 0
-Wire2.beginTransmission(0x50);
-if (!Wire2.available() ){
-  Serial.println("no response");
-};
+  Wire2.beginTransmission(0x50);
+  if (!Wire2.available())
+  {
+    Serial.println("no response");
+  };
 
- // Wire2.write(0); // address high byte
-  //Wire2.write(0); // address low byte
- // Wire2.endTransmission();
-
+  // Wire2.write(0); // address high byte
+  // Wire2.write(0); // address low byte
+  // Wire2.endTransmission();
 
   delay(5000);
 };

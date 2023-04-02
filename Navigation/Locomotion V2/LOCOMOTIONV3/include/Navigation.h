@@ -8,6 +8,8 @@ using namespace std;
 #define mtx_type double // Matrix type definition
 #define BLOCKING (1)
 #define NON_BLOCKING (0)
+#define ROTATIONAL (1)
+#define LINEAR (0)
 mtx_type InputPose[3][1] = {
     {0},
     {0},
@@ -16,6 +18,7 @@ mtx_type BotPose[3][1] = {
     {0},  // Theta
     {0},  // X BotPose[1][0] = 122;
     {0}}; // Y
+bool MoveTypeFlag = 0;
 class MoveQueue
 { /*This is a class that creates an 3x10 array that contains a queue of new moves for our robotics platform. The data will be accessed using a Read counter and a write counter.
 When the read counter is equal to the write counter, the Navigation Process flag is zero; when the read counter is not equal to the write counter, the Navigation Process flag is one.
@@ -27,19 +30,22 @@ This class will contain the functions AddMove(Theta, X, Y) and GetMove(); Addmov
 private:
 public:
   mtx_type MoveQueueArray[3][10];
+  bool MoveTypeArray[10];
   int WriteCounter = 0;
   int ReadCounter = 0;
   mtx_type MoveToRetrieve[3][1];
 
-  void AddMove(mtx_type Theta, mtx_type X, mtx_type Y)
+  void AddMove(bool MoveType, mtx_type Theta, mtx_type X, mtx_type Y)
   {
+    WriteCounter++;
+    MoveTypeArray[WriteCounter] = MoveType;
     MoveQueueArray[0][WriteCounter] = Theta;
     MoveQueueArray[1][WriteCounter] = X;
     MoveQueueArray[2][WriteCounter] = Y;
-    WriteCounter++;
+
     Serial.print("WriteCounter: ");
     Serial.println(WriteCounter);
-    if (WriteCounter >= 10)
+    if (WriteCounter >= 9)
     {
       WriteCounter = 0;
     };
@@ -52,13 +58,15 @@ public:
     {
       return 0;
     };
+    ReadCounter++;
+    MoveTypeFlag = MoveTypeArray[ReadCounter];
     InputPose[0][0] = MoveQueueArray[0][ReadCounter];
     InputPose[1][0] = MoveQueueArray[1][ReadCounter];
     InputPose[2][0] = MoveQueueArray[2][ReadCounter];
-    ReadCounter++;
+
     Serial.print("ReadCounter: ");
     Serial.println(ReadCounter);
-    if (ReadCounter >= 10)
+    if (ReadCounter >= 9)
     {
       ReadCounter = 0;
     };
@@ -81,7 +89,11 @@ private:
   Stepper motor_4;
   StepControl Controller;
   mtx_type NewWheelSteps[4][1];
-
+  mtx_type WheelSteps[4][1] = {
+      {0},
+      {0},
+      {0},
+      {0}};
   mtx_type InverseJacobian[4][3] = {
       {-STEPS_PER_BOT_RAD, STEPS_PER_DIST_MULT, STEPS_PER_DIST_MULT},
       {-STEPS_PER_BOT_RAD, STEPS_PER_DIST_MULT, -STEPS_PER_DIST_MULT},
@@ -120,53 +132,101 @@ public:
     NewMove = Coordinates();             // Initialize NewMove Coordinates object. This is for using the Cordinates library to do polar to cart conversions.
     TempPose = Coordinates();            // Initialize TempPose Coordinates object. This is for using the Cordinates library to do polar to cart conversions.
   }
+
   void BlockingNavigationProcess(void) // This is the blocking version of our navigation process (AKA the function will not return untill the move is complete) I
-  {                                    // The function does not need to check if we are moving; as it cannot exit until the move is complete. The function will also not run
-    if (NewMoveQueue.GetMove())        // if there is no move in the queue.
+  {                                    // The function does not need to check if we are moving; as it cannot exit until the move is complete.
+    if (NewMoveQueue.GetMove())        // The function will also not run if there is no move in the queue.
+      Serial.println("BOTPOSE");
+    PrintMatrix((mtx_type *)BotPose, 3, 1);
+    if (MoveTypeFlag == ROTATIONAL)
     {
-      ComputeMoveAbs(InputPose);    // Use the compute move function if the input is a move
+      Serial.println("Rotational Move");
+      ComputeMoveRotational(InputPose[0][0]);
+
       UpdateMotorObjects(BLOCKING); // Update the stepper objects with the new move
-    }
+    };
+    if (MoveTypeFlag == LINEAR)
+    {
+      Serial.println("Linear Move");
+      ComputeMoveLinear(InputPose[1][0], InputPose[2][0]);
+
+      UpdateMotorObjects(BLOCKING); // Update the stepper objects with the new move
+    };
   };
   bool IsRunning(void)
   {
     return Controller.isRunning();
   };
 
-  void ComputeMoveAbs(mtx_type ThetaXY[3][1]) // Will not let you make a complex move (i.e. spinning while moving)Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
-  // and updates the stepper objects with this distance. The controller object must be updated for the steppers to start this move. ROTATIONAL MOVES ARE ALWAYS RELATIVE.
-  //  Input is in form [ Theta ]
-  //                   [    X  ]
-  //                   [    Y  ]
+  void ComputeMoveRotational(double Theta)
   {
-    if (ThetaXY[0][0] != 0)
+    mtx_type DeltaXY[3][1] = {
+        {0},
+        {0},
+        {0}};
+    DeltaXY[0][0] = Theta - BotPose[0][0]; // Calculate the change in Theta
+    BotPose[0][0] += Theta;                // Update the bot's pose with the new Theta
+    Serial.println("DeltaXY: ");
+    PrintMatrix((mtx_type *)DeltaXY, 3, 1);
+    MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)DeltaXY, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
+    Serial.println("WHEELSTEPS");
+    PrintMatrix((mtx_type *)NewWheelSteps, 4, 1);
+    UpdateMotorObjects(1);
+
+    if (BotPose[0][0] > (2 * PI)) // Check to see if our angle is greater than 2PI. If it is, subtract 2PI from it.
     {
-      // Return without doing anything if theta is not zero
-      Serial.println("ERROR: COMPLEX MOVE");
-      return;
-    }
-    /*
-    if (BotPose[0][0] > 0)
-    { // if bot is skewed at an angle; calculate the actual desired movement vector. This is done by calculating the length of the vector, its angle, and then subtracting this angle from
-      // the angle the bot is positioned at.
-      Pose.fromCartesian(BotPose[1][0], BotPose[2][0]);                         // Update pose object with bots current pose
-      NewMove.fromCartesian(ThetaXY[1][0], ThetaXY[2][0]);                      // Update new move object with our new move
-      TempPose.fromPolar(NewMove.getR(), NewMove.getAngle() - Pose.getAngle()); // Calculate the actual move given our bots current angle
+      BotPose[0][0] -= (2 * PI);
     };
-    */
-    Serial.println("THETAXY");
-    PrintMatrix((mtx_type *)ThetaXY, 3, 1);
-    MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)ThetaXY, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
+  }
+  void ComputeMoveLinear(double X, double Y)
+  {
+    mtx_type DeltaXY[3][1] = {
+        {0},
+        {0},
+        {0}};
+
+    if (BotPose[0][0] != 0)                                                     // Checks to see if the bot is currently skewed at an angle.
+    {                                                                           // if bot is skewed at an angle; calculate the actual desired movement vector. This is done by calculating the length of the vector, its angle, and then subtracting this angle from
+                                                                                // the angle the bot is positioned at.
+      Pose.fromCartesian(BotPose[1][0], BotPose[2][0]);                         // Update pose object with bots current pose
+      NewMove.fromCartesian(X, Y);                                              // Update new move object with our new move
+      TempPose.fromPolar(NewMove.getR(), NewMove.getAngle() - Pose.getAngle()); // Calculate the actual move given our bots current angle TempPose(theta) = NewMove(theta) - Pose(theta)
+      X = TempPose.getX();                                                      // Update InputX = TempPose(X)
+      Y = TempPose.getY();                                                      // Update InputY = TempPose(Y)
+                                                                                // Update the bot's pose with the new Y
+      Serial.println("NewAngle: ");
+      Serial.println(NewMove.getAngle() - Pose.getAngle());
+      Serial.println("New X: ");
+      Serial.println(TempPose.getX());
+      Serial.println("New Y: ");
+      Serial.println(TempPose.getY());
+      DeltaXY[1][0] = X - BotPose[1][0]; // Calculate the change in X
+      DeltaXY[2][0] = Y - BotPose[2][0]; // Calculate the change in Y
+      Serial.println("DeltaXY: ");
+      PrintMatrix((mtx_type *)DeltaXY, 3, 1);
+    }
+    else
+    {
+
+      DeltaXY[1][0] = X - BotPose[1][0]; // Calculate the change in X
+      DeltaXY[2][0] = Y - BotPose[2][0]; // Calculate the change in Y
+      Serial.println("DeltaXY: ");
+      PrintMatrix((mtx_type *)DeltaXY, 3, 1);
+    };
+    BotPose[1][0] = X; // Update the bot's pose with the new X
+    BotPose[2][0] = Y;
+    // MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)ThetaXY, 4, 3, 1, (mtx_type *)NewWheelSteps);
+    MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)DeltaXY, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
     Serial.println("WHEELSTEPS");
     PrintMatrix((mtx_type *)NewWheelSteps, 4, 1);
     UpdateMotorObjects(1);
   }
-  void UpdateMotorObjects(bool BlockingOrNot)
+  void UpdateMotorObjects(char BlockingOrNot)
   {
-    motor_1.setTargetRel(NewWheelSteps[0][0]); // update the stepper object
-    motor_2.setTargetRel(NewWheelSteps[1][0]);
-    motor_3.setTargetRel(NewWheelSteps[2][0]);
-    motor_4.setTargetRel(NewWheelSteps[3][0]);
+    motor_1.setTargetAbs(NewWheelSteps[0][0]); // update the stepper object
+    motor_2.setTargetAbs(NewWheelSteps[1][0]);
+    motor_3.setTargetAbs(NewWheelSteps[2][0]);
+    motor_4.setTargetAbs(NewWheelSteps[3][0]);
 
     switch (BlockingOrNot)
     {
