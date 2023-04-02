@@ -22,8 +22,9 @@ char InputBit = 0;
 byte num = 0;
 void I2CScannerProcess(void);
 // void NavigationStateMachine(void);
-void CalibrateDistances(void){
-    Driver.NewMoveQueue.AddMove(LINEAR, 0, 0, 20);
+void CalibrateDistances(void)
+{
+  Driver.NewMoveQueue.AddMove(LINEAR, 0, 0, 20);
   Driver.NewMoveQueue.AddMove(ROTATIONAL, PI / 2, 0, 20);
   Driver.NewMoveQueue.AddMove(LINEAR, PI / 2, 10, 20);
   Driver.NewMoveQueue.AddMove(ROTATIONAL, 0, 10, 20);
@@ -39,7 +40,7 @@ void setup()
 
 void loop()
 {
-   Driver.BlockingNavigationProcess();
+  Driver.BlockingNavigationProcess();
 }
 
 void NavigationStateMachine()
