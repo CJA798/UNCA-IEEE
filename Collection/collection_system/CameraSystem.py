@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from typing import List, Tuple
 from picamera2 import Picamera2
 from tflite_support.task import core, processor, vision
 from math import atan2, cos, sin, sqrt, pi
@@ -35,9 +36,8 @@ class CameraSystem:
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self._detector = vision.ObjectDetector.create_from_options(options)
 
-    def run_inference(self, image):
-        image = cv2.flip(image, 1)
 
+    def run_inference(self, image: np.ndarray):
         # Convert the image from BGR to RGB as required by the TFLite model.
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -46,25 +46,11 @@ class CameraSystem:
 
         # Run object detection estimation using the model.
         detection_result = self._detector.detect(input_tensor)
-        print(detection_result)
-
+        
         return detection_result
 
-    def get_data(self):    
-        # Take picture
-        image = self.camera.capture_array()
 
-        # Run inference
-        detection_result = self.run_inference(image)
-
-        # Extract the indexes from the DetectionResult object
-        class_index = [d.categories[0].index for d in detection_result.detections]
-
-
-        # OBJECT ORIENTATION:
-        # Extract the bounding boxes from the DetectionResult object
-        bounding_boxes = [(d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height) for d in detection_result.detections]
-
+    def get_angles(self, image: np.ndarray, bounding_boxes: List[Tuple[int, int, int, int]]):
         # Convert oriented_image to hsv to identify colors easily
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         # Convert oriented_image to grayscale to identify white
@@ -88,8 +74,10 @@ class CameraSystem:
             # Find the contours in the binary image
             contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
+            biggest_contour = None
+            biggest_area = 0
             # Enumerate contours
-            for i, c in enumerate(contour):
+            for _, c in enumerate(contour):
                 # Calculate the area of each contour
                 area = cv2.contourArea(c)
 
@@ -97,26 +85,110 @@ class CameraSystem:
                 if area < self._min_area or area > self._max_area:
                     continue
 
+                if area > biggest_area:
+                    biggest_area = area
+                    biggest_contour = c
+                    offset_biggest_contour = biggest_contour + np.array([x, y])
+
                 # Draw the contours on image
-                cv2.drawContours(image, contour[i]+ np.array([x, y]), -1, (255,255,0), 3)
+                cv2.drawContours(image, offset_biggest_contour, -1, (255,255,0), 3)
                 
                 # Find the orientation of each shape
-                angle = utils.getOrientation(c, image, x, y)
+                angle = utils.getOrientation(biggest_contour, image, x, y)
                 
-                contours.append(contour[0] + np.array([x, y]))  # Shift contour points back to the original image coordinates
+                contours.append(offset_biggest_contour)  # Shift contour points back to the original image coordinates
                 angles.append(angle)
+
+        return angles
+
+
+    def summarize_data(self, detections, angles):
+        ''' This function summarizes the data from run_inference
+            and get_angles in a list'''
+        
+        if len(detections) != len(angles):
+            raise ValueError("The number of detections and angles doesn't match.")
+        
+        objects_data = []
+
+        for detection, angle in zip(detections, angles):
+            bbox = (detection.bounding_box)
+            category_index = detection.categories[0].index
+            objects_data.append((category_index, bbox, angle))
+        
+        return objects_data
+
+
+    def draw_areas(self, image):
+        # Define rectangle coordinates and labels
+        padding = 10
+        height = image.shape[0] - padding
+        left_rect = (padding, padding, int(image.shape[1]/3), height)
+        middle_rect = (int(image.shape[1]/3)+padding, padding, int(image.shape[1]/3)-2*padding, height)
+        right_rect = (2*int(image.shape[1]/3)+padding, padding, int(image.shape[1]/3), height)
+        labels = ['Elevator', 'FORBIDDEN', 'Flipper']
+
+        # Draw rectangles and labels on image
+        for rect, label in zip([left_rect, middle_rect, right_rect], labels):
+            x, y, w, h = rect
+            cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), thickness=1)
+            cv2.putText(image, label, (x, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), thickness=1)
+
+
+    def split_data(self, data: Tuple(int, int, int, int)):
+        ''' This function splits the data into three lists
+            depending on the objects position.
+            Each list corresponds to an area:
+                -   Elevator
+                -   Middle
+                -   Flipper'''
+        elevator_data = []
+        middle_area_data = []
+        flipper_data = []
+        forbidden_area_start = self._frame_width // 3
+        forbidden_area_end = (self._frame_width * 2) // 3
+        for item in data:
+            x_coord = item[1].origin_x
+            if x_coord < forbidden_area_start:
+                elevator_data.append(item)
+            elif x_coord > forbidden_area_end:
+                flipper_data.append(item)
+            else:
+                middle_area_data.append(item)
+
+        return elevator_data, middle_area_data, flipper_data
+
+
+    def get_data(self):
+        ''' This function runs the computer vision routine and
+            returns three lists: elevator, middle, and flipper.'''  
+         
+        # Take picture
+        image = self.camera.capture_array()
+        #image = cv2.flip(image, 1)
+
+        # Run inference
+        detection_result = self.run_inference(image)
+        detection_result = detection_result.detections
+        
+        # Sort detections from left to right
+        detection_result = sorted(detection_result, key=lambda d: d.bounding_box.origin_x)
+
+        # Extract the bounding boxes from the DetectionResult object
+        bounding_boxes = [(d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height) for d in detection_result.detections]
+        angles = self.get_angles(bounding_boxes)
+
+        # Summarize data in a single list
+        object_data = self.summarize_data(detection_result, angles)
+        elevator_area, middle_area, flipper_area = self.split_data(object_data)
         
         # Draw keypoints and edges on input image
         image = utils.visualize(image, detection_result)
-        
+        image = self.draw_areas(image)
+
         # Stop the program if the ESC key is pressed.
         cv2.imshow('object_detector', image)
         #cv2.imshow('HSV', hsv)
         #cv2.imshow('Gray', gray)
 
-        # Zip the two data arrays together into one iterable
-        object_data = zip(class_index,angles)
-        # Convert to list to index data
-        object_data = list(object_data)
-        
-        return object_data
+        return elevator_area, middle_area, flipper_area

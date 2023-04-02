@@ -10,12 +10,14 @@ def main():
 
     try:
         while True:
-            angles = camera.get_data()
-            print(tuple(angles))
+            elevator_data, middle_data, flipper_data = camera.get_data()
+            print('Elevator Area: {}'.format(tuple(elevator_data)))
+            print('Middle Area: {}'.format(tuple(middle_data)))
+            print('Flipper Area: {}'.format(tuple(flipper_data)))
 
             if cv2.waitKey(1) == 27:
                 break
-
+            '''
             if not angles:
                 flipper.set_status(FlipperPlatformStatus.NO_OBJECTS_IN_PLATFORM)
 
@@ -26,6 +28,8 @@ def main():
                 else:
                     flipper.stop_rotation()
                     asyncio.run(flipper.flip_platform())
+            '''
+            
     # When the camera is unreachable, stop the program
     finally:
         cv2.destroyAllWindows()
