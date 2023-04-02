@@ -8,7 +8,7 @@ class ElevatorStatus:
     DUCK = 3
     COLUMN = 4
     DONE = 5 #Go back down to the ready state
-    CLEANING = 6 #The o[rientation isn't fixable, so cleaning
+    CLEANING = 6 #The orientation isn't fixable, so cleaning
 _ROTATION_SERVO_CHANNEL = 3
 _ELEVATOR_SERVO_CHANNEL = 4
 

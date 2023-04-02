@@ -2,18 +2,38 @@ from time import sleep
 from pi_servo_hat import PiServoHat
 
 # Instantiate the object
-hat = PiServoHat()
-hat.restart()
-# Set the PWM frequency to 50Hz
-hat.set_pwm_frequency(50)
+servo_hat = PiServoHat()
+servo_hat.restart()
 
-channel = 1
+# Set the PWM frequency to 50Hz
+servo_hat.set_pwm_frequency(50)
+
+# Set the servo channel to use
+channel = 6
 swing = 180
 
-hat.move_servo_position(channel, 0, swing)
-print("0, {}".format(swing))
-sleep(2)
-hat.move_servo_position(channel, 240, swing)
-print("180, {}".format(swing))
-sleep(2)
+# Define the servo positions
+min_position = 0
+max_position = 240
 
+'''
+Ducks height = -110
+Columns height = 0
+Down = 230
+'''
+
+while True:
+
+  servo_hat.move_servo_position(channel, 0, swing)
+  sleep(1)
+  servo_hat.move_servo_position(channel, 240, swing)
+  sleep(1)
+
+#for i in range(0, 211, 1):
+ #   servo_hat.move_servo_position(channel, i, swing)
+  #  sleep(0.1)
+
+'''
+for i in 
+servo_hat.set_pwm_frequency(servo_channel, i)
+'''
