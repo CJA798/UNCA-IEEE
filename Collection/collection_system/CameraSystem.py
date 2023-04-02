@@ -35,13 +35,7 @@ class CameraSystem:
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self._detector = vision.ObjectDetector.create_from_options(options)
 
-
-    def get_data(self):    
-        # Continuously capture images from the camera and run inference
-        # Take picture
-        image = self.camera.capture_array()
-
-        # OBJECT DETECTION:
+    def run_inference(self, image):
         image = cv2.flip(image, 1)
 
         # Convert the image from BGR to RGB as required by the TFLite model.
@@ -52,6 +46,16 @@ class CameraSystem:
 
         # Run object detection estimation using the model.
         detection_result = self._detector.detect(input_tensor)
+        print(detection_result)
+
+        return detection_result
+
+    def get_data(self):    
+        # Take picture
+        image = self.camera.capture_array()
+
+        # Run inference
+        detection_result = self.run_inference(image)
 
         # Extract the indexes from the DetectionResult object
         class_index = [d.categories[0].index for d in detection_result.detections]
