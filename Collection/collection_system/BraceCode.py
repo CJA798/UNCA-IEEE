@@ -61,6 +61,12 @@ class BRACE_ACTION:
             self.set.status(top_or_bottom)
             self.hat.move_servo_position(pin, -110)
 
+        #state: open or closed
+        #value: from 240 to -110
+        def pendulum_activation(self, state, pin, value):
+            self.set.status(state)
+            self.hat.move_servo_position(pin, value)
+
 
     #no platform only pusher
     #
@@ -100,6 +106,7 @@ class BRACE_ACTION:
 
             BRACE_ACTION.initial_brace_bottom
             BRACE_ACTION.initial_brace_top
+            BRACE_ACTION.pendulum_activation(BraceStatus.PENDULUM_BOTTOM_LOCATION, _PENDULUM_SERVO_CHANNEL, -100)
 
 
    # async def flip_platform(self):
