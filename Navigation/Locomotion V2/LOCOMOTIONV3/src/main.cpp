@@ -19,62 +19,32 @@ double HalfSpinLft[3][1] = {{-PI}, {0}, {0}};
 int State = 1;
 int FirstTime = 1;
 char InputBit = 0;
-byte num = 0;
-void I2CScannerProcess(void);
-// void NavigationStateMachine(void);
-void CalibrateDistances(void)
-{
-  Driver.NewMoveQueue.AddMove(LINEAR, 0, 0, 20);
-  Driver.NewMoveQueue.AddMove(ROTATIONAL, PI / 2, 0, 20);
-  Driver.NewMoveQueue.AddMove(LINEAR, PI / 2, 10, 20);
-  Driver.NewMoveQueue.AddMove(ROTATIONAL, 0, 10, 20);
-}
+
 void setup()
 {
   // Wire2.begin();
   Serial.begin(115200);
   delay(5000);
   Serial.println("START");
-  CalibrateDistances();
-}
+};
 
 void loop()
 {
-  Driver.BlockingNavigationProcess();
-}
-
-void NavigationStateMachine()
-{
-  switch (State)
-  {
+  switch(NavState){
+case 0:
+  break;
   case 1:
+// STARTING COLLECTION LOOP
 
-    break;
-  case 2:
-    if (Driver.IsRunning() > 0)
-    {
-      State = 3;
-    };
-    break;
-  case 3:
-    Driver.NavState = 1;
-    //  Driver.InputPose[0][0] = PI / 2;
-    State = 4;
-    break;
-  case 4:
-    if (Driver.IsRunning() > 0)
-    {
-      State = 5;
-    };
-    break;
-  case 5:
 
-    State = 6;
-    break;
-  case 6:
 
-    break;
-  };
+  break;
+case 2:
+// COLLECTING ITEMS
+  break;
+case 3:
+  break;
+};
 };
 
 void I2CScannerProcess(void)
