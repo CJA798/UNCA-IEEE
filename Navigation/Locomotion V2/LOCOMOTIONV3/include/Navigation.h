@@ -12,9 +12,9 @@ mtx_type InputPose[3][1] = {
     {0},
     {0}};
 mtx_type BotPose[3][1] = {
-    {0},
-    {0},
-    {0}};
+    {0},  // Theta
+    {0},  // X BotPose[1][0] = 122;
+    {0}}; // Y
 class MoveQueue
 { /*This is a class that creates an 3x10 array that contains a queue of new moves for our robotics platform. The data will be accessed using a Read counter and a write counter.
 When the read counter is equal to the write counter, the Navigation Process flag is zero; when the read counter is not equal to the write counter, the Navigation Process flag is one.
@@ -65,7 +65,7 @@ class DriverObject
 private:
   // MoveQueue* FirstMove;
   // MoveQueue* LastMove;
- 
+
   Coordinates Pose;
   Coordinates NewMove;
   Coordinates TempPose;
@@ -88,7 +88,6 @@ public:
   char NavState = 0; // A nav state of 0 means the bot is not moving. A nav state of 1 means the bot is
   // making a linear move, a Nav state of 2 means the bot is making a rotational move.
   bool IsMoving = 0;
- 
 
   //  CONSTRUCTOR FOR THE NAVIGATION PROCESS. THIS IS CALLED WHEN THE NAVIGATION PROCESS IS INITIALIZED.
   DriverObject() : motor_1(MTR1DIR, MTR1STEP), // MUST PASS CONSTRUCTOR OBJECTS FROM THE STEPPER CLASS
@@ -118,16 +117,16 @@ public:
   void NavigationProcess(void)
   {
     if (NewMoveQueue.ReadCounter != NewMoveQueue.WriteCounter)
-    { // Check if the move queue read counters and write
+    {                         // Check if the move queue read counters and write
       NewMoveQueue.GetMove(); // Get the next move from the move queue
       IsMoving = 1;
     }
-    else{
+    else
+    {
       return;
     }
-    ComputeMoveAbs(InputPose);  // Use the compute move function if the input is a move
-    UpdateMotorObjects();       // Update the stepper objects with the new move
-
+    ComputeMoveAbs(InputPose); // Use the compute move function if the input is a move
+    UpdateMotorObjects();      // Update the stepper objects with the new move
   };
   bool IsRunning(void)
   {

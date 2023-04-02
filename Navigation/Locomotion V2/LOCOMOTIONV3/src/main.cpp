@@ -38,10 +38,10 @@ void loop()
     InputBit = Serial.read();
   }
   */
- Driver.NewMoveQueue.AddMove(0, 10, 0);
- delay(10000);
- // Bumpers.SwitchesProcess();
-  Driver.NavigationProcess();
+ //Driver.NewMoveQueue.AddMove(0, 10, 0);
+ //delay(10000);
+  Bumpers.SwitchesProcess();
+//  Driver.NavigationProcess();
  // NavigationStateMachine();
  // I2CScannerProcess();
 

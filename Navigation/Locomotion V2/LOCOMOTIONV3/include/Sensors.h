@@ -6,27 +6,35 @@
 // #include <Adafruit_I2CDevice.h>
 // #include <Adafruit_Sensor.h>
 #include <Wire.h>
+#define X_MAX (122)
+#define Y_MAX (122)
+#define X_MIN (-122)
+#define Y_MIN (0)
+#define FRONT_PRESSED (1)
+#define BACK_PRESSED (2)
+#define RIGHT_PRESSED (3)
+#define LEFT_PRESSED (4)
 /* The Libraries for the magnetometer/gyroscope cause errors.
 
 #include <Adafruit_SPIDevice.h>
 
 #include <Adafruit_BNO055.h>
 */
+Bounce FrontLeftSw;
+Bounce FrontRightSw;
+Bounce BackRightSw;
+Bounce BackLeftSw;
+Bounce RightSideRightSw;
+Bounce RightSideLeftSw;
+Bounce LeftSideRightSw;
+Bounce LeftSideLeftSw;
+bool SwitchesState[8] = {0};
+bool ChangeInSwitchState = 0;
+
 class BumperSwitches
-{
+{ // This class will contain the functions to read the construct the bumpers switches, read from the switches, and set flags for when the X_min, X_max, Y_min, Y_max bounds are reached.
 
 private:
-    Bounce FrontLeftSw;
-    Bounce FrontRightSw;
-    Bounce BackRightSw;
-    Bounce BackLeftSw;
-    Bounce RightSideRightSw;
-    Bounce RightSideLeftSw;
-    Bounce LeftSideRightSw;
-    Bounce LeftSideLeftSw;
-    bool SwitchesState[8] = {0};
-    bool ChangeInSwitchState = 0;
-
 public:
     BumperSwitches()
     {
@@ -91,6 +99,13 @@ public:
             Serial.print("Switch: ");
             Serial.println(i);
         };
+    };
+    void CheckBumperState(char Side){
+        // This function returns 0 if none of the switches are pressed, it returns 1 if the front is pressed, and so on.
+        // The position  of the bot is accessed via ThetaXY[3][1];
+        // To check that a switch is really "pressed", we will check if we are within SWITCH_THRESHOLD of X_MAX, X_MIN, Y_MAX or Y_MIN;
+        // as well as if both switches on that side are pressed.
+
     };
 };
 
