@@ -38,7 +38,7 @@ def visualize(
   Returns:
     Image with bounding boxes.
   """
-  for detection in detection_result.detections:
+  for detection in detection_result:
     # Draw bounding_box
     bbox = detection.bounding_box
     #start_point = bbox.origin_x, bbox.origin_y

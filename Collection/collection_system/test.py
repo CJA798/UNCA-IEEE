@@ -9,7 +9,7 @@ servo_hat.restart()
 servo_hat.set_pwm_frequency(50)
 
 # Set the servo channel to use
-channel = 6
+channel = 14
 swing = 180
 
 # Define the servo positions
@@ -22,12 +22,9 @@ Columns height = 0
 Down = 230
 '''
 
-while True:
 
-  servo_hat.move_servo_position(channel, 0, swing)
-  sleep(1)
-  servo_hat.move_servo_position(channel, 240, swing)
-  sleep(1)
+servo_hat.move_servo_position(channel, 0, swing)
+#sleep(1)
 
 #for i in range(0, 211, 1):
  #   servo_hat.move_servo_position(channel, i, swing)
