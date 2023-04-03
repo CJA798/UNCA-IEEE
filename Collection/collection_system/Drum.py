@@ -64,7 +64,7 @@ class Drum():
     def calibrateDrum(self):
         while True:
             self.DrumMotor.motor_run(GPIO_pins, .0000001)
-            if GPIO.input(): #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Fix this soon
+            if GPIO.input(6):
                 break
         self.DrumMotor.stop_motor
         self.state = DrumStatus.SLOT1
