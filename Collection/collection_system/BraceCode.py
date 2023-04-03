@@ -53,19 +53,19 @@ class BRACE_ACTION:
         await asyncio.sleep(duration)
 
 
-        def brace_open(self, pin, top_or_bottom):
-            self.set.status(top_or_bottom)
-            self.hat.move_servo_position(pin, 230)
+    def brace_open(self, pin, top_or_bottom):
+        self.set.status(top_or_bottom)
+        self.hat.move_servo_position(pin, 230)
 
-        def brace_closed(self, pin, top_or_bottom):
-            self.set.status(top_or_bottom)
-            self.hat.move_servo_position(pin, -110)
+    def brace_closed(self, pin, top_or_bottom):
+        self.set.status(top_or_bottom)
+        self.hat.move_servo_position(pin, -110)
 
         #state: open or closed
         #value: from 240 to -110
-        def pendulum_activation(self, state, pin, value):
-            self.set.status(state)
-            self.hat.move_servo_position(pin, value)
+    def pendulum_activation(self, state, pin, value):
+        self.set.status(state)
+        self.hat.move_servo_position(pin, value)
 
 
     #no platform only pusher

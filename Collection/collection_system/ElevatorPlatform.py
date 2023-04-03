@@ -46,16 +46,19 @@ class Elevator():
         #The determined position of the servo for ground is -110
         self.setStatus(ElevatorStatus.DUCK)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, -110, self.swing)
+        await self.wait(0.5)
 
     async def raisePlatformToColumn(self):
         #The determined position of the servo for ground is 0
         self.setStatus(ElevatorStatus.COLUMN)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 0, self.swing)
+        await self.wait(0.5)
 
     async def lowerToGround(self):
         #The determined position of the servo for ground is 230
         self.setStatus(ElevatorStatus.DONE)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 230, self.swing)
+        await self.wait(0.5)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Getters and Setters
