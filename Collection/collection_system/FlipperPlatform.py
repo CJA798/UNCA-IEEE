@@ -43,6 +43,31 @@ class FlipperPlatform:
         self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _FLIPPER_OFF, _SWING)
 
 
+    async def wait(self, duration: int):
+        await asyncio.sleep(duration)
+
+
+    def rotate_platform(self):
+        self.set_status(FlipperStatus.ORIENTING)
+        print("Orienting")
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 60)
+        
+
+
+    def stop_rotation(self):
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 54)
+
+
+    async def flip_platform(self):
+        self.set_status(FlipperStatus.FLIPPING)
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 0, 180)
+        await self.wait(0.5)
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 240, 180)
+        await self.wait(0.5)
+        self.set_status(FlipperStatus.EMPTY)
+        print("Platform flipped")
+
+
     def RotatePlatform(self, angle: int) -> None:
         self.set_status(FlipperStatus.ORIENTING)
         print("Orienting")

@@ -202,7 +202,6 @@ class CameraSystem:
         ''' This function runs the computer vision routine and
         returns three lists: elevator, middle, and flipper.'''  
         # Take picture
-        print("BEFORE PIC")
         image = self.camera.capture_array()
         #image = cv2.flip(image, 1)
 
@@ -224,10 +223,13 @@ class CameraSystem:
         # Draw keypoints and edges on input image
         image = utils.visualize(image, detection_result)
         image = self.draw_areas(image)
-        print("BEFORE SHOW")
         # Stop the program if the ESC key is pressed.
         cv2.imshow('object_detector', image)
         #cv2.imshow('HSV', hsv)
         #cv2.imshow('Gray', gray).
-        
+    
+        print('Elevator Area: {}'.format(tuple(elevator_area)))
+        print('Middle Area: {}'.format(tuple(middle_area)))
+        print('Flipper Area: {}'.format(tuple(flipper_area)))
+
         return elevator_area, middle_area, flipper_area

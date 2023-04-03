@@ -29,6 +29,7 @@ def main():
     # Create objects
     camera = CameraSystem()
     robot = Robot()
+    flipper = robot.CollectionSystem.Flipper
     
 
     try:
@@ -58,12 +59,22 @@ def main():
                 ItemToSort = flipper_data[0][0]
                 AngleToTurn = flipper_data[0][2]
                 while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
-                    robot.CollectionSystem.Flipper.RotatePlatform(AngleToTurn)
-                    #sleep(2)
+                    flipper.rotate_platform()
                     while len(flipper_data) < 1:
                         _, _, flipper_data = camera.get_data()
                         AngleToTurn = flipper_data[0][2]
-                                
+                    
+                    flipper.set_current_angle(AngleToTurn)
+                        
+
+
+                flipper.stop_rotation()
+                while True:
+                    _, _, flipper_data = camera.get_data()
+                asyncio.run(flipper.flip_platform())
+
+
+
                 robot.CollectionSystem.Flipper.StopRotation()
                 robot.CollectionSystem.Flipper.FlipPlatform()
                 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
