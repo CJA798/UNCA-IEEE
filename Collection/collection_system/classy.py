@@ -32,13 +32,17 @@ def main():
 
     try:
         while True:
-            elevator_data, middle_data, flipper_data = camera.get_data()
             if cv2.waitKey(1) == 27:
                 break
-            '''
-            Intake code here for everything to really get started.
-            '''
-            robot.CollectionSystem.Intake.StartIntake
+
+            flipper_data = []
+            robot.CollectionSystem.Intake.StartIntake()
+
+            while not flipper_data[0]:
+                _, _, flipper_data = camera.get_data()
+            
+            robot.CollectionSystem.Intake.StopIntake()
+
 
             #0 Class Ex. Yellow Duck, column
             #1 Bounding Box Ex. Not necessary
@@ -52,8 +56,8 @@ def main():
                 robot.CollectionSystem.Flipper.RotatePlatform(AngleToTurn)
                 _, _, flipper_data = camera.get_data()
                 AngleToTurn = flipper_data[0][2]
-            robot.CollectionSystem.Flipper.StopRotation
-            robot.CollectionSystem.Flipper.FlipPlatform
+            robot.CollectionSystem.Flipper.StopRotation()
+            robot.CollectionSystem.Flipper.FlipPlatform()
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             
             #From here we do all that is necessary with the elevator
@@ -61,15 +65,15 @@ def main():
             AngleToTurn = elevator_data[0][2]
             
             while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
-                robot.CollectionSystem.Elevator.RotatePlatform
+                robot.CollectionSystem.Elevator.RotatePlatform()
                 elevator_data, _, _ = camera.get_data()
                 AngleToTurn = elevator_data[0][2]
             
             #The object is now oriented and ready to be raised
-            robot.CollectionSystem.Elevator.raisePlatformToColumn
+            robot.CollectionSystem.Elevator.raisePlatformToColumn()
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             
-            robot.CollectionSystem.Pushers.LoadingPillarPusher1
+            robot.CollectionSystem.Pushers.LoadingPillarPusher1()
             
             robot.CollectionSystem.Drum.stateMachineInput(DrumStatus.SLOT1OUT)
             
