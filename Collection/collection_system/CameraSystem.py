@@ -18,10 +18,10 @@ class CameraSystem:
         self._frame_height = 480
         self._num_threads = 4
         self._enable_edgetpu = True
-        self._min_area = 0#.05 * self._frame_width * self._frame_height
+        self._min_area = 0.02 * self._frame_width * self._frame_height
         self._max_area = self._frame_width * self._frame_height
         self._max_results = 10
-        self._score_threshold = 0.6
+        self._score_threshold = 0.4
         self.camera = Picamera2()
         self._preview_config = self.camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (self._frame_width, self._frame_height)})
        
@@ -74,24 +74,45 @@ class CameraSystem:
             # Find the contours in the binary image
             contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-            # Enumerate contours
-            for _, c in enumerate(contour):
-                # Calculate the area of each contour
-                area = cv2.contourArea(c)
-                offset_contours = c + np.array([x, y])
-
-                # Ignore contours that are too small or too large
-                if area < self._min_area or area > self._max_area:
-                    continue
-
-                # Draw the contours on image
-                cv2.drawContours(image, offset_contours, -1, (255,255,0), 3)
+            biggest_contour = None
+            biggest_area = 0
+            offset_biggest_contour = None
+            for bbox in bounding_boxes:
+            # Extract the region of the image defined by the bounding box
+                x, y, w, h = bbox
+                bw_roi = bw[y:y+h, x:x+w]
+                if bw_roi.shape[0] > 0 and bw_roi.shape[1] > 0:
+                    cv2.imshow('B/W Region of Interest', bw_roi)
                 
-                # Find the orientation of each shape
-                angle = utils.getOrientation(c, image, x, y)
-                
-                contours.append(offset_contours)  # Shift contour points back to the original image coordinates
-                angles.append(angle)
+                # Find the contours in the binary image
+                contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+                biggest_contour = None
+                biggest_area = 0
+                offset_biggest_contour = None
+                # Enumerate contours
+                for _, c in enumerate(contour):
+                    # Calculate the area of each contour
+                    area = cv2.contourArea(c)
+
+                    # Ignore contours that are too small or too large
+                    if area < self._min_area or area > self._max_area:
+                        continue
+
+                    if area > biggest_area:
+                        biggest_area = area
+                        biggest_contour = c
+                        offset_biggest_contour = biggest_contour + np.array([x, y])
+
+                    # Draw the contours on image
+                    cv2.drawContours(image, offset_biggest_contour, -1, (255,255,0), 3)
+                    
+                    # Find the orientation of each shape
+                    angle = utils.getOrientation(biggest_contour, image, x, y)
+                    
+                    contours.append(offset_biggest_contour)  # Shift contour points back to the original image coordinates
+                    angles.append(angle)
+
 
         return angles
 
@@ -125,8 +146,8 @@ class CameraSystem:
         cv2.rectangle(image, (margin_size, margin_size), (width - margin_size, height - margin_size), margin_color, thickness=2)
 
         # Define the vertical lines positions and color
-        line_pos1 = width // 3
-        line_pos2 = width * 2 // 3
+        line_pos1 = 4 * (width // 7)
+        line_pos2 = 6 * (width // 9)
         line_color = (0, 255, 0)  # green
         
         # Draw the vertical lines
@@ -136,18 +157,18 @@ class CameraSystem:
         # Add labels to the areas
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 1
-        label_color = (0, 0, 255)  # red
+        label_color = (0, 255, 0)  # red
         
         # Left area (Elevator)
-        left_label_pos = (margin_size + 10, height // 2)
+        left_label_pos = (margin_size + 10, height // 10)
         cv2.putText(image, "Elevator", left_label_pos, font, font_scale, label_color, thickness=2)
 
         # Middle area
-        middle_label_pos = (line_pos1 + 10, height // 2)
-        cv2.putText(image, "Middle", middle_label_pos, font, font_scale, label_color, thickness=2)
+        middle_label_pos = (line_pos1 + 10, height // 10)
+        cv2.putText(image, "Mid", middle_label_pos, font, font_scale, label_color, thickness=2)
 
         # Right area (Flipper)
-        right_label_pos = (line_pos2 + 10, height // 2)
+        right_label_pos = (line_pos2 + 10, height // 10)
         cv2.putText(image, "Flipper", right_label_pos, font, font_scale, label_color, thickness=2)
 
         return image

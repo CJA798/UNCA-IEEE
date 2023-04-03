@@ -11,6 +11,9 @@ def main():
     try:
         while True:
             elevator_data, middle_data, flipper_data = camera.get_data()
+            #print(tuple(elevator_data))
+            #print(middle_data.shape)
+            #print(flipper_data.shape)
             print('Elevator Area: {}'.format(tuple(elevator_data)))
             print('Middle Area: {}'.format(tuple(middle_data)))
             print('Flipper Area: {}'.format(tuple(flipper_data)))
