@@ -6,6 +6,8 @@ from pi_servo_hat import PiServoHat
 _ROTATION_SERVO_CHANNEL = 0
 _FLIPPER_SERVO_CHANNEL = 1
 _CLEAR_SERVO_CHANNEL = 2
+_STOP_ROTATION = 60
+_ROTATE = 54
 
 class FlipperPlatformStatus:
     NO_OBJECTS_IN_PLATFORM = 0
@@ -29,17 +31,17 @@ class FlipperPlatform:
         self.hat.restart()
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
-        
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ROTATION)
 
     async def wait(self, duration: int):
         await asyncio.sleep(duration)
 
     def rotate_platform(self):
         self.set_status(FlipperPlatformStatus.ORIENTING_OBJECT)
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 60)
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _ROTATE)
 
     def stop_rotation(self):
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 54)
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ROTATION)
 
     async def flip_platform(self):
         self.set_status(FlipperPlatformStatus.FLIPPING_OBJECT)
