@@ -2,21 +2,20 @@ import asyncio
 from pi_servo_hat import PiServoHat
 
 class ElevatorStatus:
-    READY = 0 #Waiting for flipper, then the camera to orient
+    EMPTY = 0 #Waiting for flipper, then the camera to orient
     UNORIENTED_OBJECT = 1 #Rotate into the correct position then go to oriented
-    ORIENTED_OBJECT = 2 #Waiting for the camera to tell me to move to the height of an object
-    DUCK = 3
-    COLUMN = 4
-    DONE = 5 #Go back down to the ready state
-    CLEANING = 6 #The orientation isn't fixable, so cleaning
+    ORIENTING_OBJECT = 2 #Rotating while waiting for Threshhold to be met
+    ORIENTED_OBJECT = 3 #Rotated and can move straight into raising
+    RAISING = 4 #Raising until done.
+    RAISED = 5 #Done and letting drum rotate to get the object pushed in
+    LOWERING = 6 #Done with being pushed and lower. Once done going into empty
 _ROTATION_SERVO_CHANNEL = 3
 _ELEVATOR_SERVO_CHANNEL = 4
 
 class Elevator():
     def __init__(self):
-        self.status = ElevatorStatus.READY
+        self.status = ElevatorStatus.EMPTY
         self.current_angle = 0
-        self.num_objects = 0
         self.swing = 180
 
         # Instantiate the object
@@ -33,7 +32,7 @@ class Elevator():
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # This is the orientation platform on the elevator
     def rotate_platform(self):
-        self.set_status(ElevatorStatus.ORIENTED_OBJECT)
+        self.set_status(ElevatorStatus.ORIENTING_OBJECT)
         self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 60)
 
     def stop_rotation(self):
@@ -43,20 +42,29 @@ class Elevator():
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #This is the servo movement to raise and lower the platform
     async def raisePlatformToDuck(self):
+        '''
+        Raises the platform up to the duck location
+        '''
         #The determined position of the servo for ground is -110
-        self.setStatus(ElevatorStatus.DUCK)
+        self.setStatus(ElevatorStatus.RAISING)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, -110, self.swing)
         await self.wait(0.5)
 
     async def raisePlatformToColumn(self):
+        '''
+        Raises the platform up to the column location
+        '''
         #The determined position of the servo for ground is 0
-        self.setStatus(ElevatorStatus.COLUMN)
+        self.setStatus(ElevatorStatus.RAISING)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 0, self.swing)
         await self.wait(0.5)
 
     async def lowerToGround(self):
+        '''
+        Lowers the platform back to the base state
+        '''
         #The determined position of the servo for ground is 230
-        self.setStatus(ElevatorStatus.DONE)
+        self.setStatus(ElevatorStatus.LOWERING)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 230, self.swing)
         await self.wait(0.5)
 
@@ -70,8 +78,6 @@ class Elevator():
         return self.current_angle
     def set_current_angle(self, angle: int):
         self.current_angle = angle
-    def get_num_objects(self):
-        return self.num_objects
 
 
 
