@@ -5,9 +5,9 @@ from pi_servo_hat import PiServoHat
 
 
 #These pins can be changed depending on what is available
-_PENDULUM_SERVO_CHANNEL = 3
-_BRACE_TOP_SERVO_CHANNEL = 4
-_BRACE_BOTTOM_SERVO_CHANNEL = 5
+_PENDULUM_SERVO_CHANNEL = 9
+_BRACE_TOP_SERVO_CHANNEL = 8
+_BRACE_BOTTOM_SERVO_CHANNEL = 7
 
 
 #class FlipperPlatformStatus:
@@ -30,9 +30,6 @@ class BraceStatus:
     BRACE_TOP_OPEN = 7
 
     BRACE_BOTTOM_OPEN = 8
-
-    
-
 
 
 class BRACE_ACTION:
