@@ -1,27 +1,34 @@
-import time
+from time import sleep
 import asyncio
 from pi_servo_hat import PiServoHat
 
 
 _ROTATION_SERVO_CHANNEL = 0
 _FLIPPER_SERVO_CHANNEL = 1
-_CLEAR_SERVO_CHANNEL = 2
-_STOP_ROTATION = 60
-_ROTATE = 54
+#_CLEAR_SERVO_CHANNEL = 2
+_STOP_ROTATION = 107
+_ROTATE = 180
+_FLIPPER_OFF = 240
+_FLIPPER_ON = 0
+_SWING = 180
+_ROTATION_MIN_THRESHOLD = 50
+_ROTATION_MAX_THRESHOLD = 90
+_ROTATION_MEAN_THRESHOLD = int((_ROTATION_MIN_THRESHOLD + _ROTATION_MAX_THRESHOLD) / 2)
 
-class FlipperPlatformStatus:
-    NO_OBJECTS_IN_PLATFORM = 0
+
+class FlipperStatus:
+    EMPTY = 0
     UNORIENTED_OBJECT = 1
-    ORIENTED_OBJECT = 2
-    FLIPPING_OBJECT = 3
-    FLIPPER_PLATFORM_ERROR_MORE_THAN_ONE_OBJECT = 4
-    FLIPPER_PLATFORM_ERROR_UNKNOWN = 5
-    ORIENTING_OBJECT = 6
+    ORIENTING = 2
+    ORIENTED = 3
+    FLIPPING = 4
+    ''' TODO: Clean to be implemented later'''
+    CLEAN = 5
 
 
 class FlipperPlatform:
     def __init__(self):
-        self.status = FlipperPlatformStatus.NO_OBJECTS_IN_PLATFORM
+        self.status = FlipperStatus.EMPTY
         self.current_angle = 0
         self.num_objects = 0
 
@@ -31,46 +38,49 @@ class FlipperPlatform:
         self.hat.restart()
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ROTATION)
 
-    async def wait(self, duration: int):
-        await asyncio.sleep(duration)
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ROTATION, _SWING)
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _FLIPPER_OFF, _SWING)
 
-    def rotate_platform(self):
-        self.set_status(FlipperPlatformStatus.ORIENTING_OBJECT)
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _ROTATE)
 
-    def stop_rotation(self):
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ROTATION)
+    def RotatePlatform(self, angle: int) -> None:
+        self.set_status(FlipperStatus.ORIENTING)
+        print("Orienting")
+        angleError = abs(_ROTATION_MEAN_THRESHOLD - angle)
+        rotationTime = angleError / 180
+        print("Rotating {} degrees".format(angleError))
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _ROTATE, _SWING)
+        sleep(rotationTime)
 
-    async def flip_platform(self):
-        self.set_status(FlipperPlatformStatus.FLIPPING_OBJECT)
-        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 0, 180)
-        await self.wait(0.5)
-        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 240, 180)
-        await self.wait(0.5)
-        self.set_status(FlipperPlatformStatus.NO_OBJECTS_IN_PLATFORM)
+
+    def StopRotation(self) -> None:
+        print("Stop rotation")
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ROTATION, _SWING)
+
+
+    def FlipPlatform(self) -> None:
+        self.set_status(FlipperStatus.FLIPPING)
+        print("Flipping platform")
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _FLIPPER_ON, _SWING)
+        sleep(0.5)
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _FLIPPER_OFF, _SWING)
+        sleep(0.5)
+        self.set_status(FlipperStatus.EMPTY)
         print("Platform flipped")
 
 
-    def clear_platform(self):
-        self.clear_servo.write(80)
-        self.wait(2)
-        self.clear_servo.write(10)
-        self.wait(2)
-
-    def get_status(self):
+    def get_status(self) -> FlipperStatus:
         return self.status
 
-    def set_status(self, state: FlipperPlatformStatus):
+    def set_status(self, state: FlipperStatus) -> None:
         self.status = state
 
-    def get_current_angle(self):
+    def get_current_angle(self) -> int:
         return self.current_angle
 
-    def set_current_angle(self, angle: int):
+    def set_current_angle(self, angle: int) -> None:
         self.current_angle = angle
 
-    def get_num_objects(self):
+    def get_num_objects(self) -> int:
         return self.num_objects
 
