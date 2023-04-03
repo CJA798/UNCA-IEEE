@@ -1,10 +1,11 @@
 import cv2
 import asyncio
-from FlipperPlatform import FlipperPlatform, FlipperPlatformStatus
+from FlipperPlatform import FlipperPlatform
 from Robot import Robot, RobotStatus
 from Drum import DrumStatus
 from BraceCode import BraceStatus
 from CameraSystem import CameraSystem
+from IntakeSystem import IntakeSystem
 
 class Global_Static:
     #This is how the camera is returning the values of the detection
@@ -37,6 +38,8 @@ def main():
             '''
             Intake code here for everything to really get started.
             '''
+            robot.CollectionSystem.Intake.StartIntake
+
             #0 Class Ex. Yellow Duck, column
             #1 Bounding Box Ex. Not necessary
             #2 Angle Ex. Degrees, we want lower that 1
@@ -46,21 +49,21 @@ def main():
             ItemToSort = flipper_data[0][0]
             AngleToTurn = flipper_data[0][2]
             while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
-                robot.CollectionSystem.Flipper.rotate_platform(AngleToTurn)
-                elevator_data, middle_data, flipper_data = camera.get_data()
+                robot.CollectionSystem.Flipper.RotatePlatform(AngleToTurn)
+                _, _, flipper_data = camera.get_data()
                 AngleToTurn = flipper_data[0][2]
             robot.CollectionSystem.Flipper.StopRotation
             robot.CollectionSystem.Flipper.FlipPlatform
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             
             #From here we do all that is necessary with the elevator
-            elevator_data, middle_data, flipper_data = camera.get_data()
-            AngleToTurn = flipper_data[0][2]
+            elevator_data, _, _ = camera.get_data()
+            AngleToTurn = elevator_data[0][2]
             
             while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
-                robot.CollectionSystem.Elevator.rotate_platform
-                elevator_data, middle_data, flipper_data = camera.get_data()
-                AngleToTurn = flipper_data[0][2]
+                robot.CollectionSystem.Elevator.RotatePlatform
+                elevator_data, _, _ = camera.get_data()
+                AngleToTurn = elevator_data[0][2]
             
             #The object is now oriented and ready to be raised
             robot.CollectionSystem.Elevator.raisePlatformToColumn
