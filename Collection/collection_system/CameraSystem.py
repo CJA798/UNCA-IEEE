@@ -200,37 +200,34 @@ class CameraSystem:
 
     def get_data(self):
         ''' This function runs the computer vision routine and
-            returns three lists: elevator, middle, and flipper.'''  
-        with self.camera as cam:
-            # Take picture
-            print("BEFORE PIC")
-            image = cam.capture_array()
-            #image = cv2.flip(image, 1)
+        returns three lists: elevator, middle, and flipper.'''  
+        # Take picture
+        print("BEFORE PIC")
+        image = self.camera.capture_array()
+        #image = cv2.flip(image, 1)
 
-            # Run inference
-            detection_result = self.run_inference(image)
-            detection_result = detection_result.detections
-            
-            # Sort detections from left to right
-            detection_result = sorted(detection_result, key=lambda d: d.bounding_box.origin_x)
+        # Run inference
+        detection_result = self.run_inference(image)
+        detection_result = detection_result.detections
+        
+        # Sort detections from left to right
+        detection_result = sorted(detection_result, key=lambda d: d.bounding_box.origin_x)
 
-            # Extract the bounding boxes from the DetectionResult object
-            bounding_boxes = [(d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height) for d in detection_result]
-            angles = self.get_angles(image, bounding_boxes)
+        # Extract the bounding boxes from the DetectionResult object
+        bounding_boxes = [(d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height) for d in detection_result]
+        angles = self.get_angles(image, bounding_boxes)
 
-            # Summarize data in a single list
-            object_data = self.summarize_data(detection_result, angles)
-            elevator_area, middle_area, flipper_area = self.split_data(object_data)
-            
-            # Draw keypoints and edges on input image
-            image = utils.visualize(image, detection_result)
-            image = self.draw_areas(image)
-            print("BEFORE SHOW")
-            # Stop the program if the ESC key is pressed.
-            cv2.imshow('object_detector', image)
-            #cv2.imshow('HSV', hsv)
-            #cv2.imshow('Gray', gray).
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
-
+        # Summarize data in a single list
+        object_data = self.summarize_data(detection_result, angles)
+        elevator_area, middle_area, flipper_area = self.split_data(object_data)
+        
+        # Draw keypoints and edges on input image
+        image = utils.visualize(image, detection_result)
+        image = self.draw_areas(image)
+        print("BEFORE SHOW")
+        # Stop the program if the ESC key is pressed.
+        cv2.imshow('object_detector', image)
+        #cv2.imshow('HSV', hsv)
+        #cv2.imshow('Gray', gray).
+        
         return elevator_area, middle_area, flipper_area

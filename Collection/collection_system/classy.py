@@ -32,64 +32,65 @@ def main():
     
 
     try:
-        while True:
-            if cv2.waitKey(1) == 27:
-                break
-
-            flipper_data = []
-            robot.CollectionSystem.Intake.StartIntake()
-
-            #while len(flipper_data) < 1:
-            #    _, _, flipper_data = camera.get_data()
-
+        with camera.camera as cam:
+            
             while True:
-                _, _, flipper_data = camera.get_data()
-            
-            robot.CollectionSystem.Intake.StopIntake()
+                if cv2.waitKey(1) == 27:
+                    break
 
+                flipper_data = []
+                robot.CollectionSystem.Intake.StartIntake()
 
-            #0 Class Ex. Yellow Duck, column
-            #1 Bounding Box Ex. Not necessary
-            #2 Angle Ex. Degrees, we want lower that 1
-            #TODO: Make sure you include clearing code for overflow items such as ducks
-            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            #Recieves a valid input from the intake, then the flipper code begins
-            ItemToSort = flipper_data[0][0]
-            AngleToTurn = flipper_data[0][2]
-            while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
-                robot.CollectionSystem.Flipper.RotatePlatform(AngleToTurn)
-                sleep(2)
                 while len(flipper_data) < 1:
-                    flipper_data, _, _ = camera.get_data()
-                    AngleToTurn = flipper_data[0][2]
-                             
-            robot.CollectionSystem.Flipper.StopRotation()
-            robot.CollectionSystem.Flipper.FlipPlatform()
-            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            
-            #From here we do all that is necessary with the elevator
-            sleep(2)
-            elevator_data = []
-            while len(elevator_data) < 1:
-                elevator_data, _, _ = camera.get_data()
-                AngleToTurn = elevator_data[0][2]
-            
-            while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
-                robot.CollectionSystem.Elevator.RotatePlatform()
-                sleep(2)
+                    _, _, flipper_data = camera.get_data()
+                    print(flipper_data)
+
+                
+                robot.CollectionSystem.Intake.StopIntake()
+
+
+                #0 Class Ex. Yellow Duck, column
+                #1 Bounding Box Ex. Not necessary
+                #2 Angle Ex. Degrees, we want lower that 1
+                #TODO: Make sure you include clearing code for overflow items such as ducks
+                #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                #Recieves a valid input from the intake, then the flipper code begins
+                ItemToSort = flipper_data[0][0]
+                AngleToTurn = flipper_data[0][2]
+                while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
+                    robot.CollectionSystem.Flipper.RotatePlatform(AngleToTurn)
+                    #sleep(2)
+                    while len(flipper_data) < 1:
+                        _, _, flipper_data = camera.get_data()
+                        AngleToTurn = flipper_data[0][2]
+                                
+                robot.CollectionSystem.Flipper.StopRotation()
+                robot.CollectionSystem.Flipper.FlipPlatform()
+                #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                
+                #From here we do all that is necessary with the elevator
+                #sleep(2)
+                elevator_data = []
                 while len(elevator_data) < 1:
                     elevator_data, _, _ = camera.get_data()
                     AngleToTurn = elevator_data[0][2]
+                
+                while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
+                    robot.CollectionSystem.Elevator.RotatePlatform()
+                    sleep(2)
+                    while len(elevator_data) < 1:
+                        elevator_data, _, _ = camera.get_data()
+                        AngleToTurn = elevator_data[0][2]
+                
+                #The object is now oriented and ready to be raised
+                robot.CollectionSystem.Elevator.raisePlatformToColumn()
+                #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                
+                robot.CollectionSystem.Pushers.LoadingPillarPusher1()
+                
+                robot.CollectionSystem.Drum.stateMachineInput(DrumStatus.SLOT1OUT)
             
-            #The object is now oriented and ready to be raised
-            robot.CollectionSystem.Elevator.raisePlatformToColumn()
-            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            
-            robot.CollectionSystem.Pushers.LoadingPillarPusher1()
-            
-            robot.CollectionSystem.Drum.stateMachineInput(DrumStatus.SLOT1OUT)
-            
-            
+            cv2.destroyAllWindows()
                 
             
             

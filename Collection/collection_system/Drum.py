@@ -66,7 +66,7 @@ class Drum():
         self.Slot1Status = DrumStatus.EMPTY #This is the first column
         self.Slot6Status = DrumStatus.EMPTY #This is the second column
         GPIO.output(enable, 1)
-        self.calibrateDrum()
+        #self.calibrateDrum()
         '''self.yellowDuckSlots = [DrumStatus.EMPTY, DrumStatus.EMPTY]
         self.pinkDuckSlot = DrumStatus.EMPTY
         self.pillarSlot1 = PillarStruct()
