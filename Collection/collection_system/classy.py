@@ -2,7 +2,7 @@ import cv2
 import asyncio
 from time import sleep
 from FlipperPlatform import FlipperPlatform
-from Robot import Robot, RobotStatus
+from Robot import Robot, RobotStatus, CollectionStatus
 from Drum import DrumStatus
 from BraceCode import BraceStatus
 from CameraSystem import CameraSystem
@@ -30,18 +30,31 @@ def main():
     camera = CameraSystem()
     robot = Robot()
     flipper = robot.CollectionSystem.Flipper
-    
+    state = robot.CollectionSystem.status
 
     try:
         with camera.camera as cam:
             
             while True:
+                elevator_data, mid_data, flipper_data = camera.get_data()
+
                 if cv2.waitKey(1) == 27:
                     break
+                
 
-                flipper_data = []
-                robot.CollectionSystem.Intake.StartIntake()
+                if state == CollectionStatus.INTAKE:
+                    if not flipper_data:
+                        robot.CollectionSystem.Intake.StartIntake()
+                    else:
+                        robot.CollectionSystem.Intake.StopIntake()
+                        state = CollectionStatus.FLIPPER_ORIENT
 
+
+
+                elif state == CollectionStatus.FLIPPER:
+                    pass
+                    
+                    ''' --------------------------------- '''
                 while len(flipper_data) < 1:
                     _, _, flipper_data = camera.get_data()
                     print(flipper_data)
