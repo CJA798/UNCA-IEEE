@@ -1,8 +1,5 @@
-from FlipperPlatform import FlipperPlatform, FlipperPlatformStatus
-from Drum import Drum, DrumStatus
-from ElevatorPlatform import Elevator, ElevatorStatus
-from PusherSync import PusherSync, PusherStatus
-from Brace import Brace
+import CollectionSystem
+import NavigationSystem
 #from Brace import BraceStuff. Needs to be added when Maxwell pushes
 
 
@@ -13,14 +10,5 @@ class RobotStatus:
 class Robot:
     def __init__(self):
         self.CollectionSystem = CollectionSystem()
-        self.NavigationSystem = None
+        self.NavigationSystem = NavigationSystem()
     
-class CollectionSystem:
-    def __init__(self):
-        self.Flipper = FlipperPlatform()
-        self.Drum = Drum()
-        self.Elevator = Elevator()
-        self.Pushers = PusherSync()
-        self.Brace = Brace()
-        #Brace stuff
-        
