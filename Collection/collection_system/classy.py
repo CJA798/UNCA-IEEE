@@ -1,5 +1,6 @@
 import cv2
 import asyncio
+from time import sleep
 from FlipperPlatform import FlipperPlatform
 from Robot import Robot, RobotStatus
 from Drum import DrumStatus
@@ -54,20 +55,28 @@ def main():
             AngleToTurn = flipper_data[0][2]
             while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
                 robot.CollectionSystem.Flipper.RotatePlatform(AngleToTurn)
-                _, _, flipper_data = camera.get_data()
-                AngleToTurn = flipper_data[0][2]
+                sleep(2)
+                while len(flipper_data) < 1:
+                    flipper_data, _, _ = camera.get_data()
+                    AngleToTurn = flipper_data[0][2]
+                             
             robot.CollectionSystem.Flipper.StopRotation()
             robot.CollectionSystem.Flipper.FlipPlatform()
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             
             #From here we do all that is necessary with the elevator
-            elevator_data, _, _ = camera.get_data()
-            AngleToTurn = elevator_data[0][2]
+            sleep(2)
+            elevator_data = []
+            while len(elevator_data) < 1:
+                elevator_data, _, _ = camera.get_data()
+                AngleToTurn = elevator_data[0][2]
             
             while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
                 robot.CollectionSystem.Elevator.RotatePlatform()
-                elevator_data, _, _ = camera.get_data()
-                AngleToTurn = elevator_data[0][2]
+                sleep(2)
+                while len(elevator_data) < 1:
+                    elevator_data, _, _ = camera.get_data()
+                    AngleToTurn = elevator_data[0][2]
             
             #The object is now oriented and ready to be raised
             robot.CollectionSystem.Elevator.raisePlatformToColumn()
