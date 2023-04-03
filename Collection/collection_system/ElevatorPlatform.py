@@ -81,7 +81,7 @@ class Elevator():
         #The determined position of the servo for ground is 230
         self.setStatus(ElevatorStatus.LOWERING)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 230, self.swing)
-        sleep(0.5)
+        sleep(1)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Getters and Setters

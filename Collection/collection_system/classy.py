@@ -1,7 +1,7 @@
 import cv2
 import asyncio
 from time import sleep
-from FlipperPlatform import FlipperPlatform
+from FlipperPlatform import FlipperPlatform, FlipperStatus
 from Robot import Robot, RobotStatus, CollectionStatus
 from Drum import DrumStatus
 from BraceCode import BraceStatus
@@ -47,81 +47,43 @@ def main():
                         robot.CollectionSystem.Intake.StartIntake()
                     else:
                         robot.CollectionSystem.Intake.StopIntake()
-                        state = CollectionStatus.FLIPPER_ORIENT
-
+                        state = CollectionStatus.FLIPPER
 
 
                 elif state == CollectionStatus.FLIPPER:
-                    pass
-                    
-                    ''' --------------------------------- '''
-                while len(flipper_data) < 1:
-                    _, _, flipper_data = camera.get_data()
-                    print(flipper_data)
+                    if not flipper_data or len(flipper_data) < 3:
+                        flipper.set_status(FlipperStatus.CLEAN)
+                    else:
+                        flipper.set_current_angle(flipper_data[0][3])
+                        if flipper.get_current_angle() > 95 or flipper.get_current_angle() < 80:
+                            flipper.rotate_platform()
+                        else:
+                            flipper.stop_rotation()
+                            asyncio.run(flipper.flip_platform())
+                            state = CollectionStatus.ELEVATOR
+
 
                 
-                robot.CollectionSystem.Intake.StopIntake()
-
-
-                #0 Class Ex. Yellow Duck, column
-                #1 Bounding Box Ex. Not necessary
-                #2 Angle Ex. Degrees, we want lower that 1
-                #TODO: Make sure you include clearing code for overflow items such as ducks
-                #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                #Recieves a valid input from the intake, then the flipper code begins
-                ItemToSort = flipper_data[0][0]
-                AngleToTurn = flipper_data[0][2]
-                while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
-                    flipper.rotate_platform()
-                    while len(flipper_data) < 1:
-                        _, _, flipper_data = camera.get_data()
-                        AngleToTurn = flipper_data[0][2]
-                    
-                    flipper.set_current_angle(AngleToTurn)
-                        
-
-
-                flipper.stop_rotation()
-                while True:
-                    _, _, flipper_data = camera.get_data()
-                asyncio.run(flipper.flip_platform())
-
-
-
-                robot.CollectionSystem.Flipper.StopRotation()
-                robot.CollectionSystem.Flipper.FlipPlatform()
-                #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                
-                #From here we do all that is necessary with the elevator
-                #sleep(2)
-                elevator_data = []
-                while len(elevator_data) < 1:
-                    elevator_data, _, _ = camera.get_data()
+                elif state == CollectionStatus.ELEVATOR:
                     AngleToTurn = elevator_data[0][2]
+                    ElevatorOrientLow(elevator_data, AngleToTurn, robot, camera)
+                    if AngleToTurn < Global_Static.PILLAR_MAX_THRESH and AngleToTurn > Global_Static.PILLAR_MIN_THRESH:
+                        robot.CollectionSystem.Elevator.raisePlatformToColumn
+                        state = CollectionStatus.PUSHER
+
                 
-                while AngleToTurn > Global_Static.PILLAR_MAX_THRESH or AngleToTurn < Global_Static.PILLAR_MIN_THRESH:
-                    robot.CollectionSystem.Elevator.RotatePlatform()
-                    sleep(2)
-                    while len(elevator_data) < 1:
-                        elevator_data, _, _ = camera.get_data()
-                        AngleToTurn = elevator_data[0][2]
-                
-                #The object is now oriented and ready to be raised
-                robot.CollectionSystem.Elevator.raisePlatformToColumn()
-                #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                
-                robot.CollectionSystem.Pushers.LoadingPillarPusher1()
-                
-                robot.CollectionSystem.Drum.stateMachineInput(DrumStatus.SLOT1OUT)
-            
+                else:
+                    continue
+
+                print(state)
             cv2.destroyAllWindows()
-                
-            
-            
     # When the camera is unreachable, stop the program
     finally:
         cv2.destroyAllWindows()
 
+def ElevatorOrientLow(elevator_data, AngleToTurn, robot, camera):
+    robot.CollectionSystem.Elevator.RotatePlatform()
+    robot.CollectionSystem.Elevator.StopRotation()
 
 if __name__ == '__main__':
   main()

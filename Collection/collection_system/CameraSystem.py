@@ -18,10 +18,10 @@ class CameraSystem:
         self._frame_height = 480
         self._num_threads = 4
         self._enable_edgetpu = True
-        self._min_area = 0.05 * self._frame_width * self._frame_height
+        self._min_area = 0.04 * self._frame_width * self._frame_height
         self._max_area = self._frame_width * self._frame_height
         self._max_results = 10
-        self._score_threshold = 0.6
+        self._score_threshold = 0.7
         self.camera = Picamera2()
         self._preview_config = self.camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (self._frame_width, self._frame_height)})
        
@@ -190,10 +190,10 @@ class CameraSystem:
             x_coord = item[1].origin_x
             if x_coord < forbidden_area_start:
                 elevator_data.append(item)
-            elif x_coord > forbidden_area_end:
-                flipper_data.append(item)
             else:
-                middle_area_data.append(item)
+                flipper_data.append(item)
+            #else:
+                #middle_area_data.append(item)
 
         return elevator_data, middle_area_data, flipper_data
 
