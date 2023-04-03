@@ -57,11 +57,11 @@
 #define RESET_TIME 100
 
 //-------KINEMATICS CONSTANTS-------------------------------------------------------
-#define ONE_OVR_RT_2 (0.707106)    // (1/sqrt(2))
-#define STEPS_PER_ROTATION (400)   // (200steps per rotation) * (16 microsteps per step)
-#define STEPS_PER_CM (25.46)       // Steps per inch in arclength any given wheel travels = StepsPerWheelRotation/WheelCircumference
-#define WHEEL_RADIUS (2.5)         // Radius of wheel(cm) (1in)
-#define STEPS_PER_BOT_RAD (1314)   // = ((BotCircumference*StepsPerCm*)/(2*Pi))*3 (gear ratio)
-#define STEPS_PER_DIST_MULT (58.5) // = (1/sqrt(2))*StepsPerCM*3 (gear ratio)
-#define MAX_MTR_SPEED (7500)       // Steps/s maximum is 300000
-#define MAX_MTR_ACCEL (200)         // Steps/s^2 skips at around 15000
+#define ONE_OVR_RT_2 (0.707106)     // (1/sqrt(2))
+#define STEPS_PER_ROTATION (400)    // (200steps per rotation) * (16 microsteps per step)
+#define STEPS_PER_CM (25.46)        // Steps per inch in arclength any given wheel travels = StepsPerWheelRotation/WheelCircumference
+#define WHEEL_RADIUS (2.5)          // Radius of wheel(cm) (1in)
+#define STEPS_PER_BOT_RAD (1315)    // = ((BotCircumference*StepsPerCm*)/(2*Pi))*3 (gear ratio)
+#define STEPS_PER_DIST_MULT (54.02) // = (1/sqrt(2))*StepsPerCM*3 (gear ratio)
+#define MAX_MTR_SPEED (200)         // Steps/s maximum is 300000
+#define MAX_MTR_ACCEL (10)          // Steps/s^2 skips at around 15000

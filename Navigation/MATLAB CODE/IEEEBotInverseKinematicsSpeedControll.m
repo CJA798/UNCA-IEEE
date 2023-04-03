@@ -1,6 +1,6 @@
 Radius = 2.5; % (cm)
 Circumference = Radius*2*pi; %(cm)
-StepsPerWheelRotation = 200 * 2;%steps/rot
+StepsPerRadMtr = 200 * 2;%steps*(1/microstep)
 StepsPercm = StepsPerWheelRotation / Circumference;
 StepsPerWheelRad = StepsPerWheelRotation / (2*pi);
 wheeldist = 17.2;% Distance from wheels center (contact point with ground) to the center of the bot.

@@ -27,7 +27,7 @@ StepControl controller; // Stepper controller object
 #define STEPS_PER_ROTATION (3200)  // (200steps per rotation) * (16 microsteps per step)
 #define STEPS_PER_CM (25.46)       // Steps per inch in arclength any given wheel travels = StepsPerWheelRotation/WheelCircumference
 #define WHEEL_RADIUS (2.5)         // Radius of wheel(cm) (1in)
-#define STEPS_PER_BOT_RAD (859.44) // = ((BotCircumference*StepsPerCm*)/(2*Pi))*3 (gear ratio)
+#define STEPS_PER_BOT_RAD (1) // = ((BotCircumference*StepsPerCm*)/(2*Pi))*3 (gear ratio)
 #define STEPS_PER_DIST_MULT (27)   // = (1/sqrt(2))*StepsPerCM*3 (gear ratio)
 
 // Stepper Settings
