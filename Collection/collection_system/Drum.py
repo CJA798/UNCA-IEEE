@@ -19,6 +19,12 @@ class DrumStatus:
     SLOT4 = 3 #Not used
     SLOT5 = 4 #Used for the single yellow duck
     SLOT6 = 5 #Used for column 2
+    SLOT1OUT = 0
+    SLOT2OUT = 1
+    SLOT3OUT = 2 
+    SLOT4OUT = 3
+    SLOT5OUT = 4 
+    SLOT6OUT = 5
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #The Pillar colors and empty or filled states
     FILLED = 1
@@ -74,10 +80,12 @@ class Drum():
     async def wait(self, duration: int):
         await asyncio.sleep(duration)
         
-    def State_Machine(self, destination):
+    def stateMachineInput(self, destination):
         match self.state:
             case SLOT1:
-                pass
+                match destination:
+                    case SLOT1OUT
+            
                 
     def rotate_Drum(self, clockwise: bool, step: int):
          # motor_go(clockwise, steptype, steps, stepdelay, verbose, initdelay)

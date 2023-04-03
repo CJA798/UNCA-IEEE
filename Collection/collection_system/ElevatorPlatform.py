@@ -11,6 +11,12 @@ class ElevatorStatus:
     LOWERING = 6 #Done with being pushed and lower. Once done going into empty
 _ROTATION_SERVO_CHANNEL = 3
 _ELEVATOR_SERVO_CHANNEL = 4
+_STOP_ROTATION = 107
+_ROTATE = 180
+_SWING = 180
+_ROTATION_MIN_THRESHOLD = 50
+_ROTATION_MAX_THRESHOLD = 90
+_ROTATION_MEAN_THRESHOLD = int((_ROTATION_MIN_THRESHOLD + _ROTATION_MAX_THRESHOLD) / 2)
 
 class Elevator():
     def __init__(self):
@@ -31,13 +37,19 @@ class Elevator():
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # This is the orientation platform on the elevator
-    def rotate_platform(self):
-        self.set_status(ElevatorStatus.ORIENTING_OBJECT)
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 60)
+    def RotatePlatform(self, angle: int) -> None:
+        self.set_status(ElevatorStatus.ORIENTING)
+        print("Orienting")
+        angleError = abs(_ROTATION_MEAN_THRESHOLD - angle)
+        rotationTime = angleError / 180
+        print("Rotating {} degrees".format(angleError))
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _ROTATE, _SWING)
+        sleep(rotationTime)
 
-    def stop_rotation(self):
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 54)
-    
+
+    def StopRotation(self) -> None:
+        print("Stop rotation")
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ROTATION, _SWING)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #This is the servo movement to raise and lower the platform

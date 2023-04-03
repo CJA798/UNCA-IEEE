@@ -1,8 +1,8 @@
 from FlipperPlatform import FlipperPlatform, FlipperPlatformStatus
 from Drum import Drum, DrumStatus
 from ElevatorPlatform import Elevator, ElevatorStatus
-from Pusher import Pusher, PusherStatus
-from BraceCode import BRACE_ACTION
+from PusherSync import PusherSync, PusherStatus
+from Brace import Brace
 #from Brace import BraceStuff. Needs to be added when Maxwell pushes
 
 
@@ -20,7 +20,7 @@ class CollectionSystem:
         self.Flipper = FlipperPlatform()
         self.Drum = Drum()
         self.Elevator = Elevator()
-        self.Pushers = Pusher()
-        self.Brace = BRACE_ACTION()
+        self.Pushers = PusherSync()
+        self.Brace = Brace()
         #Brace stuff
         
