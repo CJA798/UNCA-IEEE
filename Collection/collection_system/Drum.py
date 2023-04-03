@@ -19,12 +19,12 @@ class DrumStatus:
     SLOT4 = 3 #Not used
     SLOT5 = 4 #Used for the single yellow duck
     SLOT6 = 5 #Used for column 2
-    SLOT1OUT = 0
-    SLOT2OUT = 1
-    SLOT3OUT = 2 
-    SLOT4OUT = 3
-    SLOT5OUT = 4 
-    SLOT6OUT = 5
+    SLOT1OUT = 6
+    SLOT2OUT = 7
+    SLOT3OUT = 8 
+    SLOT4OUT = 9
+    SLOT5OUT = 10 
+    SLOT6OUT = 11
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #The Pillar colors and empty or filled states
     FILLED = 1
@@ -84,7 +84,8 @@ class Drum():
         match self.state:
             case SLOT1:
                 match destination:
-                    case SLOT1OUT
+                    case SLOT1OUT:
+                        self.rotate_Drum(True, 20,623)
             
                 
     def rotate_Drum(self, clockwise: bool, step: int):

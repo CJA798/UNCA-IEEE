@@ -68,7 +68,7 @@ def main():
             
             robot.CollectionSystem.Pushers.LoadingPillarPusher1
             
-            robot.CollectionSystem.Drum
+            robot.CollectionSystem.Drum.stateMachineInput(DrumStatus.SLOT1OUT)
             
             
                 
