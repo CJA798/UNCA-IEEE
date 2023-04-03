@@ -2,7 +2,7 @@ import time
 import asyncio
 from pi_servo_hat import PiServoHat
 
-
+#call Pusher1 top and Pusher2 bottom(for Dennis)
 _PUSHER1_SERVO_CHANNEL = 5
 _PUSHER2_SERVO_CHANNEL = 6
 
@@ -30,7 +30,8 @@ class PusherStatus:
 #class FlipperPlatform:
 class PusherSync:
     def __init__(self):
-        PusherSync.RetractPusher(self, -110)
+        PusherSync.RetractPusher(self,_PUSHER1_SERVO_CHANNEL, -110)
+        PusherSync.RetractPusher(self,_PUSHER2_SERVO_CHANNEL, -110)
         self.status = PusherStatus.NO_MOVEMENT
         self.current_angle = 0
         self.num_objects = 0
@@ -65,29 +66,30 @@ class PusherSync:
 
 
     #Pusher 1 is for pillars
-    def RetractPusher(self, howFar):
+    def RetractPusher(self, pin, howFar):
         self.set.status(PusherStatus.RETRACTING)
-        self.hat.move_servo_position(_PUSHER1_SERVO_CHANNEL, howFar)
+        self.hat.move_servo_position(pin, howFar)
         self.hat.status(PusherStatus.RETRACTED)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 #loads pillar(not a powerful push)
-    def LoadingPillar(self):
+    def LoadingPillarPusher1(self):
         self.set_status(PusherStatus.LOADING)
         self.hat.move_servo_position(_PUSHER1_SERVO_CHANNEL, 100)
         self.hat.status(PusherStatus.LOADED)
-        PusherSync.RetractPusher(self, -10)
+        PusherSync.RetractPusher(self, _PUSHER1_SERVO_CHANNEL, -10)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 #powerful push to unload
-    def UnloadingPillar(self):
+    def UnloadingPillarPusher2(self):
         self.hat.status(PusherStatus.UNLOADING)
-        self.hat.move_servo_position(_PUSHER1_SERVO_CHANNEL, 200)
+        self.hat.move_servo_position(_PUSHER2_SERVO_CHANNEL, 200)
         self.hat.status(PusherStatus.UNLOADED)
-        PusherSync.RetractPusher(self, -110)
+        PusherSync.RetractPusher(self, _PUSHER2_SERVO_CHANNEL, -110)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 
     def get_status(self):
