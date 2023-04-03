@@ -22,8 +22,8 @@ class BraceStatus:
 
 class Brace:
     def __init__(self):
-        Brace.BraceClosed(self)
-        self.status = BraceStatus.NO_MOVEMENT
+        
+        self.status = BraceStatus.OPEN
         self.current_angle = 0
         self.num_objects = 0
 
@@ -33,20 +33,20 @@ class Brace:
         self.hat.restart()
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
-        
+        Brace.BraceClosed(self)
 
     #async def wait(self, duration: int):
     #   await asyncio.sleep(duration)
 
 #opens brace
     def BraceOpen(self):
-        self.set.status(BraceStatus.OPEN)
+        self.set_status(BraceStatus.OPEN)
         self.hat.move_servo_position(_BRACE_SERVO_CHANNEL, 180)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #closes brace
     def BraceClosed(self):
-        self.set.status(BraceStatus.CLOSE)
+        self.set_status(BraceStatus.CLOSE)
         self.hat.move_servo_position(_BRACE_SERVO_CHANNEL, -110)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -54,14 +54,14 @@ class Brace:
         #state: open or closed
         #value: from 240 to -110
     def HookActivation(self):
-        self.set.status(BraceStatus.FILLING)
+        self.set_status(BraceStatus.FILLING)
         self.hat.move_servo_position(_HOOK_SERVO_CHANNEL, 230)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 #done task
     def CompletedTask(self):
-        self.set.status(BraceStatus.LETGO)
+        self.set_status(BraceStatus.LETGO)
         Brace.BraceOpen(self)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

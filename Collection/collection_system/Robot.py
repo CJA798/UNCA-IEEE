@@ -1,5 +1,5 @@
 from IntakeSystem import IntakeSystem, IntakeStatus
-from FlipperPlatform import FlipperPlatform, FlipperPlatformStatus
+from FlipperPlatform import FlipperPlatform, FlipperStatus
 from Drum import Drum, DrumStatus
 from ElevatorPlatform import Elevator, ElevatorStatus
 from PusherSync import PusherSync, PusherStatus

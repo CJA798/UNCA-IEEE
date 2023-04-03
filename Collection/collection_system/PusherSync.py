@@ -30,9 +30,8 @@ class PusherStatus:
 #class FlipperPlatform:
 class PusherSync:
     def __init__(self):
-        PusherSync.RetractPusher(self,_PUSHER1_SERVO_CHANNEL, -110)
-        PusherSync.RetractPusher(self,_PUSHER2_SERVO_CHANNEL, -110)
-        self.status = PusherStatus.NO_MOVEMENT
+        
+        self.status = PusherStatus.RETRACTED
         self.current_angle = 0
         self.num_objects = 0
         
@@ -43,7 +42,8 @@ class PusherSync:
         self.hat.restart()
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
-        
+        PusherSync.RetractPusher(self,_PUSHER1_SERVO_CHANNEL, -110)
+        PusherSync.RetractPusher(self,_PUSHER2_SERVO_CHANNEL, -110)
     # no async code
     # async def wait(self, duration: int):
     #    await asyncio.sleep(duration)
@@ -67,9 +67,9 @@ class PusherSync:
 
     #Pusher 1 is for pillars
     def RetractPusher(self, pin, howFar):
-        self.set.status(PusherStatus.RETRACTING)
+        self.set_status(PusherStatus.RETRACTING)
         self.hat.move_servo_position(pin, howFar)
-        self.hat.status(PusherStatus.RETRACTED)
+        self.set_status(PusherStatus.RETRACTED)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -77,16 +77,16 @@ class PusherSync:
     def LoadingPillarPusher1(self):
         self.set_status(PusherStatus.LOADING)
         self.hat.move_servo_position(_PUSHER1_SERVO_CHANNEL, 100)
-        self.hat.status(PusherStatus.LOADED)
+        self.set_status(PusherStatus.LOADED)
         PusherSync.RetractPusher(self, _PUSHER1_SERVO_CHANNEL, -10)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 #powerful push to unload
     def UnloadingPillarPusher2(self):
-        self.hat.status(PusherStatus.UNLOADING)
+        self.set_status(PusherStatus.UNLOADING)
         self.hat.move_servo_position(_PUSHER2_SERVO_CHANNEL, 200)
-        self.hat.status(PusherStatus.UNLOADED)
+        self.set_status(PusherStatus.UNLOADED)
         PusherSync.RetractPusher(self, _PUSHER2_SERVO_CHANNEL, -110)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

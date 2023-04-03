@@ -1,4 +1,5 @@
 import asyncio
+from time import sleep
 from pi_servo_hat import PiServoHat
 
 class ElevatorStatus:
@@ -53,32 +54,33 @@ class Elevator():
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #This is the servo movement to raise and lower the platform
-    async def raisePlatformToDuck(self):
+    def raisePlatformToDuck(self):
         '''
         Raises the platform up to the duck location
         '''
         #The determined position of the servo for ground is -110
         self.setStatus(ElevatorStatus.RAISING)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, -110, self.swing)
-        await self.wait(0.5)
+        sleep(0.5)
 
-    async def raisePlatformToColumn(self):
+    def raisePlatformToColumn(self):
         '''
         Raises the platform up to the column location
         '''
         #The determined position of the servo for ground is 0
         self.setStatus(ElevatorStatus.RAISING)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 0, self.swing)
-        await self.wait(0.5)
+        sleep(0.5)
+        
 
-    async def lowerToGround(self):
+    def lowerToGround(self):
         '''
         Lowers the platform back to the base state
         '''
         #The determined position of the servo for ground is 230
         self.setStatus(ElevatorStatus.LOWERING)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 230, self.swing)
-        await self.wait(0.5)
+        sleep(0.5)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Getters and Setters

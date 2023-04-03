@@ -47,7 +47,7 @@ class PillarStruct:
         #2 => White Pillar
         #3 => Green Pillar
         #4 => Red Pillar
-        self.pillarColor = [DrumStatus.NO_BLOCK, DrumStatus.NO_BLOCK] 
+        #self.pillarColor = [DrumStatus.NO_BLOCK, DrumStatus.NO_BLOCK] 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~     
 #Initializing Drum
 class Drum():
@@ -68,12 +68,16 @@ class Drum():
         
     
     def calibrateDrum(self):
-        while True:
-            self.DrumMotor.motor_run(GPIO_pins, .0000001)
-            if GPIO.input(6):
+        try:
+            while True:
+                if not GPIO.input(6):
+                    self.DrumMotor.stop_motor()
                 break
-        self.DrumMotor.stop_motor
-        self.state = DrumStatus.SLOT1
+            else:
+                self.DrumMotor.motor_go(False, "Full", 1, .000000001, False, .0001)
+                print(GPIO.input(6))
+        finally:    
+            GPIO.output(14, 0)
         
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -81,11 +85,13 @@ class Drum():
         await asyncio.sleep(duration)
         
     def stateMachineInput(self, destination):
-        match self.state:
-            case SLOT1:
-                match destination:
-                    case SLOT1OUT:
-                        self.rotate_Drum(True, 20,623)
+        switch = {
+            DrumStatus.SLOT1: {
+                DrumStatus.SLOT1OUT: lambda: self.rotate_Drum(True, 20, 623)
+            }
+        }
+
+        switch.get(self.state, {}).get(destination, lambda: None)()
             
                 
     def rotate_Drum(self, clockwise: bool, step: int):

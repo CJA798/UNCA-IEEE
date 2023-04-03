@@ -198,10 +198,9 @@ class CameraSystem:
         return elevator_data, middle_area_data, flipper_data
 
 
-    async def get_data(self):
+    def get_data(self):
         ''' This function runs the computer vision routine and
             returns three lists: elevator, middle, and flipper.'''  
-        await asyncio.sleep(1)
          
         # Take picture
         image = self.camera.capture_array()
