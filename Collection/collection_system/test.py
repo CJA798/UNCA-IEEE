@@ -22,6 +22,7 @@ try:
     while True:
         if GPIO.input(6):
             DrumMotor.stop_motor()
+            print("we are done")
             break
         else:
             DrumMotor.motor_go(False, "Full", 1, .000000001, False, .0001)

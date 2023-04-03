@@ -32,6 +32,7 @@ class Elevator():
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
         # Save the hat object as an attribute
+        self.lowerToGround()
     
     async def wait(self, duration: int):
         await asyncio.sleep(duration)

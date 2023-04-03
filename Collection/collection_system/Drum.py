@@ -1,5 +1,6 @@
 import time
 import asyncio
+from pi_servo_hat import PiServoHat
 import RPi.GPIO as GPIO
 
 # Production installed library import
@@ -8,6 +9,12 @@ from RpiMotorLib import RpiMotorLib
 GPIO_pins = (-1, -1, -1)  
 direction = 16       # Direction -> White
 step = 26      # Step -> Blue
+enable = 14
+GPIO.setmode(GPIO.BCM)             # choose BCM or BOARD  
+GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(enable, GPIO.OUT)
+
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #States
@@ -58,7 +65,8 @@ class Drum():
         self.Slot5Status = DrumStatus.EMPTY #This is the yellow Duck
         self.Slot1Status = DrumStatus.EMPTY #This is the first column
         self.Slot6Status = DrumStatus.EMPTY #This is the second column
-        
+        GPIO.output(enable, 1)
+        self.calibrateDrum()
         '''self.yellowDuckSlots = [DrumStatus.EMPTY, DrumStatus.EMPTY]
         self.pinkDuckSlot = DrumStatus.EMPTY
         self.pillarSlot1 = PillarStruct()
@@ -70,12 +78,12 @@ class Drum():
     def calibrateDrum(self):
         try:
             while True:
-                if not GPIO.input(6):
-                    self.DrumMotor.stop_motor()
-                break
-            else:
-                self.DrumMotor.motor_go(False, "Full", 1, .000000001, False, .0001)
-                print(GPIO.input(6))
+                if GPIO.input(6):
+                    #self.DrumMotor.stop_motor()
+                    break
+                else:
+                    self.DrumMotor.motor_go(True, "Full", 1, .000000001, False, .0001)
+                    print(GPIO.input(6))
         finally:    
             GPIO.output(14, 0)
         
@@ -87,7 +95,7 @@ class Drum():
     def stateMachineInput(self, destination):
         switch = {
             DrumStatus.SLOT1: {
-                DrumStatus.SLOT1OUT: lambda: self.rotate_Drum(True, 20, 623)
+                DrumStatus.SLOT1OUT: lambda: self.rotate_Drum(True, 20623)
             }
         }
 
@@ -97,7 +105,7 @@ class Drum():
     def rotate_Drum(self, clockwise: bool, step: int):
          # motor_go(clockwise, steptype, steps, stepdelay, verbose, initdelay)
         self.DrumMotor.motor_go(clockwise, "Full", step, .00000000000001, False, .05)
-        self.DrumMotor.stop_motor
+        #self.DrumMotor.stop_motor()
         
     
         

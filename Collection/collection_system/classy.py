@@ -39,7 +39,10 @@ def main():
             flipper_data = []
             robot.CollectionSystem.Intake.StartIntake()
 
-            while len(flipper_data) < 1:
+            #while len(flipper_data) < 1:
+            #    _, _, flipper_data = camera.get_data()
+
+            while True:
                 _, _, flipper_data = camera.get_data()
             
             robot.CollectionSystem.Intake.StopIntake()
