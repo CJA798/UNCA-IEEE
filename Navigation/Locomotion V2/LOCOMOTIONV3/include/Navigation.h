@@ -61,7 +61,8 @@ private:
   Stepper motor_2;
   Stepper motor_3;
   Stepper motor_4;
-  StepControl Controller;
+  StepControl Controller;      // Objects for rotating the motors to an endpoint in sync
+  RotateControl RotController; // Objects for rotating
   mtx_type NewWheelSteps[4][1];
   mtx_type WheelSteps[4][1] = {
       {0},
@@ -80,6 +81,7 @@ public:
                    motor_2(MTR2DIR, MTR2STEP),
                    motor_3(MTR3DIR, MTR3STEP),
                    motor_4(MTR4DIR, MTR4STEP),
+                   RotController(),
                    Controller() // MUST PASS CONSTRUCTOR OBJECTS FROM THE CONTROLLER CLASS
   {
 
@@ -110,64 +112,64 @@ public:
     motor_3.setPosition(0);
     motor_4.setPosition(0);
   }
-  void WASD(char InputMove){
+  void WASD(char InputMove)
+  {
 
-        motor_1
+    motor_1
         .setMaxSpeed(400)      // steps/s
         .setAcceleration(400); // steps/s^2
-        motor_2
-            .setMaxSpeed(400)      // steps/s
-            .setAcceleration(400); // steps/s^2
-        motor_3
-            .setMaxSpeed(400)      // steps/s
-            .setAcceleration(400); // steps/s^2
-        motor_4
-            .setMaxSpeed(400)      // steps/s
-            .setAcceleration(400); // steps/s^2
-        mtx_type NewVext[3][1] = {
-            {0},
-            {0},
-            {0}};
-        switch (InputMove)
-        {
-        case 'w':
-          NewVext[0][0] = 0;
-          NewVext[1][0] = 0;
-          NewVext[2][0] = 1;
-          break;
-        case 's':
-          NewVext[0][0] = 0;
-          NewVext[1][0] = 0;
-          NewVext[2][0] = -1;
-          break;
-        case 'a':
-          NewVext[0][0] = 0;
-          NewVext[1][0] = -1;
-          NewVext[2][0] = 0;
-          break;
-        case 'd':
-          NewVext[0][0] = 0;
-          NewVext[1][0] = 1;
-          NewVext[2][0] = 0;
-          break;
-        case 'q':
-          NewVext[0][0] = -PI/100;
-          NewVext[1][0] = 0;
-          NewVext[2][0] = 0;
-          break;
-        case 'e':
-          NewVext[0][0] = PI/100;
-          NewVext[1][0] = 0;
-          NewVext[2][0] = 0;
-          break;
-        default:
+    motor_2
+        .setMaxSpeed(400)      // steps/s
+        .setAcceleration(400); // steps/s^2
+    motor_3
+        .setMaxSpeed(400)      // steps/s
+        .setAcceleration(400); // steps/s^2
+    motor_4
+        .setMaxSpeed(400)      // steps/s
+        .setAcceleration(400); // steps/s^2
+    mtx_type NewVext[3][1] = {
+        {0},
+        {0},
+        {0}};
+    switch (InputMove)
+    {
+    case 'w':
+      NewVext[0][0] = 0;
+      NewVext[1][0] = 0;
+      NewVext[2][0] = 1;
+      break;
+    case 's':
+      NewVext[0][0] = 0;
+      NewVext[1][0] = 0;
+      NewVext[2][0] = -1;
+      break;
+    case 'a':
+      NewVext[0][0] = 0;
+      NewVext[1][0] = -1;
+      NewVext[2][0] = 0;
+      break;
+    case 'd':
+      NewVext[0][0] = 0;
+      NewVext[1][0] = 1;
+      NewVext[2][0] = 0;
+      break;
+    case 'q':
+      NewVext[0][0] = -PI / 100;
+      NewVext[1][0] = 0;
+      NewVext[2][0] = 0;
+      break;
+    case 'e':
+      NewVext[0][0] = PI / 100;
+      NewVext[1][0] = 0;
+      NewVext[2][0] = 0;
+      break;
+    default:
 
-          break;
-
-          };
-          mtx_type Steps[4][1];
-          MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)NewVext, 4, 3, 1, (mtx_type *)Steps);
-          Controller.moveAsync(motor_1, motor_2, motor_3, motor_4);
+      break;
+    };
+    mtx_type Steps[4][1];
+    MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)NewVext, 4, 3, 1, (mtx_type *)Steps);
+    Controller.moveAsync(motor_1, motor_2, motor_3, motor_4);
   };
   void ComputeTranslation(double X, double Y) // Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
   // and updates the stepper objects with this distance. The controller object must be updated for the steppers to start this move.
