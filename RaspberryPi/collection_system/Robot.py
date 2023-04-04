@@ -18,7 +18,7 @@ class Robot:
     
 class CollectionSystem:
     def __init__(self):
-        self.status = CollectionStatus.FLIPPER
+        self.status = CollectionStatus.INTAKE
         self.Intake = IntakeSystem()
         self.Flipper = FlipperPlatform()
         self.Drum = Drum()
@@ -30,7 +30,8 @@ class CollectionSystem:
 class CollectionStatus:
     INTAKE = 0
     FLIPPER = 1
-    ELEVATOR = 2
-    PUSHER = 3
-    DRUM = 4
-    BRACE = 5
+    ELEVATOR_ROTATION = 2
+    ELEVATOR_UPDOWN = 3
+    PUSHER = 4
+    DRUM = 5
+    BRACE = 6

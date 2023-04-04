@@ -40,7 +40,7 @@ class Elevator():
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # This is the orientation platform on the elevator
     def RotatePlatform(self, angle: int) -> None:
-        self.set_status(ElevatorStatus.ORIENTING)
+        self.set_status(ElevatorStatus.ORIENTING_OBJECT)
         print("Orienting")
         angleError = abs(_ROTATION_MEAN_THRESHOLD - angle)
         rotationTime = angleError / 180
@@ -95,5 +95,28 @@ class Elevator():
         self.current_angle = angle
 
 
+    async def wait(self, duration: int):
+        await asyncio.sleep(duration)
 
 
+    def rotate_platform(self):
+        self.set_status(ElevatorStatus.ORIENTING_OBJECT)
+        print("Orienting")
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 60)
+        
+
+    def raise_platform(self):
+        self.set_status(ElevatorStatus.ORIENTING_OBJECT)
+        print("Orienting")
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 60)
+        
+
+    def stop_rotation(self):
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 54)
+
+
+    async def elevate_platform(self):
+        self.set_status(ElevatorStatus.RAISING)
+        print("Elevating")
+        self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 0)
+        await asyncio.sleep(1)
