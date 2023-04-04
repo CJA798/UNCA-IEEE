@@ -63,5 +63,5 @@
 #define WHEEL_RADIUS (2.5)          // Radius of wheel(cm) (1in)
 #define STEPS_PER_BOT_RAD (1315)    // = ((BotCircumference*StepsPerCm*)/(2*Pi))*3 (gear ratio)
 #define STEPS_PER_DIST_MULT (51.32) // = (1/sqrt(2))*StepsPerCM*3 (gear ratio) WAS 54.02; UPPED TO
-#define MAX_MTR_SPEED (200)         // Steps/s maximum is 300000
-#define MAX_MTR_ACCEL (10)          // Steps/s^2 skips at around 15000
+#define MAX_MTR_SPEED (800)        // Steps/s maximum is 300000
+#define MAX_MTR_ACCEL (400)         // Steps/s^2 skips at around 15000

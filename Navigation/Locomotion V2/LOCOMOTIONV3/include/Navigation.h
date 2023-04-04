@@ -96,13 +96,13 @@ public:
         .setMaxSpeed(MAX_MTR_SPEED)      // steps/s
         .setAcceleration(MAX_MTR_ACCEL); // steps/s^2
 
-    BotOrientation.Theta = 0; // Initial orientation of the bot
+    BotOrientation.Theta = 0;
     BotOrientation.X = 0;
     BotOrientation.Y = 0;
   }
   void Cleanup()
   {
-    BotOrientation.Theta = 0; // Initial orientation of the bot
+    BotOrientation.Theta = 0;
     BotOrientation.X = 0;
     BotOrientation.Y = 0;
     motor_1.setPosition(0);
@@ -110,6 +110,65 @@ public:
     motor_3.setPosition(0);
     motor_4.setPosition(0);
   }
+  void WASD(char InputMove){
+
+        motor_1
+        .setMaxSpeed(400)      // steps/s
+        .setAcceleration(400); // steps/s^2
+        motor_2
+            .setMaxSpeed(400)      // steps/s
+            .setAcceleration(400); // steps/s^2
+        motor_3
+            .setMaxSpeed(400)      // steps/s
+            .setAcceleration(400); // steps/s^2
+        motor_4
+            .setMaxSpeed(400)      // steps/s
+            .setAcceleration(400); // steps/s^2
+        mtx_type NewVext[3][1] = {
+            {0},
+            {0},
+            {0}};
+        switch (InputMove)
+        {
+        case 'w':
+          NewVext[0][0] = 0;
+          NewVext[1][0] = 0;
+          NewVext[2][0] = 1;
+          break;
+        case 's':
+          NewVext[0][0] = 0;
+          NewVext[1][0] = 0;
+          NewVext[2][0] = -1;
+          break;
+        case 'a':
+          NewVext[0][0] = 0;
+          NewVext[1][0] = -1;
+          NewVext[2][0] = 0;
+          break;
+        case 'd':
+          NewVext[0][0] = 0;
+          NewVext[1][0] = 1;
+          NewVext[2][0] = 0;
+          break;
+        case 'q':
+          NewVext[0][0] = -PI/100;
+          NewVext[1][0] = 0;
+          NewVext[2][0] = 0;
+          break;
+        case 'e':
+          NewVext[0][0] = PI/100;
+          NewVext[1][0] = 0;
+          NewVext[2][0] = 0;
+          break;
+        default:
+
+          break;
+
+          };
+          mtx_type Steps[4][1];
+          MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)NewVext, 4, 3, 1, (mtx_type *)Steps);
+          Controller.moveAsync(motor_1, motor_2, motor_3, motor_4);
+  };
   void ComputeTranslation(double X, double Y) // Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
   // and updates the stepper objects with this distance. The controller object must be updated for the steppers to start this move.
   //  Input is in form [ Theta ]
@@ -126,13 +185,13 @@ public:
     Serial.println(BotOrientation.Y);
 
     if (BotOrientation.Theta != 0)
-    {                                                      // If the bot is at an ange
-      TranslationalMatrix1[2][0] = BotOrientation.X;       // Set X
-      TranslationalMatrix1[2][1] = BotOrientation.Y;       // Set Y
-      TranslationalMatrix2[2][0] = -BotOrientation.X;      // Set X
-      TranslationalMatrix2[2][1] = -BotOrientation.Y;      // Set Y
-      HomogoenousMatrix[0][0] = X;                         // Set X
-      HomogoenousMatrix[0][1] = Y;                         // Set Y
+    {                                                 // If the bot is at an ange
+      TranslationalMatrix1[2][0] = BotOrientation.X;  // Set X
+      TranslationalMatrix1[2][1] = BotOrientation.Y;  // Set Y
+      TranslationalMatrix2[2][0] = -BotOrientation.X; // Set X
+      TranslationalMatrix2[2][1] = -BotOrientation.Y; // Set Y
+      HomogoenousMatrix[0][0] = X;                    // Set X
+      HomogoenousMatrix[0][1] = Y;                    // Set Y
       HomogoenousMatrix[1][0] = BotOrientation.X;
       HomogoenousMatrix[1][1] = BotOrientation.Y;
       RotationalMatrix[0][0] = cos(BotOrientation.Theta);  // Set cos(Theta)
@@ -147,7 +206,7 @@ public:
       PrintMatrix((mtx_type *)HomogoenousMatrix, 3, 2);
       Serial.println("RotationalMatrix");
       PrintMatrix((mtx_type *)RotationalMatrix, 3, 3);
-      
+
       // compute the matrix multiplications: T1 = Trans1*Rot , T2 = T1*Trans2, TransformedMatrix = T2*HomoMatrix
       MatrixMultiply((mtx_type *)TranslationalMatrix1, (mtx_type *)RotationalMatrix, 3, 3, 3, (mtx_type *)T1);
       Serial.println("T1");
@@ -171,7 +230,7 @@ public:
       InputPose[2][0] = Y;
     };
     Serial.println("Theta: ");
-   // PrintMatrix((mtx_type *)InputPose, 3, 1);
+    // PrintMatrix((mtx_type *)InputPose, 3, 1);
     MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)InputPose, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
     UpdateMotorObjects();                                                                                   // Update the stepper objects
     BotOrientation.X += InputPose[1][0];                                                                    // Update the bots position
@@ -191,12 +250,12 @@ public:
     InputPose[1][0] = 0;
     InputPose[2][0] = 0;
     Serial.println("Theta: ");
-    //PrintMatrix((mtx_type *)InputPose, 3, 1);
+    // PrintMatrix((mtx_type *)InputPose, 3, 1);
 
     MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)InputPose, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
     UpdateMotorObjects();                                                                                   // Update the stepper objects
     BotOrientation.Theta -= Theta;                                                                          // Update the bots orientation
-    if ((BotOrientation.Theta > PI)|| (BotOrientation.Theta < -PI))
+    if ((BotOrientation.Theta > PI) || (BotOrientation.Theta < -PI))
     {
       BotOrientation.Theta -= PI;
     }
@@ -249,9 +308,9 @@ public:
     motor_3.setTargetRel(NewWheelSteps[2][0]);
     motor_4.setTargetRel(NewWheelSteps[3][0]);
     Serial.println("NewWhelSteps:");
-    //Serial.print(NewWheelSteps[0][0]);
-   PrintMatrix((mtx_type *)NewWheelSteps, 4, 1);
-   Controller.move(motor_1, motor_2, motor_3, motor_4);
+    // Serial.print(NewWheelSteps[0][0]);
+    PrintMatrix((mtx_type *)NewWheelSteps, 4, 1);
+    Controller.move(motor_1, motor_2, motor_3, motor_4);
   }
 
   void MatrixMultiply(mtx_type *A, mtx_type *B, int m, int p, int n, mtx_type *C)
@@ -271,7 +330,7 @@ public:
           C[n * i + j] = C[n * i + j] + A[p * i + k] * B[n * k + j];
       }
   }
-  
+
   void PrintMatrix(mtx_type *A, int m, int n)
   {
     // A = input matrix (m x n)
@@ -286,5 +345,4 @@ public:
       Serial.println();
     }
   }
-  
 };
