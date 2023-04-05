@@ -28,7 +28,8 @@ class CameraSystem:
         self.camera.configure(self._preview_config)
         self.camera.start()
         self.initialize_detector()
-    
+
+
 
     def initialize_detector(self):
         base_options = core.BaseOptions(file_name=self._model, use_coral=self._enable_edgetpu, num_threads=self._num_threads)
