@@ -57,12 +57,21 @@ private:
       {0, 0},
       {0, 0},
       {0, 0}};
+  mtx_type ComplexStep[3][1] = { 
+      {0},
+      {0},
+      {0}};
+  mtx_type NewWheelSpeeds[4][1] = { 
+      {0},
+      {0},
+      {0},
+      {0}};
   Stepper motor_1;
   Stepper motor_2;
   Stepper motor_3;
   Stepper motor_4;
   StepControl Controller;      // Objects for rotating the motors to an endpoint in sync
-  RotateControl RotController; // Objects for rotating
+ // RotateControl RotController; // Objects for rotating
   mtx_type NewWheelSteps[4][1];
   mtx_type WheelSteps[4][1] = {
       {0},
@@ -81,7 +90,7 @@ public:
                    motor_2(MTR2DIR, MTR2STEP),
                    motor_3(MTR3DIR, MTR3STEP),
                    motor_4(MTR4DIR, MTR4STEP),
-                   RotController(),
+                  // RotController(),
                    Controller() // MUST PASS CONSTRUCTOR OBJECTS FROM THE CONTROLLER CLASS
   {
 
@@ -112,65 +121,60 @@ public:
     motor_3.setPosition(0);
     motor_4.setPosition(0);
   }
-  void WASD(char InputMove)
+
+  void ComputeTransformation(double Theta, double X, double Y) // Computes the desired movement vector (in reference to our bot) by transforming our bots reference frame to the global reference frame;
+  // computing the difference of that position and an input position, and then transforming this vector back to our bots reference frame.
   {
+    if (BotOrientation.Theta != 0)
+    {                                                 // If the bot is at an ange
+      TranslationalMatrix1[2][0] = BotOrientation.X;  // Set X
+      TranslationalMatrix1[2][1] = BotOrientation.Y;  // Set Y
+      TranslationalMatrix2[2][0] = -BotOrientation.X; // Set X
+      TranslationalMatrix2[2][1] = -BotOrientation.Y; // Set Y
+      HomogoenousMatrix[0][0] = X - BotOrientation.X;                    // Set X
+      HomogoenousMatrix[0][1] = Y - BotOrientation.Y;                    // Set Y
+      HomogoenousMatrix[1][0] = BotOrientation.X;
+      HomogoenousMatrix[1][1] = BotOrientation.Y;
+      RotationalMatrix[0][0] = cos(BotOrientation.Theta);  // Set cos(Theta)
+      RotationalMatrix[0][1] = -sin(BotOrientation.Theta); // Set -sin(Theta)
+      RotationalMatrix[1][0] = sin(BotOrientation.Theta);  // Set sin(Theta)
+      RotationalMatrix[1][1] = cos(BotOrientation.Theta);  // Set cos(Theta)
+      /* SERIAL PRINTS
+      Serial.println("TranslationalMatrix1");
+      PrintMatrix((mtx_type *)TranslationalMatrix1, 3, 3);
+      Serial.println("TranslationalMatrix2");
+      PrintMatrix((mtx_type *)TranslationalMatrix2, 3, 3);
+      Serial.println("HomogoenousMatrix");
+      PrintMatrix((mtx_type *)HomogoenousMatrix, 3, 2);
+      Serial.println("RotationalMatrix");
+      PrintMatrix((mtx_type *)RotationalMatrix, 3, 3);
+      */ 
+      // compute the matrix multiplications: T1 = Trans1*Rot , T2 = T1*Trans2, TransformedMatrix = T2*HomoMatrix
+      MatrixMultiply((mtx_type *)TranslationalMatrix1, (mtx_type *)RotationalMatrix, 3, 3, 3, (mtx_type *)T1);
+      MatrixMultiply((mtx_type *)T1, (mtx_type *)TranslationalMatrix2, 3, 3, 3, (mtx_type *)T2);
+      MatrixMultiply((mtx_type *)T2, (mtx_type *)HomogoenousMatrix, 3, 3, 2, (mtx_type *)TransformedMatrix);
+      /* Serial.println("T1");
+      PrintMatrix((mtx_type *)T1, 3, 3);
+     Serial.println("T2");
+      PrintMatrix((mtx_type *)T2, 3, 3);
 
-    motor_1
-        .setMaxSpeed(400)      // steps/s
-        .setAcceleration(400); // steps/s^2
-    motor_2
-        .setMaxSpeed(400)      // steps/s
-        .setAcceleration(400); // steps/s^2
-    motor_3
-        .setMaxSpeed(400)      // steps/s
-        .setAcceleration(400); // steps/s^2
-    motor_4
-        .setMaxSpeed(400)      // steps/s
-        .setAcceleration(400); // steps/s^2
-    mtx_type NewVext[3][1] = {
-        {0},
-        {0},
-        {0}};
-    switch (InputMove)
-    {
-    case 'w':
-      NewVext[0][0] = 0;
-      NewVext[1][0] = 0;
-      NewVext[2][0] = 1;
-      break;
-    case 's':
-      NewVext[0][0] = 0;
-      NewVext[1][0] = 0;
-      NewVext[2][0] = -1;
-      break;
-    case 'a':
-      NewVext[0][0] = 0;
-      NewVext[1][0] = -1;
-      NewVext[2][0] = 0;
-      break;
-    case 'd':
-      NewVext[0][0] = 0;
-      NewVext[1][0] = 1;
-      NewVext[2][0] = 0;
-      break;
-    case 'q':
-      NewVext[0][0] = -PI / 100;
-      NewVext[1][0] = 0;
-      NewVext[2][0] = 0;
-      break;
-    case 'e':
-      NewVext[0][0] = PI / 100;
-      NewVext[1][0] = 0;
-      NewVext[2][0] = 0;
-      break;
-    default:
+      Serial.println("TransformedMatrix");
+      PrintMatrix((mtx_type *)TransformedMatrix, 3, 2);
+*/
+      InputPose[1][0] = TransformedMatrix[0][0];
+      InputPose[2][0] = TransformedMatrix[1][0];
 
-      break;
+    }
+    else if (BotOrientation.Theta == 0)
+    {                      // If bot is not at an angle
+      InputPose[1][0] = X - BotOrientation.X; // Set the X and Y distances to move
+      InputPose[2][0] = Y - BotOrientation.Y;
     };
-    mtx_type Steps[4][1];
-    MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)NewVext, 4, 3, 1, (mtx_type *)Steps);
-    Controller.moveAsync(motor_1, motor_2, motor_3, motor_4);
+ 
   };
+
+
+  
   void ComputeTranslation(double X, double Y) // Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
   // and updates the stepper objects with this distance. The controller object must be updated for the steppers to start this move.
   //  Input is in form [ Theta ]
