@@ -51,13 +51,13 @@ class Pusher {
     void RetractPusher(int how_many, Servo top_or_bottom){
         status = PusherStatus::RETRACTING;
         if(how_many == 2 && top_or_bottom == 0){
-        PusherTopServo.write(-100);
-        PusherBottomServo.write(-100);
+        PusherTopServo.write(0);
+        PusherBottomServo.write(0);
         wait(2000);
         }
 
         else{
-        top_or_bottom.write(-100);
+        top_or_bottom.write(0);
         wait(2000);
         }
     }
