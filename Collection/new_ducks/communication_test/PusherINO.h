@@ -5,28 +5,28 @@
 //Top Pusher pushes things out with exception of the yellow Duck
 //Bottom Pusher pushes things into position, except for the yellow duch which it pushes out
 
-PusherTopPin = 5;
-PusherBottomPin = 6;
+
 
 enum class PusherStatus {   
-    RETRACTED   
-    LOADING                 //Bot 
-    LOADED
-    RETRACTING  
-    HALF_UNLOADING  
-    HALF_UNLOADED   
-    UNLOADING                      //top or bottom
+    RETRACTED,   
+    LOADING,                 //Bot 
+    LOADED,
+    RETRACTING,  
+    HALF_UNLOADING,  
+    HALF_UNLOADED,   
+    UNLOADING,                      //top or bottom
     UNLOADED           
 
 };
 
 
-class Pusher {
+class PusherINO {
   private:
     // Private attributes
     Servo PusherTopServo;
     Servo PusherBottomServo;
-    
+    const int PusherTopPin = 5;
+    const int PusherBottomPin = 6;
 
     // Private helper function to wait for a certain amount of time
     void wait(unsigned long duration) {
@@ -39,41 +39,51 @@ class Pusher {
     public:
     // Public attributes
     PusherStatus status;
+  
 
-
-    PusherSet(){
-        status = PusherStatus::RETRACTED;
-        PusherTopServo.attach(PusherTopPin);
+    PusherINO() :
+        status(PusherStatus::RETRACTED)
+        
+        
+    {
+      PusherTopServo.attach(PusherTopPin);
         PusherBottomServo.attach(PusherBottomPin);
         RetractPusher(2,0); //initial condition 
     }
 
-    void RetractPusher(int how_many, Servo top_or_bottom){
+    void RetractPusher(int top_bottom_both){
         status = PusherStatus::RETRACTING;
-        if(how_many == 2 && top_or_bottom == 0){
-        PusherTopServo.write(0);
-        PusherBottomServo.write(0);
+        if(top_bottom_both == BOTH_PUSHERS){
+        PusherTopServo.write(RETURN);
+        wait(2000);
+        PusherBottomServo.write(RETURN);
         wait(2000);
         }
 
-        else{
-        top_or_bottom.write(0);
+        else  if(top_bottom_both == TOP_PUSHER){
+        PusherTopServo.write(RETURN);
         wait(2000);
         }
+
+        else  if(top_bottom_both == BOTTOM_PUSHER){
+        PusherBottomServo.write(PUSH_ACTION);
+        wait(2000);
+        }        
+        status = PusherStatus::RETRACTED;
     }
 
 
     void LoadPillar(int which_pillar){
-        if(which_pillar == 1){
+        if(which_pillar == FIRST_PILLAR){
         status = PusherStatus::LOADING;
-        PusherBottomServo.write(120);
+        PusherBottomServo.write(PUSH_ACTION);
         wait(2000);
         
         }
 
-        else{
+        else if(which_pillar == SECOND_PILLAR){
         status = PusherStatus::LOADING;
-        PusherBottomServo.write(60);
+        PusherBottomServo.write(HALF_PUSH);
         wait(2000);
         }
 
@@ -84,53 +94,50 @@ class Pusher {
 
     void LoadDuck(){
         status = PusherStatus::LOADING;
-        PusherBottomServo.write(160);
+        PusherBottomServo.write(PUSH_ACTION);
         wait(2000);
-        RetractPusher(1,PusherBottomServo);
+        RetractPusher(BOTTOM_PUSHER);
     }
 
     void UnloadPillar(int which_pillar){
-        if(which_pillar == 1){
+        if(which_pillar ==  FIRST_PILLAR){
         status = PusherStatus::HALF_UNLOADING;
         PusherTopServo.write(60);
         wait(2000);
-        status.status = PusherStatus::HALF_UNLOADED;
-        RetractPusher(1,PusherTopServo);
+        status = PusherStatus::HALF_UNLOADED;
+        RetractPusher(TOP_PUSHER);
         }
 
-        else{
-        status.status = PusherStatus::UNLOADING;
+        else if(which_pillar == SECOND_PILLAR){
+        status = PusherStatus::UNLOADING;
         PusherTopServo.write(120);
         wait(2000);
-        status.status = PusherStatus::UNLOADED;
-        RetractPusher(1,PusherTopServo);
+        status = PusherStatus::UNLOADED;
+        RetractPusher(TOP_PUSHER);
         }
 
     }
 
     void UnloadDuck(char color){
-        if(color == y){
+        if(color == YELLOW_DUCK_P){
         status = PusherStatus::UNLOADING;
         PusherBottomServo.write(160);
         wait(2000);
-        RetractPusher(1,PusherBottomServo);
+        RetractPusher(BOTTOM_PUSHER);
         status = PusherStatus::UNLOADED;
         }
 
-        else{
+        else if(color == PINK_DUCK_P){
         status = PusherStatus::UNLOADING;
         PusherTopServo.write(160);
         wait(2000);
         status = PusherStatus::UNLOADED;
-        RetractPusher(1,PusherTopServo);
+        RetractPusher(TOP_PUSHER);
         }
     }
 
+};
 
-
-
-
-}
 
 
 
@@ -139,12 +146,4 @@ class Pusher {
 
 
 
-PusherStatus getStatus(PusherStatus state) {
-      return status;
-    }
-    
-    void setStatus(PusherStatus state) {
-      status = state;
-    }
-
-
+   

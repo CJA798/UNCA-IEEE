@@ -69,12 +69,23 @@
 #define SMALL_BRACING 0
 #define BIG_BRACING 1
 
+//macros for pusher
+#define BOTH_PUSHERS 2
+#define TOP_PUSHER   1
+#define BOTTOM_PUSHER 0
+#define RETURN          0 //servo speed, modify this as needed
+#define PUSH_ACTION      100 //
+#define FIRST_PILLAR    1
+#define SECOND_PILLAR   2
+#define YELLOW
+#define
+#define
 
-#define RETRACTED   0
-#define LOADING     1             //Bot 
-#define LOADED      2
-#define RETRACTING  3
-#define HALF_UNLOADING  4
-#define HALF_UNLOADED   5
-#define UNLOADING       6               //top or bottom
-#define UNLOADED        7   
+//macros for brace
+#define CLOSED_VAL    0
+#define OPEN_VAL      100
+#define BRACE_TOP      0
+#define BRACE_BOTTOM        1
+#define SWING 2
+#define BRACE_BOTH      3
+
