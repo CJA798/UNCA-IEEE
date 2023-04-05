@@ -77,9 +77,9 @@
 #define PUSH_ACTION      100 //
 #define FIRST_PILLAR    1
 #define SECOND_PILLAR   2
-#define YELLOW
-#define
-#define
+#define YELLOW_DUCK_P   'y'
+#define PINK_DUCK_P     'p'
+#define HALF_PUSH       60
 
 //macros for brace
 #define CLOSED_VAL    0
