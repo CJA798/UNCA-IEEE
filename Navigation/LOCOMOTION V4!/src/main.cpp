@@ -11,44 +11,16 @@ void setup()
 {
   // Wire2.begin();
   Serial.begin(115200);
-  Serial.println("START");
+
+  Driver.UpdateDesiredPose(PI / 2, 25, 25);
+  ComplexMoveState = 1;
+  Serial.println("START");  
+  delay(6000);
 };
 
 void loop()
 {
 
-      Serial.print(InputBit);
-
-      Driver.ComputeTranslation(0, 20);
-      Driver.ComputeRotation(-PI);
-      Driver.ComputeTranslation(-90, -17.5); // were at -90, 2.5
-
-      // Drop red Chips
-
-      // Drop Green Chips
-    
-
-      Driver.ComputeTranslation(20, 10);
-    
-
-      Driver.ComputeRotation(-PI/4);
-    
-
-        Driver.ComputeTranslation(-10, 20); // were at -90, 90
-        
-    
-      Driver.ComputeTranslation(50, 30);
-    
-   // Driver.ComputeRotation(-PI/2);
-    // Driver.Cleanup();
-
-    
-   /*
-    InputBit = Serial.read();
-    if(InputBit > 0){
-    Driver.WASD(InputBit);
-    }
-    InputBit = 0;
-    */
-  
+  Driver.ComplexMove();
+  delay(100);
 };
