@@ -11,7 +11,7 @@ def main():
     # Debug variables
     time_program = True
     print_steps = True
-    enable_serial = False
+    enable_serial = True
     if enable_serial:
         # Configure the serial port
         baud_rate = 115200
@@ -63,7 +63,7 @@ def main():
 
         while True:
             if time_program: start_time = time()
-
+            if print_steps: print('+--------------------------BEGIN----------------------------+')
             elevator_data, mid_data, flipper_data = camera.get_data()
             #data_format: [(class_index, BoundingBox([x,y,w,h]), angle), ...]
 
@@ -71,6 +71,7 @@ def main():
             
             if not mid_data:
                 sweeper_status = Status.SweeperStatus.RESTING
+                if print_steps: print('Sweeper resting')
             
 
             # If there's more than one object in the elevator or the flipper, or an object in the middle, activate sweeper 
@@ -85,12 +86,15 @@ def main():
                 # If there are no objects in the flipper platform, set flipper status to EMPTY
                 if not flipper_data:
                     flipper_status = Status.FlipperStatus.EMPTY
+                    if print_steps: print('Flipper empty')
                 # If the angle data is missing, ignore reading and keep previous status
                 elif len(flipper_data[0]) < 3:
+                    if print_steps: print('Keeping previous flipper value')
                     pass
                 # If the angle of the object in the flipper platform is not the target angle, set flipper status to ROTATE
                 elif flipper_data[0][2] > MAX_ANGLE_FLIPPER or flipper_data[0][2] < MIN_ANGLE_FLIPPER: 
                     flipper_status = Status.FlipperStatus.ORIENTING
+                    if print_steps: print('Flipper orienting')
                 # If the angle of the object in the flipper platform is within the allowed threshold, set flipper status to FLIPPING
                 else:
                     # TODO: Run template matching to determine whether the object is already in the right position or not
@@ -104,11 +108,14 @@ def main():
                 # If there are no objects in the elevator platform, set elevator status to EMPTY
                 if not elevator_data:
                     elevator_status = Status.ElevatorStatus.EMPTY
+                    if print_steps: print('Elevator empty')
                 # If the angle data is missing, ignore reading and keep previous status
                 elif len(elevator_data[0]) < 3:
+                    if print_steps: print('Keeping previous elevator value')
                     pass
                 # If the angle of the object in the elevator platform is not the target angle, set elevator status to ROTATE
                 elif elevator_data[0][2] > MAX_ANGLE_ELEVATOR or elevator_data[0][2] < MIN_ANGLE_ELEVATOR:
+                    if print_steps: print('Elevator orienting')
                     elevator_status = Status.ElevatorStatus.ORIENTING
                 # If the angle of the object in the elevator platform is within the allowed threshold, set elevator status to RAISING and sweeper to PUSHING*
                 else:
@@ -125,7 +132,7 @@ def main():
 
             if enable_serial:
                 ser.reset_output_buffer()
-                ser.write(encoded_data.encode())
+                ser.write(binary_sum.encode())
 
             if time_program: 
                 end_time = time()
