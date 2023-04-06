@@ -7,7 +7,7 @@
 - [Competition Schedule](https://ieeesoutheastcon.org/student-competitions/)
 
 
-![alt text](https://github.com/CJA798/UNCA-IEEE/blob/246c0ff7473ab3f50f8fc580151f27258260e457/CAD/MK5%20IEEE%20BOT.PNG?raw=true)
+![alt text](https://github.com/CJA798/UNCA-IEEE/blob/6d2d3da3c0c8b21ae95bb109d38981c135fc601b/CAD/MK7_RENDER.jpg?raw=true)
 
 - <sub>[( ͡° ͜ʖ ͡°)](https://youtu.be/dQw4w9WgXcQ)</sub>
 
