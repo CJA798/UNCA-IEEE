@@ -1,32 +1,53 @@
+import serial
 import cv2
 from time import time, sleep
-import RPi.GPIO as GPIO
 from CameraSystem import CameraSystem
+import Status
 
-GPIO.setmode(GPIO.BCM)
-gpio_pins = [pin for pin in range(1,27)]
-gpio_labels = []
-for pin in gpio_pins:
-    GPIO.setup(pin, GPIO.OUT) # set a port/pin as an output
-    print("Pin {} Set to OUTPUT".format(pin))   
-    GPIO.output(pin, 0)       # set port/pin value to 1/GPIO.HIGH/True
-    print("Pin {} Set to LOW".format(pin))
 
+# Configure the serial port
+#baud_rate = 115200
+#ser = serial.Serial('/dev/ttyACM0', baud_rate)
+#ser.reset_input_buffer()
+
+# Configure robot
+robot_status = Status.RobotStatus()
+
+# Configure camera
 camera = CameraSystem()
 
-with camera.camera as cam:
-    while True:
-        #elevator_data, mid_data, flipper_data = camera.get_data()
-        #data_format: [(class_index, BoundingBox([x,y,w,h]), angle), ...]
-        GPIO.output(21, 1)
-        GPIO.output(20, 1)
-        print("ON")
-        sleep(4)
-        GPIO.output(21, 0)
-        GPIO.output(20, 0)
-        print("OFF")
-        sleep(4)
+# General status variables
+navigation_status = robot_status.navigation_status
+collection_status = robot_status.collection_status
 
+# 16-bit status variables
+camera_working = True
+intake_status = robot_status.intake_status
+flipper_status = robot_status.flipper_status
+sweeper_status = robot_status.sweeper_status
+elevator_status = robot_status.elevator_status
+top_pusher_status = robot_status.top_pusher_status
+bot_pusher_status = robot_status.bot_pusher_status
+brace_status = robot_status.brace_status
+
+
+def encode_data(elevator_data: list, mid_data: list, flipper_data: list):
+    
+
+    if len(flipper_data) > 3 or len(elevator_data) > 3 or len(mid_data) > 0:
+        pass
+    binary_data = ''
+    return binary_data
+
+with camera.camera as cam:
+    #while navigation_status == Status.NavigationStatus.START:
+    #    navigation_status = ser.readline().decode('utf-8').rstrip()
+    intake_status = Status.IntakeStatus.INTAKE_ON
+    
+    while True:
+        elevator_data, mid_data, flipper_data = camera.get_data()
+        #data_format: [(class_index, BoundingBox([x,y,w,h]), angle), ...]
+        encoded_data = encode_data(elevator_data, mid_data, flipper_data)
         ''' TODO:
             1)  Trigger GPIO pins according to data gathered
                 a)  if len(flipper_data) > 3 or len(elevator_data) > 3 or len(mid_data) > 0:
@@ -50,10 +71,12 @@ with camera.camera as cam:
                 
         '''
 
-
+        encoded_data = ''
+        #ser.reset_output_buffer()
+        #ser.write(encoded_data.encode())
 
         if cv2.waitKey(1) == 27:
             break
 
 cv2.destroyAllWindows()
-GPIO.cleanup()
+
