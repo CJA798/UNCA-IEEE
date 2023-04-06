@@ -13,7 +13,7 @@ enum class BraceStatus {
 };
 
 
-class BraceINO {
+class BraceINO (){
   private:
     // Private attributes
     Servo BraceTopServo;
@@ -22,7 +22,7 @@ class BraceINO {
     
     const int BraceTopPin = 7;
     const int BraceBottomPin = 8;
-    const int SwingServo = 9;
+    const int SwingServoPin = 9;
 
     // Private helper function to wait for a certain amount of time
     void wait(unsigned long duration) {
@@ -38,13 +38,13 @@ class BraceINO {
   
 
     BraceINO() :
-        status(PusherStatus::OPEN)
+        status(BraceStatus::OPEN)
         
         
     {
         BraceTopServo.attach(BraceTopPin);
         BraceBottomServo.attach(BraceBottomPin);
-        SwingServo.attach(SwingServo);
+        SwingServo.attach(SwingServoPin);
        //open method here for initial condition 
        BraceOpen(BRACE_BOTH, OPEN_VAL);
     }
