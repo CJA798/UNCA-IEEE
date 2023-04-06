@@ -2,15 +2,21 @@ import serial
 import cv2
 from time import time, sleep
 from CameraSystem import CameraSystem
+from functools import reduce
 import Status
 
 
 
 def main():
-    # Configure the serial port
-    #baud_rate = 115200
-    #ser = serial.Serial('/dev/ttyACM0', baud_rate)
-    #ser.reset_input_buffer()
+    # Debug variables
+    time_program = True
+    print_steps = True
+    enable_serial = False
+    if enable_serial:
+        # Configure the serial port
+        baud_rate = 115200
+        ser = serial.Serial('/dev/ttyACM0', baud_rate)
+        ser.reset_input_buffer()
 
     # Configure robot
     robot_status = Status.RobotStatus()
@@ -56,6 +62,8 @@ def main():
         brace_status = Status.BraceStatus.A
 
         while True:
+            if time_program: start_time = time()
+
             elevator_data, mid_data, flipper_data = camera.get_data()
             #data_format: [(class_index, BoundingBox([x,y,w,h]), angle), ...]
 
@@ -66,7 +74,7 @@ def main():
             
 
             # If there's more than one object in the elevator or the flipper, or an object in the middle, activate sweeper 
-            if any(len(data) > 3 for data in [flipper_data, elevator_data]) or len(mid_data) > 0:
+            if any(len(data) > 1 for data in [flipper_data, elevator_data]) or len(mid_data) > 0:
                 # TODO: Put system in safe state: Stop rotating platforms, bring elevator platform down,
                 #       bring flipper platform to normal position, stop rotating storage drum, keep bracing status
                 #       if the system is safe to clean, activate cleaning mechanism
@@ -77,8 +85,11 @@ def main():
                 # If there are no objects in the flipper platform, set flipper status to EMPTY
                 if not flipper_data:
                     flipper_status = Status.FlipperStatus.EMPTY
+                # If the angle data is missing, ignore reading and keep previous status
+                elif len(flipper_data[0]) < 3:
+                    pass
                 # If the angle of the object in the flipper platform is not the target angle, set flipper status to ROTATE
-                elif flipper_data[0][3] > MAX_ANGLE_FLIPPER or flipper_data[0][3] < MIN_ANGLE_FLIPPER: 
+                elif flipper_data[0][2] > MAX_ANGLE_FLIPPER or flipper_data[0][2] < MIN_ANGLE_FLIPPER: 
                     flipper_status = Status.FlipperStatus.ORIENTING
                 # If the angle of the object in the flipper platform is within the allowed threshold, set flipper status to FLIPPING
                 else:
@@ -93,41 +104,33 @@ def main():
                 # If there are no objects in the elevator platform, set elevator status to EMPTY
                 if not elevator_data:
                     elevator_status = Status.ElevatorStatus.EMPTY
-                # If the angle of the object in the elevator platform is not the target angle, set elevator status to ROTATE
-                elif elevator_data[0][3] > MAX_ANGLE_ELEVATOR or elevator_data[0][3] < MIN_ANGLE_ELEVATOR:
-                    elevator_status = Status.ElevatorStatus.ORIENTING
-                # If the angle of the object in the elevator platform is within the allowed threshold, set elevator status to ELEVATING and sweeper to PUSHING*
-                else:
+                # If the angle data is missing, ignore reading and keep previous status
+                elif len(elevator_data[0]) < 3:
                     pass
-
-            ''' TODO:
-                1)  Trigger GPIO pins according to data gathered
-                    c)  Flipper platform:
-                            -   if the angle of the object in the flipper platform is not the target angle, set FLIPPER_ROTATING_PLATFORM to HIGH
-                            -   if the angle of the object is the target angle (or within the threshold):
-                                    -   if the object is a duck and is already in storage position, set BRUSH to HIGH 
-                                    -   else, set FLIPPER_ROTATING_PLATFORM to LOW and FLIPPER to HIGH* 
-                    d)  Elevator Platform, Storage Drum, and Pushers:
-                            -   if the angle of the object in the elevator platform is not the target angle, set ELEVATOR_ROTATING_PLATFORM to HIGH
-                            -   if the angle of the object is the target angle (or within the threshold):
-                                    -   if the height is not the target height, set ELEVATOR to HIGH
-                                    -   else set ELEVATOR to LOW:
-
-
-                    
-            '''
-
+                # If the angle of the object in the elevator platform is not the target angle, set elevator status to ROTATE
+                elif elevator_data[0][2] > MAX_ANGLE_ELEVATOR or elevator_data[0][2] < MIN_ANGLE_ELEVATOR:
+                    elevator_status = Status.ElevatorStatus.ORIENTING
+                # If the angle of the object in the elevator platform is within the allowed threshold, set elevator status to RAISING and sweeper to PUSHING*
+                else:
+                    elevator_status = Status.ElevatorStatus.RAISING
             
-            
-
+            # Update variable_status
+            variable_status = [camera_working, intake_status, flipper_status, sweeper_status,
+                        elevator_status, top_pusher_status, bot_pusher_status, brace_status]
             # Convert variables to binary strings and pad with zeros
             binary_vars = [format(var, 'b').zfill(bits) for var, bits in zip(variable_status, bits_per_variable)]
-
             # Concatenate binary strings and convert back to integer
-            encoded_data = sum(int(binary, 2) for binary in binary_vars)
-            print(encoded_data)
-            #ser.reset_output_buffer()
-            #ser.write(encoded_data.encode())
+            binary_sum = reduce(lambda concat, binary: concat + binary, binary_vars)
+            print(binary_sum)
+
+            if enable_serial:
+                ser.reset_output_buffer()
+                ser.write(encoded_data.encode())
+
+            if time_program: 
+                end_time = time()
+                total_time = end_time - start_time
+                print(f"Total time taken: {total_time} seconds")
 
             if cv2.waitKey(1) == 27:
                 break
