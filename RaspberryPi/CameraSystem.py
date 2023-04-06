@@ -1,11 +1,8 @@
 import cv2
 import numpy as np
-from typing import List, Tuple
 from picamera2 import Picamera2
 from tflite_support.task import core, processor, vision
-from math import atan2, cos, sin, sqrt, pi
 import utils
-import asyncio
 
 
 class CameraSystem:

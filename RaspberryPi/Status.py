@@ -12,6 +12,8 @@ class FlipperStatus:
     FLIPPING = 2
     NONE = 3
 
+    CLEANING = 0
+
 
 class SweeperStatus:
     EJECTING = 0
@@ -25,6 +27,8 @@ class ElevatorStatus:
     ORIENTING = 1 #Rotating while waiting for Threshhold to be met
     RAISING = 2 #Raising until done.
     NONE = 3
+
+    CLEANING = 0
 
 
 class PusherStatus:

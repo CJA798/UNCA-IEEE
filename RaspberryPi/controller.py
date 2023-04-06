@@ -79,7 +79,16 @@ def main():
                 # TODO: Put system in safe state: Stop rotating platforms, bring elevator platform down,
                 #       bring flipper platform to normal position, stop rotating storage drum, keep bracing status
                 #       if the system is safe to clean, activate cleaning mechanism
-                pass
+
+                intake_status = Status.IntakeStatus.INTAKE_OFF
+                flipper_status = Status.FlipperStatus.CLEANING
+                elevator_status = Status.ElevatorStatus.CLEANING
+                top_pusher_status = Status.PusherStatus.RETRACTED
+                bot_pusher_status = Status.PusherStatus.RETRACTED
+                
+                # TODO: If system is in safe status, activate sweeper
+                sweeper_status = Status.SweeperStatus.EJECTING
+
 
             else:
                 ''' Flipper '''
@@ -127,12 +136,15 @@ def main():
             # Convert variables to binary strings and pad with zeros
             binary_vars = [format(var, 'b').zfill(bits) for var, bits in zip(variable_status, bits_per_variable)]
             # Concatenate binary strings and convert back to integer
-            binary_sum = reduce(lambda concat, binary: concat + binary, binary_vars)
-            print(binary_sum)
+            encoded_data = reduce(lambda concat, binary: concat + binary, binary_vars)
+            print(encoded_data)
 
             if enable_serial:
-                ser.reset_output_buffer()
-                ser.write(binary_sum.encode())
+                if len(encoded_data) == 16:
+                    ser.reset_output_buffer()
+                    ser.write(encoded_data.encode())
+                else:
+                    print("ERROR: ENCODED DATA IS NOT 16-BITS")
 
             if time_program: 
                 end_time = time()
@@ -147,10 +159,12 @@ def main():
     # If the camera is not working, send respective flag and start restart routine
 
     encoded_data = 0b0_00_00_00_00_000
+    if enable_serial:
+        ser.reset_output_buffer()
+        ser.write(encoded_data.encode())
+
     print("ERROR: CAMERA NOT DETECTED")
     print("restarting...")
-    #ser.reset_output_buffer()
-    #ser.write(encoded_data.encode())
     # TODO: Start restart routine
 
 
