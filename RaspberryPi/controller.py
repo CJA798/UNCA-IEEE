@@ -1,6 +1,7 @@
 import serial
 import cv2
 from time import time, sleep
+from datetime import datetime 
 from CameraSystem import CameraSystem
 from functools import reduce
 import Status
@@ -30,7 +31,7 @@ def main():
     stored_items = []
 
     # 16-bit status variables
-    camera_working = True
+    camera_working = robot_status.camera_status
     intake_status = robot_status.intake_status
     flipper_status = robot_status.flipper_status
     sweeper_status = robot_status.sweeper_status
@@ -38,11 +39,6 @@ def main():
     top_pusher_status = robot_status.top_pusher_status
     bot_pusher_status = robot_status.bot_pusher_status
     brace_status = robot_status.brace_status
-
-    # Arrays for data encoding
-    variable_status = [camera_working, intake_status, flipper_status, sweeper_status,
-                        elevator_status, top_pusher_status, bot_pusher_status, brace_status]
-    bits_per_variable = [1, 2, 2, 2, 2, 2, 2, 3]
 
     # Threshold variables
     MAX_ANGLE_FLIPPER = 100
@@ -71,7 +67,7 @@ def main():
             # If there are no objects, set respective EMPTY or RESTING status
             
             if not mid_data:
-                sweeper_status = Status.SweeperStatus.RESTING
+                sweeper_status = Status.SweeperStatus.SWEEPER_RESTING
                 if print_steps: print('Sweeper resting')
             
 
@@ -82,20 +78,20 @@ def main():
                 #       if the system is safe to clean, activate cleaning mechanism
 
                 intake_status = Status.IntakeStatus.INTAKE_OFF
-                flipper_status = Status.FlipperStatus.CLEANING
-                elevator_status = Status.ElevatorStatus.CLEANING
-                top_pusher_status = Status.PusherStatus.RETRACTED
-                bot_pusher_status = Status.PusherStatus.RETRACTED
+                flipper_status = Status.FlipperStatus.FLIPPER_CLEANING
+                elevator_status = Status.ElevatorStatus.ELEVATOR_CLEANING
+                top_pusher_status = Status.PusherStatus.TOP_PUSHER_RETRACTED
+                bot_pusher_status = Status.PusherStatus.BOT_PUSHER_RETRACTED
                 
                 # TODO: If system is in safe status, activate sweeper
-                sweeper_status = Status.SweeperStatus.EJECTING
+                sweeper_status = Status.SweeperStatus.SWEEPER_EJECTING
 
 
             else:
                 ''' Flipper '''
                 # If there are no objects in the flipper platform, set flipper status to EMPTY
                 if not flipper_data:
-                    flipper_status = Status.FlipperStatus.EMPTY
+                    flipper_status = Status.FlipperStatus.FLIPPER_EMPTY
                     if print_steps: print('Flipper empty')
                 # If the angle data is missing, ignore reading and keep previous status
                 elif len(flipper_data[0]) < 3:
@@ -103,7 +99,7 @@ def main():
                     pass
                 # If the angle of the object in the flipper platform is not the target angle, set flipper status to ROTATE
                 elif flipper_data[0][2] > MAX_ANGLE_FLIPPER or flipper_data[0][2] < MIN_ANGLE_FLIPPER: 
-                    flipper_status = Status.FlipperStatus.ORIENTING
+                    flipper_status = Status.FlipperStatus.FLIPPER_ORIENTING
                     if print_steps: print('Flipper orienting')
                 # If the angle of the object in the flipper platform is within the allowed threshold, set flipper status to FLIPPING
                 else:
@@ -117,7 +113,7 @@ def main():
                 ''' Elevator '''
                 # If there are no objects in the elevator platform, set elevator status to EMPTY
                 if not elevator_data:
-                    elevator_status = Status.ElevatorStatus.EMPTY
+                    elevator_status = Status.ElevatorStatus.ELEVATOR_EMPTY
                     if print_steps: print('Elevator empty')
                 # If the angle data is missing, ignore reading and keep previous status
                 elif len(elevator_data[0]) < 3:
@@ -126,27 +122,25 @@ def main():
                 # If the angle of the object in the elevator platform is not the target angle, set elevator status to ROTATE
                 elif elevator_data[0][2] > MAX_ANGLE_ELEVATOR or elevator_data[0][2] < MIN_ANGLE_ELEVATOR:
                     if print_steps: print('Elevator orienting')
-                    elevator_status = Status.ElevatorStatus.ORIENTING
+                    elevator_status = Status.ElevatorStatus.ELEVATOR_ORIENTING
                 # If the angle of the object in the elevator platform is within the allowed threshold, set elevator status to RAISING and sweeper to PUSHING*
                 else:
-                    elevator_status = Status.ElevatorStatus.RAISING
+                    elevator_status = Status.ElevatorStatus.ELEVATOR_RAISING
             
-            # Update variable_status
-            variable_status = [camera_working, intake_status, flipper_status, sweeper_status,
+            data_package = [camera_working, intake_status, flipper_status, sweeper_status,
                         elevator_status, top_pusher_status, bot_pusher_status, brace_status]
-            #variable_status = [brace_status, bot_pusher_status, top_pusher_status,
-                                #elevator_status, sweeper_status, flipper_status , intake_status, camera_working]
-            # Convert variables to binary strings and pad with zeros
-            binary_vars = [format(var, 'b').zfill(bits) for var, bits in zip(variable_status, bits_per_variable)]
-            # Concatenate binary strings and convert back to integer
-            encoded_data = reduce(lambda concat, binary: concat + binary, binary_vars)
-            encoded_data = bytes([1,0, 1,0,1,0,1,0,1,0,1,0,1,0,1,0])
+            
+            int_data = sum(data_package)
+            print(int_data)
 
             if enable_serial:
-                if len(encoded_data) == 16:
-                    print(f"{time()} -> {encoded_data}")
+                if int_data >= 32768:
+                    timestamp = time()
+                    date_time = datetime.fromtimestamp(timestamp)
+                    print(f"{date_time} -> {bin(int_data)}")
                     ser.reset_output_buffer()
-                    ser.write(encoded_data)
+                    str_data = str(int_data) + "\n"
+                    ser.write(str_data.encode())
                 else:
                     print("ERROR: ENCODED DATA IS NOT 16-BITS")
 
@@ -165,7 +159,7 @@ def main():
     encoded_data = 0b0_00_00_00_00_000
     if enable_serial:
         ser.reset_output_buffer()
-        ser.write(encoded_data.encode())
+        ser.write()
 
     print("ERROR: CAMERA NOT DETECTED")
     print("restarting...")

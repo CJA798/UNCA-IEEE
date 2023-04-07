@@ -1,45 +1,51 @@
+class CameraStatus:
+    CAMERA_OFF = 0
+    CAMERA_ON = 32768
+
 class IntakeStatus:
     INTAKE_ON = 0
-    INTAKE_OFF = 1
-    REMOVING_JAM_CW = 2
-    REMOVING_JAM_CCW = 3
-
+    INTAKE_OFF = 8192
+    INTAKE_REMOVING_JAM_CW = 16384
+    INTAKE_REMOVING_JAM_CCW = 24576
 
 
 class FlipperStatus:
-    EMPTY = 0
-    ORIENTING = 1
-    FLIPPING = 2
-    NONE = 3
-
-    CLEANING = 0
+    FLIPPER_CLEANING = 0
+    FLIPPER_EMPTY = 0
+    FLIPPER_ORIENTING = 2048
+    FLIPPER_FLIPPING = 4096
+    FLIPPER_NONE = 6144
 
 
 class SweeperStatus:
-    RESTING = 0
-    EJECTING = 1
-    PUSHING = 2
-    SUPPORTING = 3
-    
+    SWEEPER_RESTING = 0
+    SWEEPER_EJECTING = 512
+    SWEEPER_PUSHING = 1024
+    SWEEPER_SUPPORTING = 1536  
 
 
 class ElevatorStatus:
-    EMPTY = 0 #Waiting for flipper, then the camera to orient
-    ORIENTING = 1 #Rotating while waiting for Threshhold to be met
-    RAISING = 2 #Raising until done.
-    NONE = 3
-
-    CLEANING = 0
+    ELEVATOR_CLEANING = 0
+    ELEVATOR_EMPTY = 0 #Waiting for flipper, then the camera to orient
+    ELEVATOR_ORIENTING = 128 #Rotating while waiting for Threshhold to be met
+    ELEVATOR_RAISING = 256 #Raising until done.
+    ELEVATOR_NONE = 384
 
 
 class PusherStatus:
-    RETRACTED = 0
-    LOADING = 1
-    HALF_LOADING = 2
-    UNLOADING = 3
+    TOP_PUSHER_RETRACTED = 0
+    TOP_PUSHER_LOADING = 32
+    TOP_PUSHER_HALF_LOADING = 64
+    TOP_PUSHER_UNLOADING = 96
 
+    BOT_PUSHER_RETRACTED = 0
+    BOT_PUSHER_LOADING = 8
+    BOT_PUSHER_HALF_LOADING = 16
+    BOT_PUSHER_UNLOADING = 24
 
 class DrumStatus:
+    pass
+    '''
     SLOT1 = 0 #This is column 1
     SLOT2 = 1 #Not used
     SLOT3 = 2 #Not used
@@ -64,6 +70,9 @@ class DrumStatus:
     RED = 4
     MAX_OBJECTS = 12 # There are 13 objects in total, but the drum can only hold 12
 
+    '''
+    
+
 
 class BraceStatus:
     A = 0
@@ -77,32 +86,33 @@ class BraceStatus:
 
 
 class CollectionStatus:
-    OFF = 0
-    COLLECTING = 1
-    POND_TOWER_READY = 2
-    SMALL_TOWER_READY = 3
-    DONE = 4
+    COLLECTION_OFF = 0
+    COLLECTION_COLLECTING = 1
+    COLLECTION_POND_TOWER_READY = 2
+    COLLECTION_SMALL_TOWER_READY = 3
+    COLLECTION_DONE = 4
 
 
 class NavigationStatus:
-    START = 8
-    ENABLE_COLLECTION = 0
-    MOVING_TO_POND = 1
-    IN_POND = 2
-    MOVING_TO_LEFT_CIRCLE = 3
-    IN_LEFT_CIRCLE = 4
-    MOVING_TO_RIGHT_CIRCLE = 5
-    IN_RIGHT_POND = 6
-    DONE = 7
+    NAVIGATION_START = 8
+    NAVIGATION_ENABLE_COLLECTION = 0
+    NAVIGATION_MOVING_TO_POND = 1
+    NAVIGATION_IN_POND = 2
+    NAVIGATION_MOVING_TO_LEFT_CIRCLE = 3
+    NAVIGATION_IN_LEFT_CIRCLE = 4
+    NAVIGATION_MOVING_TO_RIGHT_CIRCLE = 5
+    NAVIGATION_IN_RIGHT_POND = 6
+    NAVIGATION_DONE = 7
 
 class RobotStatus():
     def __init__(self):
-        self.navigation_status = NavigationStatus.START
-        self.collection_status = CollectionStatus.OFF
+        self.navigation_status = NavigationStatus.NAVIGATION_START
+        self.collection_status = CollectionStatus.COLLECTION_OFF
+        self.camera_status = CameraStatus.CAMERA_ON
         self.intake_status = IntakeStatus.INTAKE_OFF
-        self.flipper_status = FlipperStatus.EMPTY
-        self.sweeper_status = SweeperStatus.RESTING
-        self.elevator_status = ElevatorStatus.EMPTY
-        self.top_pusher_status = PusherStatus.UNLOADING
-        self.bot_pusher_status = PusherStatus.UNLOADING
+        self.flipper_status = FlipperStatus.FLIPPER_EMPTY
+        self.sweeper_status = SweeperStatus.SWEEPER_RESTING
+        self.elevator_status = ElevatorStatus.ELEVATOR_EMPTY
+        self.top_pusher_status = PusherStatus.TOP_PUSHER_RETRACTED
+        self.bot_pusher_status = PusherStatus.BOT_PUSHER_RETRACTED
         self.brace_status = BraceStatus.A
