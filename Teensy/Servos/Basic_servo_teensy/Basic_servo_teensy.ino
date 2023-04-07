@@ -80,10 +80,25 @@ void setup() {
   BraceDuck.attach(SERVO12_PIN);
   BraceBot.attach(SERVO13_PIN);
 
+  IntakeRight.write(90);
+  IntakeLeft.write(90);
+  IntakeLoad.write(90);
+  Flipper.write(0);
+  FlipperPlate.write(90);
+  Sweeper.write(90);
+  Elevator.write(0);
+  ElevatorPlate.write(90);
+  PusherTop.write(0);
+  PusherBot.write(0);
+  BraceTop.write(0);
+  BraceDuck.write(0);
+  BraceBot.write(0);
+  IncomingByte = 0;
+
 }
 
 void loop() {
-  if(Serial.available() >= 2){
+  if(Serial.available() >= 0){
     IncomingByte = (Serial.read() << 8) | Serial.read();
     Serial.println(IncomingByte, BIN);
   }
@@ -162,7 +177,8 @@ void loop() {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   //The flipper has two states for each of it's points
   if(IncomingByte & FlipperPlateOn){
-    FlipperPlate.write(ContOn);
+    FlipperPlate.write(150);
+    Serial.println("The flipper is on bro. Come on!!!!!");
   } else{
     FlipperPlate.write(ContOff);
   }
@@ -196,5 +212,6 @@ void loop() {
 
   }
 
-
+  Serial.flush();
+  IncomingByte = 0;
 }
