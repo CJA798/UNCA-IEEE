@@ -27,6 +27,7 @@ def main():
     # General status variables
     navigation_status = robot_status.navigation_status
     collection_status = robot_status.collection_status
+    stored_items = []
 
     # 16-bit status variables
     camera_working = True
@@ -44,8 +45,8 @@ def main():
     bits_per_variable = [1, 2, 2, 2, 2, 2, 2, 3]
 
     # Threshold variables
-    MAX_ANGLE_FLIPPER = 90
-    MIN_ANGLE_FLIPPER = 80
+    MAX_ANGLE_FLIPPER = 100
+    MIN_ANGLE_FLIPPER = 70
 
     MAX_ANGLE_ELEVATOR = 90
     MIN_ANGLE_ELEVATOR = 80
@@ -133,16 +134,19 @@ def main():
             # Update variable_status
             variable_status = [camera_working, intake_status, flipper_status, sweeper_status,
                         elevator_status, top_pusher_status, bot_pusher_status, brace_status]
+            #variable_status = [brace_status, bot_pusher_status, top_pusher_status,
+                                #elevator_status, sweeper_status, flipper_status , intake_status, camera_working]
             # Convert variables to binary strings and pad with zeros
             binary_vars = [format(var, 'b').zfill(bits) for var, bits in zip(variable_status, bits_per_variable)]
             # Concatenate binary strings and convert back to integer
             encoded_data = reduce(lambda concat, binary: concat + binary, binary_vars)
-            print(encoded_data)
+            encoded_data = bytes([1,0, 1,0,1,0,1,0,1,0,1,0,1,0,1,0])
 
             if enable_serial:
                 if len(encoded_data) == 16:
+                    print(f"{time()} -> {encoded_data}")
                     ser.reset_output_buffer()
-                    ser.write(encoded_data.encode())
+                    ser.write(encoded_data)
                 else:
                     print("ERROR: ENCODED DATA IS NOT 16-BITS")
 

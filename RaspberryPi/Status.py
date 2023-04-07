@@ -16,10 +16,11 @@ class FlipperStatus:
 
 
 class SweeperStatus:
-    EJECTING = 0
-    PUSHING = 1
-    SUPPORTING = 2
-    RESTING = 3
+    RESTING = 0
+    EJECTING = 1
+    PUSHING = 2
+    SUPPORTING = 3
+    
 
 
 class ElevatorStatus:
