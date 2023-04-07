@@ -98,9 +98,12 @@ void setup() {
 }
 
 void loop() {
-  if(Serial.available() >= 0){
-    IncomingByte = (Serial.read() << 8) | Serial.read();
+  if (Serial.available() > 0) {
+    String inputString = Serial.readStringUntil('\n'); // Read the input string
+    int intValue = inputString.toInt(); // Convert the input string to an integer
+    uint16_t IncomingByte = intValue & 0xFFFF; // Mask out all but the lowest 16 bits
     Serial.println(IncomingByte, BIN);
+    
   }
 
 

@@ -131,13 +131,14 @@ def main():
                         elevator_status, top_pusher_status, bot_pusher_status, brace_status]
             
             int_data = sum(data_package)
-            print(int_data)
+            if print_steps: print(int_data)
 
             if enable_serial:
                 if int_data >= 32768:
-                    timestamp = time()
-                    date_time = datetime.fromtimestamp(timestamp)
-                    print(f"{date_time} -> {bin(int_data)}")
+                    if print_steps:
+                        timestamp = time()
+                        date_time = datetime.fromtimestamp(timestamp)
+                        print(f"{date_time} -> {bin(int_data)}")
                     ser.reset_output_buffer()
                     str_data = str(int_data) + "\n"
                     ser.write(str_data.encode())
@@ -156,10 +157,12 @@ def main():
 
     # If the camera is not working, send respective flag and start restart routine
 
-    encoded_data = 0b0_00_00_00_00_000
+    int_data = '0000000000000000'
+    
     if enable_serial:
         ser.reset_output_buffer()
-        ser.write()
+        str_data = str(int_data) + "\n"
+        ser.write(str_data.encode())
 
     print("ERROR: CAMERA NOT DETECTED")
     print("restarting...")
