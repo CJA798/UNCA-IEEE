@@ -3,7 +3,7 @@ from time import sleep
 from pi_servo_hat import PiServoHat
 
 class ElevatorStatus:
-    EMPTY = 0 #Waiting for flipper, then the camera to orient
+    READY = 0 #Waiting for flipper, then the camera to orient
     UNORIENTED_OBJECT = 1 #Rotate into the correct position then go to oriented
     ORIENTING_OBJECT = 2 #Rotating while waiting for Threshhold to be met
     ORIENTED_OBJECT = 3 #Rotated and can move straight into raising
@@ -21,7 +21,7 @@ _ROTATION_MEAN_THRESHOLD = int((_ROTATION_MIN_THRESHOLD + _ROTATION_MAX_THRESHOL
 
 class Elevator():
     def __init__(self):
-        self.status = ElevatorStatus.EMPTY
+        self.status = ElevatorStatus.READY
         self.current_angle = 0
         self.swing = 180
 
