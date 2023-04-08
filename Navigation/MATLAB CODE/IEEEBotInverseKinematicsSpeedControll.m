@@ -10,9 +10,9 @@ StepsPerDistMult = (1/sqrt(2)*StepsPercm)*3
 STEPSPERBOTRAD= (13750.98);
 STEPSPERDISTMULT= (432.1518) ;
 
-Vx = 20; % Speed in X
-Vy = -30; % Speed in Y
-Vomega = 0; % Rotational Speed
+Vx = 0; % Speed in X
+Vy = 0; % Speed in Y
+Vomega = 10; % Rotational Speed
 Trans = [-wheeldist 1/sqrt(2) 1/sqrt(2);    %Jacobian Matrix (inverse kinematics)
          -wheeldist 1/sqrt(2) -1/sqrt(2);
          -wheeldist -1/sqrt(2) 1/sqrt(2);
@@ -27,9 +27,9 @@ WheelSpeeds = (1/Radius)*(Trans*V)
 stepsperrad= 13750.98;
 stepsperdist= 432.1518 ;
 FullRotSteps= -34560
-Vx = 1; % Speed in X
-Vy = -1; % Speed in Y
-Vomega = 0; % Rotational Speed
+Vx = 0; % Speed in X
+Vy = 0; % Speed in Y
+Vomega = 1; % Rotational Speed
 X = Vx;
 Y = Vy; 
 
