@@ -1,12 +1,12 @@
 import cv2
 import asyncio
-from FlipperPlatform import FlipperPlatform, FlipperPlatformStatus
+from Flipper import Flipper, FlipperPlatformStatus
 from CameraSystem import CameraSystem
 
 def main():
     # Create objects
     camera = CameraSystem()
-    flipper = FlipperPlatform()
+    flipper = Flipper()
 
     try:
         while True:

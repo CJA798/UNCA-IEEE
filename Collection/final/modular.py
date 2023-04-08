@@ -13,7 +13,7 @@ from math import atan2, cos, sin, sqrt, pi
 import numpy as np
 
 import asyncio
-from FlipperPlatform import FlipperPlatform, FlipperPlatformStatus
+from Flipper import Flipper, FlipperPlatformStatus
 from CameraSystem import CameraSystem
 
 def run_cv(picam2: Picamera2, detector: vision.ObjectDetector, min_area: int, max_area: int):
@@ -128,7 +128,7 @@ def main():
     # Create objects
     camera = CameraSystem()
     camera.initialize_detector()
-    flipper = FlipperPlatform()
+    flipper = Flipper()
 
     with Picamera2() as picam2:
         # Configure camera mode
