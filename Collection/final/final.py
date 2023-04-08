@@ -31,7 +31,9 @@ yellowDuckCounter = 0
 columnPosition = []
 greenColumnCounter = 0
 whiteColumnCounter = 0
-
+TOWER_ONE = 'a'
+TOWER_TWO = 'b'
+DUCK_TOWER = 'c'
 
 def main():
     # Create objects
@@ -51,8 +53,13 @@ def main():
 
                 if cv2.waitKey(1) == 27:
                     break
-                #TODO: Add all the cases of the items being stored inside of the drum.
+                #I think all cases of the intake has been completed
                 CollectionStateMachine(robot, elevator_data, mid_data, flipper_data, serial_stepper)
+                if serial_stepper.in_waiting > 0:
+                    DrumStatus = serial.readline().decode('utf-8').rstrip()
+                    
+                if DrumStatus == "Output":
+                    break
                 
 
             cv2.destroyAllWindows()
@@ -61,16 +68,28 @@ def main():
         cv2.destroyAllWindows()
         
         
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #This is the outpt function, It should be hard coded depending on the serial from the navigation Teensy
+    while True:
+        currentTower = ''
+        if serial_stepper.in_waiting > 0:
+            currentTower = serial.readline().decode('utf-8').rstrip()
+        
+        if currentTower != '':
+            if currentTower == TOWER_ONE:
+                sequenceForTower1()
+            if currentTower == TOWER_TWO:
+                sequenceForTower2()
+            if currentTower == DUCK_TOWER:
+                sequenceForTower3()
+        
 
-def ElevatorOrientLow(elevator_data, AngleToTurn, robot, camera):
-    robot.CollectionSystem.Elevator.RotatePlatform()
-    robot.CollectionSystem.Elevator.StopRotation()
 
 if __name__ == '__main__':
   main()
   
   
-def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, serial):
+def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, serial_stepper):
     flipper_status = robot.CollectionSystem.Flipper.status
     elevator_status = robot.CollectionSystem.Elevator.status
     #pusherBot_status = robot.CollectionSystem.Pushers.statusBot
@@ -147,7 +166,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         sleep(.25)
         elevator_status = ElevatorStatus.RAISED
     elif elevator_status == ElevatorStatus.RAISED and pusher_status != PusherStatus.READY:
-        pusher_status = drumSerial(elevator_data[0][0], serial)
+        pusher_status = drumSerial(elevator_data[0][0], serial_stepper)
         if elevator_data[0][0] == 0:
             yellowDuckCounter = yellowDuckCounter + 1
         if elevator_data[0][0] == 3:
@@ -175,7 +194,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         
     
     
-def drumSerial(item, serial):
+def drumSerial(item, serial_stepper):
     position = ''
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Yellow Duck case of the drum
@@ -194,7 +213,7 @@ def drumSerial(item, serial):
     if item == 2 and whiteColumnCounter == 1:
         #We need to worry about loading then unloading. After this we can move onto the next object.
         positon = 'c'
-        firstWhiteCol(position, serial)
+        firstWhiteCol(position, serial_stepper)
         position = ''
         return
     elif item == 2 and whiteColumnCounter > 1:
@@ -219,7 +238,7 @@ def drumSerial(item, serial):
         serial.write(str_data.encode())
         DrumStatus = 1
     elif DrumStatus == 1:
-        if serial.in_waiting > 0:
+        if serial_stepper.in_waiting > 0:
             DrumStatus = serial.readline().decode('utf-8').rstrip()
     elif DrumStatus == "Something":
         DrumStatus = 0
