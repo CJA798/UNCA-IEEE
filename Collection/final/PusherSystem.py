@@ -17,6 +17,7 @@ class PusherStatus:
     RETRACTING = 3
     UNLOADING = 4
     UNLOADED = 5
+    READY = 6
 
 
 #class FlipperPlatform:
