@@ -17,20 +17,6 @@
 #define LOX3_ADDRESS 0x35
 #define LOX4_ADDRESS 0x37
 
-#define IRQ_PIN 2
-
-//Temp pins until we decide actual pins for the shutdown of all the sensors
-//These are for the big sensors L1s
-#define XSHUT_PIN1 10
-#define XSHUT_PIN2 12
-#define XSHUT_PIN3 25
-#define XSHUT_PIN4 28
-
-//These are for the small sensors L0s
-#define SHT_LOX1 9
-#define SHT_LOX2 11
-#define SHT_LOX3 26
-#define SHT_LOX4 27
 
 #define RESET_TIME 100
 

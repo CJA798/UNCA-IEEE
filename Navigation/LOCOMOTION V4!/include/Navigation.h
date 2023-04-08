@@ -260,6 +260,7 @@ public:
     UpdateMotorObjects();                                                                                   // Update the stepper objects
     BotOrientation.X += InputPose[1][0];                                                                    // Update the bots position
     BotOrientation.Y += InputPose[2][0];
+    MoveState = IDLE;
   };
   void ComputeRotation(void) // Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
   {
@@ -298,7 +299,7 @@ public:
     InputPose[1][0] = X;
     InputPose[2][0] = Y;
   };
-  void UpdateMotorObjects(void) // Updates motor objects with new target positions and calls the controller object to move them.
+   void UpdateMotorObjects(void) // Updates motor objects with new target positions and calls the controller object to move them.
   {
     motor_1.setTargetRel(NewWheelSteps[0][0]); // update the stepper object
     motor_2.setTargetRel(NewWheelSteps[1][0]);
@@ -313,18 +314,18 @@ public:
   }
   void TestMotors(void)
   {
-    motor_1.setTargetRel(200);
+    motor_1.setTargetRel(200000);
     motor_2.setTargetRel(200);
     motor_3.setTargetRel(200);
     motor_4.setTargetRel(200);
     Controller.move(motor_1);
-    delay(500);
-    Controller.move(motor_2);
-    delay(500);
-    Controller.move(motor_3);
-    delay(500);
-    Controller.move(motor_4);
-    delay(500);
+    // delay(500);
+    // Controller.move(motor_2);
+    // delay(500);
+    // Controller.move(motor_3);
+    // delay(500);
+    // Controller.move(motor_4);
+    // delay(500);
   };
 
 private:

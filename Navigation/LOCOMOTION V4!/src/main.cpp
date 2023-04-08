@@ -1,27 +1,38 @@
 #include <Arduino.h>
 #include <Navigation.h>
 #include <Sensors.h>
+#include <Drum.h>
 DriverObject Driver;
 BumperSwitches Bumpers;
-
-// #include <Wire.h>
-
-int State = 1;
+TOFArray DistanceSensorsmm;
+Drum StorageDrum;
+int State = 0;
 char InputBit = 0;
+void NavStateMachine(void)
+{
+  switch (State)
+  {
+  case 0:
 
+    break;
+  case 1:
+    break;
+
+  default:
+    break;
+  };
+};
 void setup()
 {
-  // Wire2.begin();
-  Serial.begin(115200);
-
-  Driver.UpdateDesiredPose(PI / 2, 25, 25);
-  ComplexMoveState = 1;
-  Serial.println("START");  
-  delay(6000);
+  Driver.UpdateDesiredPose(0, 0, 20);
+  Serial.begin(9600);
+  Serial.println("STARTING");
+  delay(1000);
+  MoveState = TRANSLATING;
 };
 
 void loop()
 {
-
-  delay(100);
+//  NavStateMachine();
+  Driver.ComputeTranslation();
 };
