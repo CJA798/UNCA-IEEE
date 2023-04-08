@@ -1,11 +1,8 @@
 import cv2
 import numpy as np
-from typing import List, Tuple
 from picamera2 import Picamera2
 from tflite_support.task import core, processor, vision
-from math import atan2, cos, sin, sqrt, pi
 import utils
-import asyncio
 
 
 class CameraSystem:
@@ -21,7 +18,7 @@ class CameraSystem:
         self._min_area = 0.02 * self._frame_width * self._frame_height
         self._max_area = self._frame_width * self._frame_height
         self._max_results = 10
-        self._score_threshold = 0.4
+        self._score_threshold = 0.7
         self.camera = Picamera2()
         self._preview_config = self.camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (self._frame_width, self._frame_height)})
        
@@ -87,9 +84,7 @@ class CameraSystem:
                 # Find the contours in the binary image
                 contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-                biggest_contour = None
-                biggest_area = 0
-                offset_biggest_contour = None
+
                 # Enumerate contours
                 for _, c in enumerate(contour):
                     # Calculate the area of each contour
@@ -190,19 +185,17 @@ class CameraSystem:
             x_coord = item[1].origin_x
             if x_coord < forbidden_area_start:
                 elevator_data.append(item)
-            elif x_coord > forbidden_area_end:
-                flipper_data.append(item)
             else:
-                middle_area_data.append(item)
+                flipper_data.append(item)
+            #else:
+                #middle_area_data.append(item)
 
         return elevator_data, middle_area_data, flipper_data
 
 
-    async def get_data(self):
+    def get_data(self):
         ''' This function runs the computer vision routine and
-            returns three lists: elevator, middle, and flipper.'''  
-        await asyncio.sleep(1)
-         
+        returns three lists: elevator, middle, and flipper.'''  
         # Take picture
         image = self.camera.capture_array()
         #image = cv2.flip(image, 1)
@@ -225,10 +218,13 @@ class CameraSystem:
         # Draw keypoints and edges on input image
         image = utils.visualize(image, detection_result)
         image = self.draw_areas(image)
-
         # Stop the program if the ESC key is pressed.
         cv2.imshow('object_detector', image)
         #cv2.imshow('HSV', hsv)
-        #cv2.imshow('Gray', gray)
+        #cv2.imshow('Gray', gray).
+    
+        print('Elevator Area: {}'.format(tuple(elevator_area)))
+        print('Middle Area: {}'.format(tuple(middle_area)))
+        print('Flipper Area: {}'.format(tuple(flipper_area)))
 
         return elevator_area, middle_area, flipper_area

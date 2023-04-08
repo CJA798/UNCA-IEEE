@@ -1,20 +1,34 @@
 from time import sleep
 from pi_servo_hat import PiServoHat
+import RPi.GPIO as GPIO
 
-# Instantiate the object
-servo_hat = PiServoHat()
-servo_hat.restart()
+# Production installed library import
+from RpiMotorLib import RpiMotorLib
 
-# Set the PWM frequency to 50Hz
-servo_hat.set_pwm_frequency(50)
+enable = 14
 
-# Set the servo channel to use
-channel = 14
-swing = 180
+GPIO.setmode(GPIO.BCM)             # choose BCM or BOARD  
+GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(enable, GPIO.OUT)
 
-# Define the servo positions
-min_position = 0
-max_position = 240
+GPIO_pins = (-1, -1, -1)  
+direction = 16       # Direction -> White
+step = 26      # Step -> Blue
+DrumMotor = RpiMotorLib.A4988Nema(direction, step, GPIO_pins, "DRV8825")
+
+GPIO.output(enable, 1)
+
+try:
+    while True:
+        if GPIO.input(6):
+            DrumMotor.stop_motor()
+            print("we are done")
+            break
+        else:
+            DrumMotor.motor_go(False, "Full", 1, .000000001, False, .0001)
+            print(GPIO.input(6))
+finally:
+    GPIO.output(enable, 0)
 
 '''
 Ducks height = -110
@@ -22,15 +36,11 @@ Columns height = 0
 Down = 230
 '''
 
-
-servo_hat.move_servo_position(channel, 0, swing)
-#sleep(1)
-
-#for i in range(0, 211, 1):
- #   servo_hat.move_servo_position(channel, i, swing)
-  #  sleep(0.1)
+'''for i in range(0, 181, 1):
+  servo_hat.move_servo_position(channel, i, swing)
+  sleep(0.1)
+  print(i)
 
 '''
-for i in 
-servo_hat.set_pwm_frequency(servo_channel, i)
-'''
+
+
