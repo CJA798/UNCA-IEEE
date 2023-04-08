@@ -62,6 +62,10 @@ public:
       InputPose[i][0] = 0;
     };
   }
+  bool IsMoving(void)
+  {
+    return Controller.isRunning();
+  }
   void UpdateOrientation(double Theta, double X, double Y)
   {
     BotOrientation.Theta = Theta;
@@ -299,7 +303,7 @@ public:
     InputPose[1][0] = X;
     InputPose[2][0] = Y;
   };
-   void UpdateMotorObjects(void) // Updates motor objects with new target positions and calls the controller object to move them.
+  void UpdateMotorObjects(void) // Updates motor objects with new target positions and calls the controller object to move them.
   {
     motor_1.setTargetRel(NewWheelSteps[0][0]); // update the stepper object
     motor_2.setTargetRel(NewWheelSteps[1][0]);
@@ -310,7 +314,7 @@ public:
       Serial.println("NewWheelSteps:");
       PrintMatrix((mtx_type *)NewWheelSteps, 4, 1);
     };
-    Controller.move(motor_1, motor_2, motor_3, motor_4);
+    Controller.moveAsync(motor_1, motor_2, motor_3, motor_4);
   }
   void TestMotors(void)
   {

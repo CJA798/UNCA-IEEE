@@ -73,7 +73,7 @@ private:
         return StepsPerRad;
     }
 
-    int doRotation(int SlotAng, bool rotChoice)
+    void doRotation(int SlotAng, bool rotChoice)
     {
         // The plan is that if we aren't currently spun to this angle then we move the amount to get there.
         // If we are already passed this angle then we have to spin all the way to reset and go back.
@@ -88,24 +88,24 @@ private:
             int angle = (2 * M_PI - CurrAngle) + SlotAng;
             int steps = RadToSteps() * angle;
             // TODO: DrumStepper move to steps
-        }
+        };
     }
 
 public:
     Drum() : DrumStepper(STORAGE_MTRDIR, STORAGE_MTRSTEP) // CONDSTRUCTOR
 
-             {
+    {
         DrumStepper
             .setMaxSpeed(1000)
             .setAcceleration(1000);
 
         // Add whatever code u want to run when the drum object is constructed
-             };
+    };
     void HomeDrumStepper(void)
     { // Call and I will home the stepper. Blocking (returns after stepper is homed)
         DrumStepper.setTargetRel(262);
         DrumController.move(DrumStepper);
-    }
+    };
     void moveDrumToLocation(char move)
     {
         switch (move)

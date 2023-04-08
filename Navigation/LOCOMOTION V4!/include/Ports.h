@@ -2,14 +2,14 @@
 // Limit Switch Input Pins
 //                                     v- BOT MICROSWITCH PIN OUT-v
 #define FRONT_RIGHT_SWITCH 37     //     _______________________
-#define FRONT_LEFT_SWITCH 27      //      | 27    FRONT     37  |
+#define FRONT_LEFT_SWITCH 27      //     | 27    FRONT     37  |
 #define RIGHTSIDE_RIGHT_SWITCH 33 //     |28                 38|
 #define RIGHTSIDE_LEFT_SWITCH 38  //     |                     |
 #define LEFTSIDE_RIGHT_SWITCH 28  //     |                     |
-#define LEFTSIDE_LEFT_SWITCH 38   //     |37                 33|
+#define LEFTSIDE_LEFT_SWITCH 31   //     |37                 33|
 #define BACK_RIGHT_SWITCH 34      //     |__36_____________34__|
-#define BACK_LEFT_SWTICH 36       //
-#define DEBOUNCE_TIME 50
+#define BACK_LEFT_SWTICH 32       //
+#define DEBOUNCE_TIME 10
 #define SCL_PIN 19
 #define SDA_PIN 18
 // STEPPER MOTOR PINOUT
