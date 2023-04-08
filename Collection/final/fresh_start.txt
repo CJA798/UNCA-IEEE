@@ -91,3 +91,142 @@
    91  python3 photoshoot.py 
    92  history
    93  history >> fresh_start.txt
+    1  sudo apt-get update
+    2  sudo apt-get upgrade
+    3  python3 --version
+    4  ls
+    5  mkdir FINAL
+    6  cd FINAL/
+    7  cd ..
+    8  rm FINAL/
+    9  rm -d FINAL/
+   10  mkdir UNCA-IEEE
+   11  cd UNCA-IEEE/
+   12  git init
+   13  git config --global user.name CJA798
+   14  git config --global user.email "cjacjacja@hotmail.com"
+   15  git config --help
+   16  pip freeze
+   17  git config
+   18  less /boot/config.txt 
+   19  cd /boot/
+   20  sudo nano config.txt 
+   21  reboot
+   22  history
+   23  git config -l
+   24  cd
+   25  ls
+   26  ssh-keygen -t rsa -b 4096 -C "cjacjacja@hotmail.com"
+   27  ls
+   28  ls -al
+   29  eval $(ssh-agent -s)
+   30  ssh-add ~/.ssh/id_rsa
+   31  cd UNCA-IEEE/
+   32  ls
+   33  git remote add origin git@github.com:CJA798/UNCA-IEEE.git
+   34  git remote
+   35  git remote -v
+   36  ls
+   37  ls -al
+   38  git pull origin main
+   39  ls
+   40  git branch -l
+   41  git branch DreamTeam
+   42  git checkout DreamTeam 
+   43  git pull origin DreamTeam
+   44  ls
+   45  git status
+   46  git diff
+   47  git add README.md 
+   48  git pull origin DreamTeam
+   49  git merge --abort
+   50  git pull origin DreamTeam --allow-unrelated-histories
+   51  ls
+   52  git status
+   53  git add README.md 
+   54  git commit -am "Fresh Pi"
+   55  git pull origin DreamTeam --allow-unrelated-histories
+   56  git status
+   57  git push origin DreamTeam
+   58  ls
+   59  cd Collection/final/
+   60  ls
+   61  python3 photoshoot.py 
+   62  sudo apt install -y python3-picamera2
+   63  sudo apt install -y python3-pyqt5 python3-opengl
+   64  python3 photoshoot.py 
+   65  pip3 install -r requirements.txt 
+   66  cd examples/lite/examples/object_detection/raspberry_pi
+   67  ls
+   68  ls examples/
+   69  ls
+   70  git clone https://github.com/tensorflow/examples.git
+   71  cd examples/lite/examples/object_detection/raspberry_pi
+   72  sh setup.sh
+   73  sudo apt-get install libatlas-base-dev
+   74  python detect.py
+   75  cd
+   76  cd UNCA-IEEE/Collection/final/
+   77  python3 photoshoot.py 
+   78  sudo nano /boot/config.txt 
+   79  sudo reboot
+   80  cd UNCA-IEEE/Collection/final/
+   81  ls
+   82  python3 camera_test.py 
+   83  sudo reboot
+   84  echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
+   85  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+   86  sudo apt-get update
+   87  sudo apt-get install libedgetpu1-std
+   88  sudo apt-get install python3-pycoral
+   89  cd UNCA-IEEE/Collection/final/
+   90  python3 camera_test.py 
+   91  python3 photoshoot.py 
+   92  history
+   93  history >> fresh_start.txt
+   94  less fresh_start.txt 
+   95  git status
+   96  git add fresh_start.txt 
+   97  git commit -am "added commands to setup pi"
+   98  git push origin DreamTeam 
+   99  ls
+  100  cd examples/
+  101  ls
+  102  cd tensorflow_examples/lite/
+  103  ls
+  104  cd
+  105  cd examples/lite/examples/object_detection/raspberry_pi
+  106  cd UNCA-IEEE/Collection/final/
+  107  cd examples/lite/examples/object_detection/raspberry_pi
+  108  python3 detect.py 
+  109  sudo nano /boot/config.txt 
+  110  cd UNCA-IEEE/Collection/final/
+  111  python3 camera_test.py 
+  112  sudo apt-get update
+  113  sudo apt-get install python3-pycoral
+  114  python3 camera_test.py 
+  115  pip3 install https://dl.google.com/coral/python/tflite_runtime-2.1.0-cp37-cp37m-linux_aarch64.whl
+  116  python3 camera_test.py 
+  117  sudo apt-get install libedgetpu1-max
+  118  python3 camera_test.py 
+  119  python3 photoshoot.py 
+  120  nano camera_test.py 
+  121  sudo apt install code
+  122  python3 camera_test.py 
+  123  sudo apt-get install build-essential cmake pkg-config libjpeg-dev libtiff5-dev libjasper-dev libpng-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libfontconfig1-dev libcairo2-dev libgdk-pixbuf2.0-dev libpango1.0-dev libgtk2.0-dev libgtk-3-dev libatlas-base-dev gfortran libhdf5-dev libhdf5-serial-dev libhdf5-103 python3-pyqt5 python3-dev -y
+  124  python3 camera_test.py 
+  125  python3 photoshoot.py 
+  126  sudo nano /boot/config.txt 
+  127  reboot 
+  128  cd UNCA-IEEE/Collection/final/
+  129  python3 camera_test.py 
+  130  python3 photoshoot.py 
+  131  python3 final.py 
+  132  sudo pip3 install sparkfun-qwiic
+  133  sudo pip3 install sparkfun-qwiic-pca9685
+  134  sudo pip3 install sparkfun-pi-servo-hat
+  135  python3 final.py 
+  136  git pull origin DreamTeam 
+  137  history
+  138  cat fresh_start.txt 
+  139  history >> fresh_start.txt 

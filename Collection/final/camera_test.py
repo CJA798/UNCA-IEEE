@@ -1,4 +1,17 @@
-import CameraSystem as camera
-cam = camera.CameraSystem()
+import CameraSystem
+import cv2
+camera = CameraSystem.CameraSystem()
 
-_,_,_ = cam.get_data()
+try:
+    with camera.camera as cam:
+        
+        while True:
+            elevator_data, mid_data, flipper_data = camera.get_data()
+
+            if cv2.waitKey(1) == 27:
+                break
+
+        cv2.destroyAllWindows()
+# When the camera is unreachable, stop the program
+finally:
+    cv2.destroyAllWindows()
