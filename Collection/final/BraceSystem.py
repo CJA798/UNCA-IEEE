@@ -3,7 +3,6 @@ import asyncio
 from pi_servo_hat import PiServoHat
 
 
-
 #These pins can be changed depending on what is available
 _HOOK_SERVO_CHANNEL = 8
 _BRACE_SERVO_CHANNEL = 7
@@ -11,14 +10,11 @@ _BRACE_SERVO_CHANNEL = 7
 
 #class FlipperPlatformStatus:
 class BraceStatus:
-  
     OPEN = 0
-   
     CLOSE = 1
-   
     FILLING = 2
-   
     LETGO = 3
+
 
 class Brace:
     def __init__(self):
@@ -26,13 +22,12 @@ class Brace:
         self.status = BraceStatus.OPEN
         self.current_angle = 0
         self.num_objects = 0
-
-        # Instantiate the object
         self.hat = PiServoHat()
         # Restart Servo Hat (in case Hat is frozen/locked)
         self.hat.restart()
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
+        # Set initial brace position on instantiation
         Brace.BraceClosed(self)
 
     #async def wait(self, duration: int):
@@ -109,14 +104,6 @@ class Brace:
     def get_status(self):
         return self.status
 
+
     def set_status(self, state: BraceStatus):
         self.status = state
-
-    def get_current_angle(self):
-        return self.current_angle
-
-    def set_current_angle(self, angle: int):
-        self.current_angle = angle
-
-    def get_num_objects(self):
-        return self.num_objects

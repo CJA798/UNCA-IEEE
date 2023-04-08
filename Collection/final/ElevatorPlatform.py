@@ -2,6 +2,16 @@ import asyncio
 from time import sleep
 from pi_servo_hat import PiServoHat
 
+
+_ORIENTATION_SERVO_CHANNEL = 3
+_ELEVATOR_SERVO_CHANNEL = 4
+_STOP_ORIENTATION = 107
+_START_ORIENTATION = 180
+_SWING = 180
+_ROTATION_MIN_THRESHOLD = 50
+_ROTATION_MAX_THRESHOLD = 90
+
+
 class ElevatorStatus:
     READY = 0 #Waiting for flipper, then the camera to orient
     UNORIENTED_OBJECT = 1 #Rotate into the correct position then go to oriented
@@ -10,28 +20,19 @@ class ElevatorStatus:
     RAISING = 4 #Raising until done.
     RAISED = 5 #Done and letting drum rotate to get the object pushed in
     LOWERING = 6 #Done with being pushed and lower. Once done going into empty
-_ROTATION_SERVO_CHANNEL = 3
-_ELEVATOR_SERVO_CHANNEL = 4
-_STOP_ROTATION = 107
-_ROTATE = 180
-_SWING = 180
-_ROTATION_MIN_THRESHOLD = 50
-_ROTATION_MAX_THRESHOLD = 90
-_ROTATION_MEAN_THRESHOLD = int((_ROTATION_MIN_THRESHOLD + _ROTATION_MAX_THRESHOLD) / 2)
+
 
 class Elevator():
     def __init__(self):
         self.status = ElevatorStatus.READY
         self.current_angle = 0
         self.swing = 180
-
-        # Instantiate the object
         self.hat = PiServoHat()
         # Restart Servo Hat (in case Hat is frozen/locked)
         self.hat.restart()
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
-        # Save the hat object as an attribute
+        # Lower elevator on instantiation
         self.lowerToGround()
     
     async def wait(self, duration: int):
@@ -39,19 +40,17 @@ class Elevator():
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # This is the orientation platform on the elevator
-    def RotatePlatform(self, angle: int) -> None:
+    def rotate_platform(self) -> None:
+        ''' This method rotates the orientation platform '''
         self.set_status(ElevatorStatus.ORIENTING)
         print("Orienting")
-        angleError = abs(_ROTATION_MEAN_THRESHOLD - angle)
-        rotationTime = angleError / 180
-        print("Rotating {} degrees".format(angleError))
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _ROTATE, _SWING)
-        sleep(rotationTime)
+        self.hat.move_servo_position(_ORIENTATION_SERVO_CHANNEL, _START_ORIENTATION, _SWING)
+        
 
 
-    def StopRotation(self) -> None:
+    def stop_rotation(self) -> None:
         print("Stop rotation")
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ROTATION, _SWING)
+        self.hat.move_servo_position(_ORIENTATION_SERVO_CHANNEL, _STOP_ORIENTATION, _SWING)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #This is the servo movement to raise and lower the platform

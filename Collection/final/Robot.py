@@ -1,11 +1,11 @@
-from NavigationSystem import NavigationSystem, NavigationStatus
-from CollectionSystem import CollectionSystem, CollectionStatus
+from NavigationSystem import NavigationSystem
+from CollectionSystem import CollectionSystem
 
 
 class RobotStatus:
     WAITING = 0
     NAVIGATING = 1
-    COLLECT = 2
+    COLLECTING = 2
     DONE = 3
     
 
