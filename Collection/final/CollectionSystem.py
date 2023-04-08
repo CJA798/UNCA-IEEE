@@ -1,16 +1,17 @@
-from IntakeSystem import IntakeSystem, IntakeStatus
-from FlipperPlatform import FlipperPlatform, FlipperStatus
-from ElevatorPlatform import Elevator, ElevatorStatus
-from PusherSync import PusherSync, PusherStatus
-from Brace import Brace, BraceStatus
+from IntakeSystem import IntakeSystem
+from FlipperPlatform import Flipper
+from ElevatorPlatform import Elevator
+from PusherSystem import Pushers
+from BraceSystem import Brace
+
 
 class CollectionSystem:
-    def __init__(self):
-        self.status = CollectionStatus.FLIPPER
+    def __init__(self) -> None:
+        self.status = CollectionStatus.COLLECTING
         self.Intake = IntakeSystem()
-        self.Flipper = FlipperPlatform()
+        self.Flipper = Flipper()
         self.Elevator = Elevator()
-        self.Pushers = PusherSync()
+        self.Pushers = Pushers()
         self.Brace = Brace()
 
 
@@ -20,3 +21,4 @@ class CollectionStatus:
     GO_TO_BIG_TOWER = 2
     GO_TO_LEFT_TOWER = 3
     GO_TO_RIGHT_TOWER = 4
+    WAITING_FOR_RELOCATION = 5

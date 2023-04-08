@@ -3,12 +3,14 @@ from FlipperPlatform import FlipperPlatform, FlipperStatus
 from ElevatorPlatform import Elevator, ElevatorStatus
 from PusherSync import PusherSync, PusherStatus
 from Brace import Brace, BraceStatus
+from Sweeper import Sweeper, SweeperStatus
 
 class CollectionSystem:
     def __init__(self):
         self.status = CollectionStatus.FLIPPER
-        self.Intake = IntakeSystem()
+        self.Intake = IntakeSystem.IntakeSystem()
         self.Flipper = FlipperPlatform()
+        self.Sweeper = Sweeper()
         self.Elevator = Elevator()
         self.Pushers = PusherSync()
         self.Brace = Brace()

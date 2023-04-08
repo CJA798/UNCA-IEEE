@@ -13,9 +13,9 @@ from math import atan2, cos, sin, sqrt, pi
 import numpy as np
 
 import asyncio
-from FlipperPlatform import FlipperPlatform, FlipperPlatformStatus
+from Flipper import Flipper, FlipperPlatformStatus
 
-flipper = FlipperPlatform()
+flipper = Flipper()
 
 def run(model: str, camera_id: int, width: int, height: int, num_threads: int,
         enable_edgetpu: bool) -> None:

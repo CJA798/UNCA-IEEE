@@ -1,7 +1,7 @@
 import cv2
 import asyncio
 from time import sleep
-from FlipperPlatform import FlipperPlatform, FlipperStatus
+from Flipper import Flipper, FlipperStatus
 from Robot import Robot, RobotStatus, CollectionStatus
 from Drum import DrumStatus
 from BraceCode import BraceStatus

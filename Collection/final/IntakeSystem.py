@@ -1,18 +1,22 @@
 from time import sleep
 from pi_servo_hat import PiServoHat
 
-
+''' TODO: CALIBRATE SERVO AND FIND VALUES'''
 _INTAKE_SERVO1_CHANNEL = 9
 _INTAKE_SERVO2_CHANNEL = 10
+_INTAKE_SERVO3_CHANNEL = 11
 
 _STOP_INTAKE_SERVO1 = 107
 _ROTATE_INTAKE_SERVO1 = 180
 _REVERSE_INTAKE_SERVO1 = 0
 
-''' TODO: CALIBRATE SERVO AND FIND VALUES'''
 _STOP_INTAKE_SERVO2 = 107
 _ROTATE_INTAKE_SERVO2 = 0
 _REVERSE_INTAKE_SERVO2 = 180
+
+_STOP_INTAKE_SERVO3 = 107
+_ROTATE_INTAKE_SERVO3 = 0
+_REVERSE_INTAKE_SERVO3 = 180
 
 _SWING = 180
 
@@ -24,7 +28,7 @@ class IntakeStatus:
 
 class IntakeSystem:
     def __init__(self) -> None:
-         # Instantiate the object
+        self.status = IntakeStatus.INTAKE_OFF
         self.hat = PiServoHat()
         # Restart Servo Hat (in case Hat is frozen/locked)
         self.hat.restart()
@@ -33,6 +37,7 @@ class IntakeSystem:
         # Stop servos on instantiation
         self.hat.move_servo_position(_INTAKE_SERVO1_CHANNEL, _STOP_INTAKE_SERVO1, _SWING)
         self.hat.move_servo_position(_INTAKE_SERVO2_CHANNEL, _STOP_INTAKE_SERVO2, _SWING)
+        self.hat.move_servo_position(_INTAKE_SERVO3_CHANNEL, _STOP_INTAKE_SERVO3, _SWING)
 
 
     def StartIntake(self) -> None:
@@ -40,6 +45,7 @@ class IntakeSystem:
         print("Starting Intake")
         self.hat.move_servo_position(_INTAKE_SERVO1_CHANNEL, _ROTATE_INTAKE_SERVO1, _SWING)
         self.hat.move_servo_position(_INTAKE_SERVO2_CHANNEL, _ROTATE_INTAKE_SERVO2, _SWING)
+        self.hat.move_servo_position(_INTAKE_SERVO3_CHANNEL, _ROTATE_INTAKE_SERVO3, _SWING)
 
 
     def StopIntake(self) -> None:
@@ -47,6 +53,8 @@ class IntakeSystem:
         print("Stopping Intake")
         self.hat.move_servo_position(_INTAKE_SERVO1_CHANNEL, _STOP_INTAKE_SERVO1, _SWING)
         self.hat.move_servo_position(_INTAKE_SERVO2_CHANNEL, _STOP_INTAKE_SERVO2, _SWING)
+        self.hat.move_servo_position(_INTAKE_SERVO3_CHANNEL, _STOP_INTAKE_SERVO3, _SWING)
+
 
     
     def RemoveJam(self) -> None:
@@ -55,10 +63,13 @@ class IntakeSystem:
         print("Removing jam")
         self.hat.move_servo_position(_INTAKE_SERVO1_CHANNEL, _ROTATE_INTAKE_SERVO1, _SWING)
         self.hat.move_servo_position(_INTAKE_SERVO2_CHANNEL, _REVERSE_INTAKE_SERVO2, _SWING)
+        self.hat.move_servo_position(_INTAKE_SERVO3_CHANNEL, _REVERSE_INTAKE_SERVO3, _SWING)
+        
         sleep(2.5)
         print("Removing jam")
         self.hat.move_servo_position(_INTAKE_SERVO1_CHANNEL, _REVERSE_INTAKE_SERVO1, _SWING)
         self.hat.move_servo_position(_INTAKE_SERVO2_CHANNEL, _ROTATE_INTAKE_SERVO2, _SWING)
+        self.hat.move_servo_position(_INTAKE_SERVO3_CHANNEL, _REVERSE_INTAKE_SERVO3, _SWING)
         sleep(2.5)
         print("Jam removed")
         self.StopIntake()
