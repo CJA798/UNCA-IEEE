@@ -13,11 +13,15 @@ def main():
     time_program = True
     print_steps = True
     enable_serial = True
+    enable_stepper = False
     if enable_serial:
         # Configure the serial port
         baud_rate = 115200
-        ser = serial.Serial('/dev/ttyACM0', baud_rate)
-        ser.reset_input_buffer()
+        serial_servos = serial.Serial('/dev/ttyACM0', baud_rate)
+        serial_servos.reset_input_buffer()
+        if enable_stepper:
+            stepper_servos = serial.Serial('/dev/ttyACM1', baud_rate)
+            stepper_servos.reset_input_buffer()
 
     # Configure robot
     robot_status = Status.RobotStatus()
@@ -64,13 +68,6 @@ def main():
             elevator_data, mid_data, flipper_data = camera.get_data()
             #data_format: [(class_index, BoundingBox([x,y,w,h]), angle), ...]
 
-            # If there are no objects, set respective EMPTY or RESTING status
-            
-            if not mid_data:
-                sweeper_status = Status.SweeperStatus.SWEEPER_RESTING
-                if print_steps: print('Sweeper resting')
-            
-
             # If there's more than one object in the elevator or the flipper, or an object in the middle, activate sweeper 
             if any(len(data) > 1 for data in [flipper_data, elevator_data]) or len(mid_data) > 0:
                 # TODO: Put system in safe state: Stop rotating platforms, bring elevator platform down,
@@ -96,7 +93,6 @@ def main():
                 # If the angle data is missing, ignore reading and keep previous status
                 elif len(flipper_data[0]) < 3:
                     if print_steps: print('Keeping previous flipper value')
-                    pass
                 # If the angle of the object in the flipper platform is not the target angle, set flipper status to ROTATE
                 elif flipper_data[0][2] > MAX_ANGLE_FLIPPER or flipper_data[0][2] < MIN_ANGLE_FLIPPER: 
                     flipper_status = Status.FlipperStatus.FLIPPER_ORIENTING
@@ -109,6 +105,7 @@ def main():
                     #else:
                     #    flipper_status = Status.FlipperStatus.FLIPPING  
                     pass
+
 
                 ''' Elevator '''
                 # If there are no objects in the elevator platform, set elevator status to EMPTY
@@ -126,7 +123,34 @@ def main():
                 # If the angle of the object in the elevator platform is within the allowed threshold, set elevator status to RAISING and sweeper to PUSHING*
                 else:
                     elevator_status = Status.ElevatorStatus.ELEVATOR_RAISING
-            
+
+
+                ''' Sweeper '''
+                # If there are no objects, set sweeper status to RESTING
+                if not mid_data:
+                    sweeper_status = Status.SweeperStatus.SWEEPER_RESTING
+                    if print_steps: print('Sweeper resting')
+
+
+                ''' Pushers '''
+                # if the elevator is in raised position, and the object is oriented
+                if elevator_status == Status.ElevatorStatus.ELEVATOR_RAISED:
+                    input_item = elevator_data[0][0]
+                    
+
+
+                # TODO: 
+                # if the elevator is in raised position, and the object is oriented
+                    # keep track of the object class
+                        #''' Drum '''
+                        # send class to Chase and wait for the stepper OK signal
+                    # send the load signal to the pusher and wait for the OK signal
+                    # append item to stored_items
+                    # If elevator is empty, lower it 
+                
+
+                ''' Bracing '''
+
             data_package = [camera_working, intake_status, flipper_status, sweeper_status,
                         elevator_status, top_pusher_status, bot_pusher_status, brace_status]
             
@@ -139,9 +163,9 @@ def main():
                         timestamp = time()
                         date_time = datetime.fromtimestamp(timestamp)
                         print(f"{date_time} -> {bin(int_data)}")
-                    ser.reset_output_buffer()
+                    serial_servos.reset_output_buffer()
                     str_data = str(int_data) + "\n"
-                    ser.write(str_data.encode())
+                    serial_servos.write(str_data.encode())
                 else:
                     print("ERROR: ENCODED DATA IS NOT 16-BITS")
 
@@ -160,9 +184,9 @@ def main():
     int_data = '0000000000000000'
     
     if enable_serial:
-        ser.reset_output_buffer()
+        serial_servos.reset_output_buffer()
         str_data = str(int_data) + "\n"
-        ser.write(str_data.encode())
+        serial_servos.write(str_data.encode())
 
     print("ERROR: CAMERA NOT DETECTED")
     print("restarting...")

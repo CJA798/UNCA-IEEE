@@ -29,6 +29,7 @@ class ElevatorStatus:
     ELEVATOR_EMPTY = 0 #Waiting for flipper, then the camera to orient
     ELEVATOR_ORIENTING = 128 #Rotating while waiting for Threshhold to be met
     ELEVATOR_RAISING = 256 #Raising until done.
+    ELEVATOR_RAISED = 256 # Same as rising, just for easier to read logic
     ELEVATOR_NONE = 384
 
 

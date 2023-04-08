@@ -43,7 +43,7 @@ Servo ElevatorPlate;
 Servo PusherTop;
 Servo PusherBot;
 Servo BraceTop;
-Servo BraceDuck;
+Servo SwingerBrace;
 Servo BraceBot;
 
 #define ContOn      (180)
@@ -77,21 +77,21 @@ void setup() {
   PusherTop.attach(SERVO9_PIN);
   PusherBot.attach(SERVO10_PIN);
   BraceTop.attach(SERVO11_PIN);
-  BraceDuck.attach(SERVO12_PIN);
+  SwingerBrace.attach(SERVO12_PIN);
   BraceBot.attach(SERVO13_PIN);
 
   IntakeRight.write(90);
   IntakeLeft.write(90);
   IntakeLoad.write(90);
-  Flipper.write(0);
-  FlipperPlate.write(90);
+  Flipper.write(-40);
+  FlipperPlate.writeMicroseconds(1500);
   Sweeper.write(90);
   Elevator.write(0);
   ElevatorPlate.write(90);
   PusherTop.write(0);
   PusherBot.write(0);
   BraceTop.write(0);
-  BraceDuck.write(0);
+  SwingerBrace.write(0);
   BraceBot.write(0);
   IncomingByte = 0;
 
@@ -109,10 +109,10 @@ void loop() {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   //The flipper has two states for each of it's points
   if(IncomingByte & FlipperPlateOn){
-    FlipperPlate.write(150);
+    FlipperPlate.writeMicroseconds(1700);
     Serial.println("Flipper orienting");
   } else{
-    FlipperPlate.write(ContOff);
+    FlipperPlate.writeMicroseconds(1500);
     Serial.println("Flipper OFF");
   }
   if(IncomingByte & FlipperFlip){
