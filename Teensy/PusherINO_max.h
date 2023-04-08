@@ -25,8 +25,8 @@ class PusherINO {
     // Private attributes
     Servo PusherTopServo;
     Servo PusherBottomServo;
-    const int PusherTopPin = 9;
-    const int PusherBottomPin = 10;
+    const int PusherTopPin = 5;
+    const int PusherBottomPin = 6;
 
     // Private helper function to wait for a certain amount of time
     void wait(unsigned long duration) {
@@ -46,17 +46,30 @@ class PusherINO {
         
         
     {
-        PusherTopServo.attach(PusherTopPin);
-        PusherBottomServo.attach(PusherBottomPin);
-        RetractPusher(2,0); //initial condition 
+      PusherTopServo.attach(PusherTopPin);
+      PusherBottomServo.attach(PusherBottomPin);
+      PusherTopServo.write(0);
+      PusherBottomServo.write(130);
+        wait(5000);
+      RetractPusher(BOTH_PUSHERS); //initial condition 
+
     }
 
     void RetractPusher(int top_bottom_both){
         status = PusherStatus::RETRACTING;
         if(top_bottom_both == BOTH_PUSHERS){
-        PusherTopServo.write(RETURN);
+          //good values so far might have to change the retraction
+        PusherTopServo.write(0);
         wait(2000);
-        PusherBottomServo.write(RETURN);
+        PusherBottomServo.write(130);
+        wait(2000);
+        PusherTopServo.write(100);
+        wait(2000);
+        PusherBottomServo.write(-80);
+        wait(2000);
+        PusherTopServo.write(0);
+        wait(2000);
+        PusherBottomServo.write(130);
         wait(2000);
         }
 
@@ -97,7 +110,6 @@ class PusherINO {
         PusherBottomServo.write(PUSH_ACTION);
         wait(2000);
         RetractPusher(BOTTOM_PUSHER);
-        status = PusherStatus::LOADED;
     }
 
     void UnloadPillar(int which_pillar){
@@ -142,10 +154,3 @@ class PusherINO {
 
 
 
-
-
-
-
-
-   
-   
