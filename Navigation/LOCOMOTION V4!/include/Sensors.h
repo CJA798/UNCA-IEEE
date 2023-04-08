@@ -112,35 +112,21 @@ public:
 class TOFArray
 {
 private:
-    /*  SMALL TOF SENSORS NEED TO BE IMPLEMENTED
-        typedef struct
-        {
-            Adafruit_VL53L0X *psensor; // pointer to object
-            TwoWire *pwire;
-            int id;            // id for the sensor
-            int shutdown_pin;  // which pin for shutdown;
-            int interrupt_pin; // which pin to use for interrupts.
-            Adafruit_VL53L0X::VL53L0X_Sense_config_t
-                sensor_config;     // options for how to use the sensor
-            uint16_t range;        // range value used in continuous mode stuff.
-            uint8_t sensor_status; // status from last ranging in continuous.
-        } sensorList_t;
-
-
-        Adafruit_VL53L0X SmallTOF_Front;
-        Adafruit_VL53L0X SmallTOF_Back;
-        Adafruit_VL53L0X SmallTOF_Right;
-        Adafruit_VL53L0X SmallTOF_Left;
-    */
+    struct TOFData_mm
+    {
+        uint16_t FrontBigTOFMeasurementmm = 0;
+        uint16_t BackTOFMeasurementmm = 0;
+        uint16_t RightTOFMeasurementmm = 0;
+        uint16_t LeftTOFMeasurementmm = 0;
+        VL53L0X_RangingMeasurementData_t measure1;
+        VL53L0X_RangingMeasurementData_t measure2;
+        VL53L0X_RangingMeasurementData_t measure3;
+        VL53L0X_RangingMeasurementData_t measure4;
+    };
     Adafruit_VL53L1X BigTOF_Front;
     Adafruit_VL53L1X BigTOF_Back;
     Adafruit_VL53L1X BigTOF_Right;
     Adafruit_VL53L1X BigTOF_Left;
-
-    uint16_t FrontTOF = 0;
-    uint16_t BackTOF = 0;
-    uint16_t RightTOF = 0;
-    uint16_t LeftTOF = 0;
 
 public:
     TOFArray()
@@ -157,63 +143,5 @@ public:
                 SmallTOF_Left = Adafruit_VL53L0X();
         */
         // SMALL TOF SENSORS NEED TO BE IMPLEMENTED
-    }
-    void TOF_InitBig(void)
-    {
-
-        // INITIALIZATION OF BIG TOF SENSORS
-        Serial.println("TOF_Init");
-        if (!BigTOF_Front.begin(L1X1_ADDRESS, &Wire))
-        {
-            Serial.println("Failed to boot front TOF");
-            while (1)
-                delay(2000);
-            Serial.println("Failed to boot front TOF");
-        };
-        if (!BigTOF_Back.begin(L1X2_ADDRESS, &Wire))
-        {
-            Serial.println("Failed to boot back TOF");
-            while (1)
-                delay(2000);
-            Serial.println("Failed to boot back TOF");
-        };
-        if (!BigTOF_Right.begin(L1X3_ADDRESS, &Wire))
-        {
-            Serial.println("Failed to boot right TOF");
-            while (1)
-                delay(2000);
-            Serial.println("Failed to boot right TOF");
-        };
-        if (!BigTOF_Left.begin(L1X4_ADDRESS, &Wire))
-        {
-            Serial.println("Failed to boot left TOF");
-            while (1)
-                delay(2000);
-            Serial.println("Failed to boot left TOF");
-        };
-        Serial.println("TOF_Init Done");
-    }
-
-    void TOF_InitSmall(void)
-    {
-        // INITIALIZATION OF SMALL TOF SENSORS
-        // NEED TO BE IMPLEMENTED
-    }
-    void TOF_Process(void)
-    {
-        Serial.println("TOF_Process");
-
-        FrontTOF = BigTOF_Front.distance();
-        BackTOF = BigTOF_Back.distance();
-        RightTOF = BigTOF_Right.distance();
-        LeftTOF = BigTOF_Left.distance();
-        Serial.print("FrontTOF: ");
-        Serial.println(FrontTOF);
-        Serial.print("BackTOF: ");
-        Serial.println(BackTOF);
-        Serial.print("RightTOF: ");
-        Serial.println(RightTOF);
-        Serial.print("LeftTOF: ");
-        Serial.println(LeftTOF);
     }
 };

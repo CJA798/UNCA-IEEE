@@ -1,4 +1,6 @@
-#include <main.h>
+#include <Arduino.h>
+#include <Navigation.h>
+#include <Sensors.h>
 DriverObject Driver;
 BumperSwitches Bumpers;
 
@@ -21,6 +23,5 @@ void setup()
 void loop()
 {
 
-  Driver.ComplexMove();
   delay(100);
 };
