@@ -1,11 +1,8 @@
 import cv2
 import numpy as np
-from typing import List, Tuple
 from picamera2 import Picamera2
 from tflite_support.task import core, processor, vision
-from math import atan2, cos, sin, sqrt, pi
 import utils
-import asyncio
 
 
 class CameraSystem:
@@ -18,7 +15,7 @@ class CameraSystem:
         self._frame_height = 480
         self._num_threads = 4
         self._enable_edgetpu = True
-        self._min_area = 0.04 * self._frame_width * self._frame_height
+        self._min_area = 0.02 * self._frame_width * self._frame_height
         self._max_area = self._frame_width * self._frame_height
         self._max_results = 10
         self._score_threshold = 0.7
@@ -87,9 +84,7 @@ class CameraSystem:
                 # Find the contours in the binary image
                 contour, _ = cv2.findContours(bw_roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-                biggest_contour = None
-                biggest_area = 0
-                offset_biggest_contour = None
+
                 # Enumerate contours
                 for _, c in enumerate(contour):
                     # Calculate the area of each contour
