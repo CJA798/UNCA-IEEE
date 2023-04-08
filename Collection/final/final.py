@@ -1,12 +1,13 @@
 import cv2
 import asyncio
+import serial
 from time import sleep
 from FlipperPlatform import FlipperPlatform, FlipperStatus
 from Robot import Robot, RobotStatus, CollectionStatus
 from Brace import BraceStatus
 from CameraSystem import CameraSystem
 from IntakeSystem import IntakeSystem, IntakeStatus
-from Pusher import PusherStatus
+from PusherSystem import PusherStatus
 from ElevatorPlatform import ElevatorStatus
 
 class Global_Static:
@@ -25,12 +26,16 @@ class Global_Static:
     #All pillar threshholds
     PILLAR_MIN_THRESH = 50
     PILLAR_MAX_THRESH = 90
-
+DrumStatus = 0
 def main():
     # Create objects
     camera = CameraSystem()
     robot = Robot()
+    DrumStatus = 0
     
+    baud_rate = 115200
+    serial_stepper = serial.Serial('/dev/ttyACM0', baud_rate)
+    serial_stepper.reset_input_buffer()
 
     try:
         with camera.camera as cam:
@@ -41,7 +46,7 @@ def main():
                 if cv2.waitKey(1) == 27:
                     break
                 
-                CollectionStateMachine(robot, elevator_data, mid_data, flipper_data)
+                CollectionStateMachine(robot, elevator_data, mid_data, flipper_data, serial_stepper)
                 
 
             cv2.destroyAllWindows()
@@ -57,7 +62,7 @@ if __name__ == '__main__':
   main()
   
   
-def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data):
+def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, serial):
     flipper_status = robot.CollectionSystem.Flipper.status
     elevator_status = robot.CollectionSystem.Elevator.status
     #pusherBot_status = robot.CollectionSystem.Pushers.statusBot
@@ -104,7 +109,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data):
     
     
     '''
-    moveObject(robot, flipper_status)
+    #moveObject(robot, flipper_status)
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #elevator states
@@ -127,16 +132,38 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data):
     #Once the elevator is oriented then it will raise the object
     
     if elevator_status == ElevatorStatus.ORIENTED_OBJECT:
+        '''Elevator needs to be updated to raise to a single position instead of having a duck raise and column raise'''
         robot.CollectionSystem.Elevator.raisePlatformToDuck
         sleep(.25)
         elevator_status = ElevatorStatus.RAISED
-    elif elevator_status == ElevatorStatus.RAISED:
-        pusher_status = drumSerial(elevator_data[0][0])
+    elif elevator_status == ElevatorStatus.RAISED and pusher_status != PusherStatus.READY:
+        pusher_status = drumSerial(elevator_data[0][0], serial)
         
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #This is pusher states. Once the pusher is done then it will also set the elevator status to ready state.
     
-    if pusher_status == PusherStatus.READY
+    if pusher_status == PusherStatus.READY:
+        '''This still needs to have all of the pusher class updated. We will also need the elevator class to be updated.
+        The pusher class needs to have two separate pushers. One for top and one for bottom. Those have their specified 
+        functions that will move them independently'''
+        robot.CollectionSystem.Pushers.LoadingPillarPusher1
+        sleep(.25)
+        robot.CollectionSystem.Pushers.RetractPusher
+        sleep(.25)
+        robot.CollectionSystem.Elevator.lowerToGround
+        sleep(.25)
+        elevator_status = ElevatorStatus.READY
+        pusher_status = PusherStatus.RETRACTED
     
     
-                            
+def drumSerial(item, serial, pusher_status):
+    if DrumStatus == 0:
+        serial.reset_output_buffer()
+        str_data = str(int_data) + "\n"
+        serial.write(str_data.encode())
+        DrumStatus = 1
+    elif DrumStatus == 1:
+        DrumStatus = serial.readline().decode('utf-8').rstrip()
+    elif DrumStatus == "Something":
+        DrumStatus = 0
+        return PusherStatus.READY
