@@ -1,18 +1,44 @@
 #include <Arduino.h>
 #include <Navigation.h>
 #include <Drum.h>
-DriverObject Driver;
+#define SERIAL_CHAR_STORAGAE_LENGTH 15
+char InputBit[15] = {0};
+class USBSerial
+{
+public:
+  int SerialWriteCounter = 0;
+  USBSerial()
+  {
+    Serial.begin(115200);
+  };
+  void SerialProcess(void)
+  {
+    if (Serial.available())
+    {
+      Serial.readStringUntil('\n').toCharArray(InputBit, SERIAL_CHAR_STORAGAE_LENGTH);
+      for (int i = 0; i < SERIAL_CHAR_STORAGAE_LENGTH; i++)
+      {
+        Serial.print(InputBit[i]);
+      };
+      Serial.println();
+    };
+  };
 
+private:
+};
+DriverObject Driver;
 Drum StorageDrum;
+USBSerial LaptopSerial;
 int State = 0;
-char InputBit = 0;
+char MegaState = 0;
+
 void NavStateMachine(void)
 {
   switch (State)
   {
   case 0:
-      Serial.println("IdleState");
-      delay(1000);
+    Serial.println("IdleState");
+    delay(1000);
     break;
   case 1:
     Driver.UpdateDesiredPose(0, 0, 10);
@@ -33,11 +59,11 @@ void NavStateMachine(void)
   case 3:
     if (!Driver.IsMoving())
     {
-    Driver.ComputeTranslation();
-    Driver.UpdateDesiredPose(0, EAST_WALL, 0);
-    MoveState = TRANSLATING;
-    Driver.ComputeTranslation();
-    State = 4;
+      Driver.ComputeTranslation();
+      Driver.UpdateDesiredPose(0, EAST_WALL, 0);
+      MoveState = TRANSLATING;
+      Driver.ComputeTranslation();
+      State = 4;
     };
   default:
   case 4:
@@ -54,20 +80,19 @@ void NavStateMachine(void)
 };
 void setup()
 {
-
-  Serial.begin(9600);
-
- // while (!Serial.available())
-  //{
-    delay(100);
- // };
-//  State = 1;
-  Serial.println("STARTING");
- // delay(1000);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+  LaptopSerial = USBSerial();
 };
 
-void loop(){
-StorageDrum.TestRotation();
- // Driver.BumperProcess();
- // NavStateMachine();
+void loop()
+{
+  Driver.BumperProcess();
+  LaptopSerial.SerialProcess();
+  switch (MegaState)
+  {
+  case 0: // DO NOTHING
+    digitalWrite(LED_BUILTIN, HIGH);
+    break;
+  }
 };
