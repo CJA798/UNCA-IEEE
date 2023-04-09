@@ -1,32 +1,76 @@
 #include <Arduino.h>
 #include <Navigation.h>
-#define SERIAL_CHAR_STORAGAE_LENGTH 15
-char InputBit[15] = {0};
+#include <stdio.h>
+#include <string.h>
+using namespace std;
+#define RECEIVING 'R'
+#define TRANSMITTING 'T'
+// define buffer size
+const int BUFFER_SIZE = 20;
+
+// define buffer and index variable
+char buffer[BUFFER_SIZE];
+int indx = 0;
+bool InputReady = 0;
+char InputChar = 0;
+char SerialState = 0;
 class USBSerial
 {
 public:
   int SerialWriteCounter = 0;
   USBSerial()
   {
-    Serial.begin(115200);
+    Serial.begin(9600);
   };
   void SerialProcess(void)
   {
-    if (Serial.available())
+    switch (SerialState)
     {
-      Serial.readStringUntil('\n').toCharArray(InputBit, SERIAL_CHAR_STORAGAE_LENGTH);
-      for (int i = 0; i < SERIAL_CHAR_STORAGAE_LENGTH; i++)
+    case RECEIVING:
+
+      if (Serial.available() > 0)
       {
-        Serial.print(InputBit[i]);
+        //  Serial.print("frig");
+        //  delay(1000);
+
+        InputChar = Serial.read();
+        buffer[indx] = InputChar;
+        indx++;
+        while (InputChar != '|')
+        {
+          InputChar = Serial.read();
+
+          buffer[indx] = InputChar;
+          indx++;
+          if (indx > BUFFER_SIZE - 1)
+          {
+            indx = 0;
+          }
+
+          if (InputChar == '|')
+          {
+            SerialState = TRANSMITTING;
+          };
+        };
+      }
+      break;
+    case TRANSMITTING:
+      Serial.println("Transmitting");
+      for (int i = 0; i < BUFFER_SIZE; i++)
+      {
+        Serial.print(buffer[i]);
       };
-      Serial.println();
+      SerialState = RECEIVING;
+      break;
     };
   };
 };
+
 USBSerial LaptopSerial;
 int State = 0;
 char MegaState = 0;
 DriverObject Driver;
+
 void NavStateMachine(void)
 {
   switch (State)
@@ -73,27 +117,31 @@ void NavStateMachine(void)
     break;
   };
 };
+
 void setup()
 {
+
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
   delay(1000);
   digitalWrite(LED_BUILTIN, LOW);
   Serial.print("Starting up");
-  Drum.HomeDrumStepper();
+  State = 1;
 };
 
 void loop()
 {
+  NavStateMachine();
+  // LaptopSerial.SerialProcess();
   DrumState = 0;
-  // Driver.Process();
-  item = InYellowDuck2;
-  Drum.doRotation();
-  // switch (MegaState)
-  // {
-  // case 0: // DO NOTHING
-  // digitalWrite(LED_BUILTIN, HIGH);
-  //  break;
-  // }
+  Driver.Process();
+  //  item = InYellowDuck2;
+  //  Drum.doRotation();
+  //  switch (MegaState)
+  //  {
+  //  case 0: // DO NOTHING
+  //  digitalWrite(LED_BUILTIN, HIGH);
+  //   break;
+  //  }tt
 };

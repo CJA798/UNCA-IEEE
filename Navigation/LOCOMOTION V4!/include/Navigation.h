@@ -66,7 +66,7 @@ public:
   //
   void Process(void)
   {
-    Drum.DrumProcess();
+   // Drum.DrumProcess();
     Bumpers.SwitchesProcess();
     if (SwitchesState == NONE_PRESSED)
     {
@@ -181,6 +181,7 @@ public:
       case NORTH:
       UpdateDesiredPose(BotOrientation.Theta,BotOrientation.X, BotOrientation.Y - 5);
       ComputeTranslation();
+      delay(100);
       break;
       case SOUTH:
       UpdateDesiredPose(BotOrientation.Theta,BotOrientation.X, BotOrientation.Y + 5);
