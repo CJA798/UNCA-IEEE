@@ -48,19 +48,20 @@
 #define InRedAng (6)
 #define FOUR_PI (12.566370614)
 // These are the Values in radians for positions
-#define Position_In_1 (0)
-#define Position_In_2 (41)
-#define Position_In_3 (116)
-#define Position_In_4 (190)
-#define Position_In_5 (269)
-#define Position_In_6 (340)
+//load
+#define IN_POSITION_GREEN_PILLAR (0) // green
+#define IN_POSITION_RED_PILLAR (1550) //  red/green
+#define IN_POSITION_WHITE_PILLAR (11580)// white
+#define IN_POSITION_YELLOW_DUCK2 (9700) // yellow duck 2
+#define IN_POSITION_PINK_DUCK (6850) // pink duck
+#define IN_POSITION_YELLOW_DUCK1 (4200) // yellow duck 1
 
-#define POSITION_OUT_1 (0)
-#define POSITION_OUT_2 (43)
-#define POSITION_OUT_3 (63)
-#define POSITION_OUT_4 (176)
-#define POSITION_OUT_5 (213)
-#define POSITION_OUT_6 (320)
+#define OUT_POSITION_WHITE_PILLAR (0)
+#define OUT_POSITION_GREEN_PILLAR (1400)
+#define OUT_POSITION_RED_PILLAR (2900)
+#define OUT_POSITION_YELLOW_DUCK1 (3500)
+#define OUT_POSITION_PINK_DUCK (7780)
+#define OUT_POSITION_YELOW_DUCK2 (9000)
 
 #define OutYellowAng1 (7)
 #define OutYellowAng2 (8)
@@ -75,6 +76,7 @@ char DrumState = 0;
 char item = 0;
 Bounce LimitSwitch;
 int NewPosition = 0;
+double StepbyDeg = 36.15;
 class StorageDrum
 {
 private:
@@ -99,35 +101,7 @@ private:
 
     // modify this function for loading only
     // int doRotation(int SlotAng, bool rotChoice)
-    int doRotation(int NewPosition, int pillar_or_duck)
-    {
-        // The plan is that if we aren't currently spun to this angle then we move the amount to get there.
-        // If we are already passed this angle then we have to spin all the way to reset and go back.
-        // if (rotChoice)
-        // {
 
-        int CurrAngle = Position_In_6 - NewPosition;
-        int steps = RadToSteps() * CurrAngle;
-        // rotate to this angle by giving steps to Chase
-        DrumStepper.setTargetAbs(steps);
-        DrumController.moveAsync(DrumStepper);
-
-        // Controller.isMoving();
-
-        // int angle = SlotAng - CurrAngle;
-        // int steps = RadToSteps() * angle;
-        //  TODO: DrumStepper move to steps
-        //}
-        /*
-        else
-        {
-            int angle = (2 * M_PI - CurrAngle) + SlotAng;
-            int steps = RadToSteps() * angle;
-            // TODO: DrumStepper move to steps
-        }
-        */
-        return 0;
-    };
 
 public:
     StorageDrum() : DrumStepper(STORAGE_MTRSTEP, STORAGE_MTRDIR) // CONDSTRUCTOR
@@ -229,6 +203,8 @@ public:
             Input = Serial.read();
             Serial.print("Input: ");
             Serial.println(Input);
+            item = InWhiteColumn;
+            doRotation();
         }
 
         switch (Input)
@@ -256,11 +232,8 @@ public:
         }
     }
 
-    int doRotation(void)
+    int doRotation(char item)
     {
-        Serial.println("doRotation");
-        Serial.print("item: ");
-        Serial.println((char)item);
 
         // int position = 0;
         switch (item)
@@ -268,57 +241,56 @@ public:
 
         case InYellowDuck1:
 
-            Serial.print("entering swith");
-            moveDrumToLocation(Position_In_4);
+            moveDrumToLocation(IN_POSITION_YELLOW_DUCK1);
             break;
 
         case InYellowDuck2:
-            DrumStepper.setTargetAbs(9700);
-            DrumController.move(DrumStepper);
-            // moveDrumToLocation(300);
+
+            moveDrumToLocation(IN_POSITION_YELLOW_DUCK2);
             break;
 
         case InPinkDuck:
-            moveDrumToLocation(Position_In_5);
+            moveDrumToLocation(IN_POSITION_PINK_DUCK);
             break;
 
         case InWhiteColumn:
-            moveDrumToLocation(Position_In_3);
+            moveDrumToLocation(IN_POSITION_WHITE_PILLAR);
             break;
 
         case InGreenColumn:
 
-            moveDrumToLocation(Position_In_2);
+            moveDrumToLocation(IN_POSITION_GREEN_PILLAR);
             break;
 
         case InRedColumn:
-            moveDrumToLocation(Position_In_1);
+            moveDrumToLocation(IN_POSITION_RED_PILLAR);
+
 
             break;
 
         case OutYellowDuck1:
-            moveDrumToLocation(POSITION_OUT_3);
+            moveDrumToLocation(OUT_POSITION_YELLOW_DUCK1);
 
             break;
 
         case OutYellowDuck2:
-            moveDrumToLocation(POSITION_OUT_5);
+            moveDrumToLocation(OUT_POSITION_YELOW_DUCK2);
             break;
 
         case OutPinkDuck:
-            moveDrumToLocation(POSITION_OUT_4);
+            moveDrumToLocation(OUT_POSITION_PINK_DUCK);
             break;
 
         case OutWhiteColumn:
-            moveDrumToLocation(POSITION_OUT_3);
+            moveDrumToLocation(OUT_POSITION_WHITE_PILLAR);
             break;
 
         case OutGreenColumn:
-            moveDrumToLocation(POSITION_OUT_1);
+            moveDrumToLocation(OUT_POSITION_GREEN_PILLAR);
             break;
 
         case OutRedColumn:
-            moveDrumToLocation(POSITION_OUT_2);
+            moveDrumToLocation(OUT_POSITION_RED_PILLAR);
             break;
 
         default:
@@ -335,9 +307,11 @@ public:
 
     void moveDrumToLocation(int NewPosition)
     {
+         DrumStepper.setTargetAbs(NewPosition);
+            DrumController.move(DrumStepper);
 
         // int position = 0;
-
+        /*
         delay(100);
         Serial.print("NewPosition :");
         Serial.println(NewPosition);
@@ -345,6 +319,7 @@ public:
         NewPosition = NewPosition * STEPS_PER_RAD_DRUM;
         DrumStepper.setTargetRel(NewPosition);
         DrumController.move(DrumStepper);
+        */
         //   break;
     }
     bool isDone()
