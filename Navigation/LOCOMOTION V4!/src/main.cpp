@@ -88,8 +88,8 @@ void loop()
 {
   DrumState = 0;
   // Driver.Process();
-  item = InYellowDuck2;
-  Drum.doRotation();
+ 
+  Drum.doRotation(InRedColumn);
   // switch (MegaState)
   // {
   // case 0: // DO NOTHING
