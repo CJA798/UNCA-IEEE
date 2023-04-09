@@ -57,7 +57,8 @@ class Elevator():
         Raises the platform up to the duck location
         '''
         #The determined position of the servo for ground is -110
-        self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, -110, self.swing)
+        self.hat.move_servo_position(1, -48) # Push into Cylinder pos
+        sleep(1)
         self.status = ElevatorStatus.RAISED
         
 
@@ -70,7 +71,8 @@ class Elevator():
         '''
         #The determined position of the servo for ground is 230
         self.setStatus(ElevatorStatus.READY)
-        self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 230, self.swing)
+        self.hat.move_servo_position(1, 115) # return home elevader pos
+        sleep(1)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Getters and Setters

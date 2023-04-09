@@ -61,9 +61,12 @@ class Flipper:
 
     def flip_platform(self) -> None:
         ''' This method activates the flipping platform '''
-        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _FLIP_FLIPPER, _SWING)
-        
-        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _RESET_FLIPPER, _SWING)
+        for i in range(0, -20, -1):
+            self.hat.move_servo_position(13, i)
+            sleep(.01)
+        for i in range(-20, 0, 1):
+            self.hat.move_servo_position(13, i)
+            sleep(.01)
         
         self.set_status(FlipperStatus.EMPTY)
         
