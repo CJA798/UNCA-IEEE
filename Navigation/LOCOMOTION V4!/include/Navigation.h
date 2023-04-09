@@ -68,27 +68,38 @@ public:
     Bumpers.SwitchesProcess();
     if (SwitchesState == NONE_PRESSED)
     {
+      Serial.print("NoSwitchesPressed");
+      delay(1000);
       return;
     };
-    Serial.print("SwitchesState: ");
-    Serial.println(SwitchesState);
+     Serial.print("SwitchesState: ");
+     Serial.println(SwitchesState);
     Controller.emergencyStop();
     if ((BotOrientation.Theta <= PI / 3) && (BotOrientation.Theta >= -(PI / 3)))
     { // We are pointed North
       //
+    
       switch (SwitchesState)
       {
       case FRONT_PRESSED:
         BotOrientation.Y = NORTH_WALL;
+        Serial.println("Facing North, Front Pressed");
+        Nudge(NORTH);
         break;
       case LEFT_PRESSED:
         BotOrientation.X = WEST_WALL;
+        Serial.println("Facing North, Left Pressed");
+        Nudge(WEST);
         break;
       case RIGHT_PRESSED:
         BotOrientation.X = EAST_WALL;
+        Serial.println("Facing North, Right Pressed");
+        Nudge(EAST);
         break;
       case BACK_PRESSED:
         BotOrientation.Y = SOUTH_WALL;
+        Serial.println("Facing North, Back Pressed");
+        Nudge(SOUTH);
         break;
       };
     };
@@ -99,15 +110,19 @@ public:
       {
       case FRONT_PRESSED:
         BotOrientation.X = EAST_WALL;
+        Nudge(EAST);
         break;
       case LEFT_PRESSED:
         BotOrientation.Y = NORTH_WALL;
+        Nudge(NORTH);
         break;
       case RIGHT_PRESSED:
         BotOrientation.Y = SOUTH_WALL;
+        Nudge(SOUTH);
         break;
       case BACK_PRESSED:
         BotOrientation.X = WEST_WALL;
+        Nudge(WEST);
         break;
       };
     };
@@ -117,15 +132,19 @@ public:
       {
       case FRONT_PRESSED:
         BotOrientation.X = WEST_WALL;
+        Nudge(WEST);
         break;
       case LEFT_PRESSED:
         BotOrientation.Y = SOUTH_WALL;
+        Nudge(SOUTH);
         break;
       case RIGHT_PRESSED:
         BotOrientation.Y = NORTH_WALL;
+        Nudge(NORTH);
         break;
       case BACK_PRESSED:
         BotOrientation.X = EAST_WALL;
+        Nudge(EAST);
         break;
       };
       //
@@ -136,24 +155,47 @@ public:
       {
       case FRONT_PRESSED:
         BotOrientation.Y = SOUTH_WALL;
+        Nudge(SOUTH);
         break;
       case LEFT_PRESSED:
         BotOrientation.X = EAST_WALL;
+        Nudge(EAST);
         break;
       case RIGHT_PRESSED:
         BotOrientation.X = WEST_WALL;
+        Nudge(WEST);
         break;
       case BACK_PRESSED:
         BotOrientation.Y = NORTH_WALL;
+        Nudge(NORTH);
         break;
       };
 
       //
     };
     SwitchesState = NONE_PRESSED;
-    MoveState = IDLE;
+    UpdateDesiredPose(0, 0, 0);
   };
-
+  void Nudge(char NorthSouthOrWest){
+    switch(NorthSouthOrWest){
+      case NORTH:
+      UpdateDesiredPose(BotOrientation.Theta,BotOrientation.X, BotOrientation.Y - 5);
+      ComputeTranslation();
+      break;
+      case SOUTH:
+      UpdateDesiredPose(BotOrientation.Theta,BotOrientation.X, BotOrientation.Y + 5);
+      ComputeTranslation();
+      break;
+      case WEST:
+      UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X + 5, BotOrientation.Y);
+      ComputeTranslation();
+      break;
+      case EAST:
+      UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X - 5, BotOrientation.Y);
+      ComputeTranslation();
+      break;
+      };
+  };
   bool IsMoving(void)
   {
     return Controller.isRunning();

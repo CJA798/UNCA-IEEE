@@ -30,7 +30,7 @@ Bounce RightSideRightSw;
 Bounce RightSideLeftSw;
 Bounce LeftSideRightSw;
 Bounce LeftSideLeftSw;
-char SwitchesState = 0;
+char SwitchesState = 4;
 bool ChangeInSwitchState = 0;
 double SwitchAngle = 0;
 class BumperSwitches
@@ -87,30 +87,27 @@ public:
     RightSideRightSw.update(); // 6
     LeftSideLeftSw.update();   // 7
     LeftSideRightSw.update();  // 8
-
-    if (!(FrontLeftSw.read() && FrontRightSw.read() ==0))
+    SwitchesState = NONE_PRESSED;
+    if (!(FrontLeftSw.read() && FrontRightSw.read()))
     {
 
       SwitchesState = FRONT_PRESSED;
-    } else
-    if (!(BackLeftSw.read() && BackRightSw.read()))
+    }
+    else if (!(BackLeftSw.read() && BackRightSw.read()))
     {
 
       SwitchesState = BACK_PRESSED;
-    } else
-    if (!(RightSideLeftSw.read() && RightSideRightSw.read()))
+    }
+    else if (!(RightSideLeftSw.read() && RightSideRightSw.read()))
     {
 
       SwitchesState = RIGHT_PRESSED;
-    } else
-    if (!(LeftSideLeftSw.read() && LeftSideRightSw.read()))
+    }
+    else if (!(LeftSideLeftSw.read() && LeftSideRightSw.read()))
     {
 
       SwitchesState = LEFT_PRESSED;
-    } else
-    {
-      SwitchesState = NONE_PRESSED;
-    }
+    };
   };
   void PrintPosition()
   {
@@ -133,7 +130,6 @@ public:
     Serial.print("LeftSideRightSw: ");
     Serial.println(LeftSideRightSw.read());
   }
-
 };
 
 class TOFArray
