@@ -3,6 +3,8 @@
 #include <math.h>
 #include <macros.h>
 #include <Ports.h>
+#include <Navigation.h>
+
 /*I need to store the current angle of the bot in every move that I make
     CurrAngle
     Angle of all items
@@ -87,7 +89,7 @@ private:
 
     //modify this function for loading only
     //int doRotation(int SlotAng, bool rotChoice)
-    int doRotation(int NewPosition )
+    int doRotation(int NewPosition, int pillar_or_duck)
     {
         // The plan is that if we aren't currently spun to this angle then we move the amount to get there.
         // If we are already passed this angle then we have to spin all the way to reset and go back.
@@ -96,11 +98,15 @@ private:
 
 
 
-            int CurrAngle = Position_In_6 - NewAngle;
+            int CurrAngle = Position_In_6 - NewPosition;
             int steps = RadToSteps() * CurrAngle;
             //rotate to this angle by giving steps to Chase
             motor.setTargetAbs(steps);
+           // Controller.isMoving();
             
+
+            
+
 
 
 
