@@ -66,7 +66,6 @@ class Flipper:
         self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _RESET_FLIPPER, _SWING)
         
         self.set_status(FlipperStatus.EMPTY)
-        print("Platform flipped")
         
 
     def get_status(self) -> FlipperStatus:
