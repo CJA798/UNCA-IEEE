@@ -4,16 +4,17 @@ from picamera2 import Picamera2
 from tflite_support.task import core, processor, vision
 import utils
 
+import tflite_runtime.interpreter as tflite
+
 from pycoral.utils.dataset import read_label_file
 from pycoral.utils.edgetpu import make_interpreter
 from pycoral.adapters import common
 from pycoral.adapters import classify
 
-
 class CameraSystem:
     def __init__(self):
         self._model = 'improv_12k_00EfficientDet_edgetpu.tflite'
-        self._class_model = 'model_edgetpu.tflite'
+        self._class_model = 'test_model.tflite'
         #self._camera_id = 0
         #self._frame_width = 240
         #self._frame_height = 120
@@ -43,10 +44,38 @@ class CameraSystem:
         self._detector = vision.ObjectDetector.create_from_options(options)
 
     def initialize_classifier(self):
-        base_options = core.BaseOptions(file_name=self._class_model, use_coral=self._enable_edgetpu, num_threads=self._num_threads)
+        base_options = core.BaseOptions(file_name=self._class_model, use_coral=False, num_threads=self._num_threads)
         classification_options = processor.ClassificationOptions(max_results=1, score_threshold=0.5)
         options = vision.ImageClassifierOptions(base_options=base_options, classification_options=classification_options)
         self._classifier = vision.ImageClassifier.create_from_options(options)
+
+    '''def initialize_classifier(self):
+        # Load the TFLite model
+        self._interpreter = tflite.Interpreter(model_path=self._class_model)
+        self._interpreter.allocate_tensors()
+
+        # Set up input and output details
+        input_details = self._interpreter.get_input_details()
+        output_details = self._interpreter.get_output_details()
+
+        # Define classification options
+        classification_options = processor.ClassificationOptions(max_results=1, score_threshold=0.5)
+
+        # Create the image classifier
+        self._classifier = vision.ImageClassifier(
+            input_width=input_details[0]['shape'][1],
+            input_height=input_details[0]['shape'][2],
+            input_mean=0.0,
+            input_std=255.0,
+            model=lambda img: self._interpreter.set_tensor(input_details[0]['index'], img),
+            classify=lambda: self._interpreter.invoke(),
+            output=lambda: self._interpreter.get_tensor(output_details[0]['index']),
+            options=classification_options,
+        )'''
+
+
+
+
 
 
     def run_inference(self, image: np.ndarray):
@@ -249,8 +278,62 @@ class CameraSystem:
 
         return elevator_area, middle_area, flipper_area
     
-
     def is_duck_standing(self):
+        ''' This function takes in a TFLite Interptere and Image, and returns classifications '''
+        image = self.img_to_classify
+        # Load model onto the TF Lite Interpreter
+        interpreter = make_interpreter('model.tflite')
+        interpreter.allocate_tensors()
+        labels = read_label_file('labels.txt')
+
+        size = common.input_size(interpreter)
+        common.set_input(interpreter, cv2.resize(image, size, fx=0, fy=0,
+                                                interpolation=cv2.INTER_CUBIC))
+        interpreter.invoke()
+        results = classify.get_classes(interpreter)
+        print(f'Label: {labels[results[0].id]}, Score: {results[0].score}')
+
+            # Check if the image is classified as Flip or Push
+        if labels[results[0].id] == 'Push':
+            return True
+        else:
+            return False
+        
+    
+    def is_duck_standing2(self):
+        ''' This function takes in a TFLite Interptere and Image, and returns classifications '''
+        image = self.img_to_classify
+        interpreter = self._interpreter
+        labels = read_label_file('labels.txt')
+
+        # Set up input tensor
+        input_details = interpreter.get_input_details()
+        input_data = np.expand_dims(image, axis=0).astype(input_details[0]['dtype'])
+        interpreter.set_tensor(input_details[0]['index'], input_data)
+
+        # Run inference
+        interpreter.invoke()
+
+        # Get output tensor
+        output_details = interpreter.get_output_details()
+        output_data = interpreter.get_tensor(output_details[0]['index'])
+
+        # Get top prediction
+        top_prediction = np.argmax(output_data[0])
+
+        # Print result
+        print(f'Label: {labels[top_prediction]}, Score: {output_data[0][top_prediction]}')
+
+        # Check if the image is classified as Push
+        if labels[top_prediction] == 'Push':
+            return True
+        else:
+            return False
+
+    
+
+
+    def is_duck_standing3(self):
         ''' This method returns True if the duck on the flipper is standing '''
         image = self.img_to_classify
         # Convert the image from BGR to RGB as required by the TFLite model.
@@ -268,3 +351,6 @@ class CameraSystem:
             #return True
         #else:
             #return False
+
+
+    
