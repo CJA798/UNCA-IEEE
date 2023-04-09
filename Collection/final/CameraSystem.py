@@ -342,11 +342,10 @@ class CameraSystem:
         tensor_image = vision.TensorImage.create_from_array(rgb_image)
         # List classification results
         categories = self._classifier.classify(tensor_image)
-        
 
-        print(categories.classifications[0].categories)
-
-         # Check if the image is classified as Flip or Push
+        print(categories.classifications[0].categories[0].category_name)
+        return False
+        # Check if the image is classified as Flip or Push
         #if labels[results[0].id] == 'Push':
             #return True
         #else:
