@@ -32,8 +32,8 @@ class Pushers:
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
         # Stop servos on instantiation
-        self.RetractPusherTop(self)
-        self.RetractPusherBot(self)
+        self.RetractPusherTop()
+        self.RetractPusherBot()
 
     #Pusher 1 is for pillars
     def RetractPusherTop(self):

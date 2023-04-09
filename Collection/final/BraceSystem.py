@@ -1,4 +1,4 @@
-from import sleep
+from time import sleep
 import asyncio
 from pi_servo_hat import PiServoHat
 
