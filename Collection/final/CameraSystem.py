@@ -4,8 +4,6 @@ from picamera2 import Picamera2
 from tflite_support.task import core, processor, vision
 import utils
 
-import re
-import os
 from pycoral.utils.dataset import read_label_file
 from pycoral.utils.edgetpu import make_interpreter
 from pycoral.adapters import common
@@ -248,9 +246,9 @@ class CameraSystem:
         ''' This function takes in a TFLite Interptere and Image, and returns classifications '''
         image = self.img_to_classify
         # Load model onto the TF Lite Interpreter
-        interpreter = make_interpreter('<PATH_TO_MODEL>')
+        interpreter = make_interpreter('model_edgetpu.tflite')
         interpreter.allocate_tensors()
-        labels = read_label_file('<PATH_TO_LABELS>')
+        labels = read_label_file('labels.txt')
 
         size = common.input_size(interpreter)
         common.set_input(interpreter, cv2.resize(image, size, fx=0, fy=0,
@@ -258,5 +256,9 @@ class CameraSystem:
         interpreter.invoke()
         results = classify.get_classes(interpreter)
         print(f'Label: {labels[results[0].id]}, Score: {results[0].score}')
-        
-        ''' TODO: Return true for '''
+
+         # Check if the image is classified as Flip or Push
+        if labels[results[0].id] == 'Push':
+            return True
+        else:
+            return False
