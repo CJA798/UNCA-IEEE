@@ -163,7 +163,7 @@ def sequenceForTower3(serial_stepper, robot: Robot):
 def outputSerial(serial_stepper, position):
     if DrumStatus == 0:
         serial_stepper.reset_output_buffer()
-        str_data = position + '\n'
+        str_data = "Input: " + position + '\n'
         serial_stepper.write(str_data.encode())
         DrumStatus = 1
     elif DrumStatus == 1:
@@ -292,7 +292,7 @@ def drumSerial(item, serial_stepper, robot):
     
     if DrumStatus == 0:
         serial_stepper.reset_output_buffer()
-        str_data = position + '\n'
+        str_data = "Input: " + position + '\n'
         serial_stepper.write(str_data.encode())
         DrumStatus = 1
     elif DrumStatus == 1:
