@@ -2,7 +2,7 @@
 #include <Navigation.h>
 #include <Drum.h>
 DriverObject Driver;
-TOFArray DistanceSensorsmm;
+
 Drum StorageDrum;
 int State = 0;
 char InputBit = 0;
@@ -36,23 +36,16 @@ void setup()
 {
 
   Serial.begin(9600);
-  Serial.println("STARTING");
-  delay(1000);
 
   while (!Serial.available())
   {
     delay(100);
-  }
+  };
+  Serial.println("STARTING");
+  delay(1000);
 };
 
-void loop()
-{
-
-  char input = Serial.read();
-  if (input != 0)
-  {
-    Serial.println(SwitchesState);
-    delay(1000);
-    input = 0;
-  };
+void loop(){
+  Driver.BumperProcess();
+  NavStateMachine();
 };

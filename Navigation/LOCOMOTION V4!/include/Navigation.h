@@ -8,6 +8,7 @@
 #include <MiscFunctions.h>
 #include <iostream>
 #include <array>
+#include <Sensors.h>
 using namespace std;
 bool debug = false;
 struct Orientation
@@ -24,7 +25,7 @@ bool IsMoving = IDLE;
 char MoveState = IDLE;
 char ComplexMoveState = IDLE;
 Orientation BotOrientation;
-
+BumperSwitches Bumpers;
 elapsedMillis MoveTimer;
 bool ComplexMoveStarted = IDLE;
 
@@ -41,7 +42,7 @@ public:
 
   // MUST PASS CONSTRUCTOR OBJECTS FROM THE CONTROLLER CLASS
   {
-
+    Bumpers = BumperSwitches();
     motor_1
         .setMaxSpeed(MAX_MTR_SPEED)      // steps/s
         .setAcceleration(MAX_MTR_ACCEL); // steps/s^2
@@ -62,6 +63,97 @@ public:
       InputPose[i][0] = 0;
     };
   }
+  void BumperProcess(void)
+  {
+    Bumpers.SwitchesProcess();
+    if (SwitchesState == NONE_PRESSED)
+    {
+      return;
+    };
+    Serial.print("SwitchesState: ");
+    Serial.println(SwitchesState);
+    Controller.emergencyStop();
+    if ((BotOrientation.Theta <= PI / 3) && (BotOrientation.Theta >= -(PI / 3)))
+    { // We are pointed North
+      //
+      switch (SwitchesState)
+      {
+      case FRONT_PRESSED:
+        BotOrientation.Y = NORTH_WALL;
+        break;
+      case LEFT_PRESSED:
+        BotOrientation.X = WEST_WALL;
+        break;
+      case RIGHT_PRESSED:
+        BotOrientation.X = EAST_WALL;
+        break;
+      case BACK_PRESSED:
+        BotOrientation.Y = SOUTH_WALL;
+        break;
+      };
+    };
+    if ((BotOrientation.Theta >= PI / 6) && (BotOrientation.Theta <= (11 / 16) * PI))
+    { // We are pointed East
+      //
+      switch (SwitchesState)
+      {
+      case FRONT_PRESSED:
+        BotOrientation.X = EAST_WALL;
+        break;
+      case LEFT_PRESSED:
+        BotOrientation.Y = NORTH_WALL;
+        break;
+      case RIGHT_PRESSED:
+        BotOrientation.Y = SOUTH_WALL;
+        break;
+      case BACK_PRESSED:
+        BotOrientation.X = WEST_WALL;
+        break;
+      };
+    };
+    if ((BotOrientation.Theta <= -PI / 6) && (BotOrientation.Theta >= -(11 / 16) * PI))
+    { // We are pointed West
+      switch (SwitchesState)
+      {
+      case FRONT_PRESSED:
+        BotOrientation.X = WEST_WALL;
+        break;
+      case LEFT_PRESSED:
+        BotOrientation.Y = SOUTH_WALL;
+        break;
+      case RIGHT_PRESSED:
+        BotOrientation.Y = NORTH_WALL;
+        break;
+      case BACK_PRESSED:
+        BotOrientation.X = EAST_WALL;
+        break;
+      };
+      //
+    };
+    if ((BotOrientation.Theta >= (5 / 6) * PI) || (BotOrientation.Theta <= -(5 / 6) * PI))
+    { // We are pointed South
+      switch (SwitchesState)
+      {
+      case FRONT_PRESSED:
+        BotOrientation.Y = SOUTH_WALL;
+        break;
+      case LEFT_PRESSED:
+        BotOrientation.X = EAST_WALL;
+        break;
+      case RIGHT_PRESSED:
+        BotOrientation.X = WEST_WALL;
+        break;
+      case BACK_PRESSED:
+        BotOrientation.Y = NORTH_WALL;
+        break;
+      };
+
+      //
+    };
+    SwitchesState = NONE_PRESSED;
+    MoveState = IDLE;
+  };
+
   bool IsMoving(void)
   {
     return Controller.isRunning();

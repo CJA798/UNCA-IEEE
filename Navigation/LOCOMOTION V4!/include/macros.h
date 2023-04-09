@@ -30,6 +30,10 @@
 #define MAX_MTR_SPEED (800)        // Steps/s maximum is 300000
 #define MAX_MTR_ACCEL (400)         // Steps/s^2 skips at around 15000
 
+#define NORTH_WALL (91)
+#define SOUTH_WALL (0)
+#define EAST_WALL (99)
+#define WEST_WALL (-99)
 //-------Navigation Stuff------------------------------------------------------------
 #define mtx_type float // Matrix type definition
 #define BLOCKING (1)

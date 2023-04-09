@@ -11,10 +11,11 @@
 #define Y_MAX (122)
 #define X_MIN (-122)
 #define Y_MIN (0)
-#define FRONT_PRESSED (1)
+#define FRONT_PRESSED (0)
+#define RIGHT_PRESSED (1)
 #define BACK_PRESSED (2)
-#define RIGHT_PRESSED (3)
-#define LEFT_PRESSED (4)
+#define LEFT_PRESSED (3)
+#define NONE_PRESSED (4)
 /* The Libraries for the magnetometer/gyroscope cause errors.
 
 #include <Adafruit_SPIDevice.h>
@@ -29,496 +30,483 @@ Bounce RightSideRightSw;
 Bounce RightSideLeftSw;
 Bounce LeftSideRightSw;
 Bounce LeftSideLeftSw;
-int SwitchesState;
+char SwitchesState = 0;
 bool ChangeInSwitchState = 0;
-
+double SwitchAngle = 0;
 class BumperSwitches
 { // This class will contain the functions to read the construct the bumpers switches, read from the switches, and set flags for when the X_min, X_max, Y_min, Y_max bounds are reached.
 
 private:
 public:
-    BumperSwitches()
+  BumperSwitches()
+  {
+    FrontLeftSw = Bounce();
+    FrontRightSw = Bounce();
+    BackRightSw = Bounce();
+    BackLeftSw = Bounce();
+    RightSideRightSw = Bounce();
+    RightSideLeftSw = Bounce();
+    LeftSideRightSw = Bounce();
+    LeftSideLeftSw = Bounce();
+
+    pinMode(FRONT_LEFT_SWITCH, INPUT_PULLUP);
+    pinMode(FRONT_RIGHT_SWITCH, INPUT_PULLUP);
+    pinMode(RIGHTSIDE_LEFT_SWITCH, INPUT_PULLUP);
+    pinMode(RIGHTSIDE_RIGHT_SWITCH, INPUT_PULLUP);
+    pinMode(LEFTSIDE_LEFT_SWITCH, INPUT_PULLUP);
+    pinMode(LEFTSIDE_RIGHT_SWITCH, INPUT_PULLUP);
+    pinMode(RIGHTSIDE_RIGHT_SWITCH, INPUT_PULLUP);
+    pinMode(BACK_RIGHT_SWITCH, INPUT_PULLUP);
+    pinMode(BACK_LEFT_SWTICH, INPUT_PULLUP);
+    FrontRightSw.attach(FRONT_RIGHT_SWITCH); // 1
+    FrontRightSw.interval(DEBOUNCE_TIME);
+    FrontLeftSw.attach(FRONT_LEFT_SWITCH); // 2
+    FrontLeftSw.interval(DEBOUNCE_TIME);
+    BackRightSw.attach(BACK_RIGHT_SWITCH); // 3
+    BackRightSw.interval(DEBOUNCE_TIME);
+    BackLeftSw.attach(BACK_LEFT_SWTICH); // 3
+    BackLeftSw.interval(DEBOUNCE_TIME);
+    RightSideRightSw.attach(RIGHTSIDE_RIGHT_SWITCH); // 4
+    RightSideRightSw.interval(DEBOUNCE_TIME);
+    RightSideLeftSw.attach(RIGHTSIDE_LEFT_SWITCH); // 5
+    RightSideLeftSw.interval(DEBOUNCE_TIME);
+    LeftSideRightSw.attach(LEFTSIDE_RIGHT_SWITCH); // 6
+    LeftSideRightSw.interval(DEBOUNCE_TIME);
+    LeftSideLeftSw.attach(LEFTSIDE_LEFT_SWITCH); // 6
+    LeftSideLeftSw.interval(DEBOUNCE_TIME);
+  }
+
+  void SwitchesProcess(void)
+  {
+    // Serial.println("SwitchesProcess");
+    FrontRightSw.update();     // 1
+    FrontLeftSw.update();      // 2
+    BackLeftSw.update();       // 3
+    BackRightSw.update();      // 4
+    RightSideLeftSw.update();  // 5
+    RightSideRightSw.update(); // 6
+    LeftSideLeftSw.update();   // 7
+    LeftSideRightSw.update();  // 8
+
+    if (!(FrontLeftSw.read() && FrontRightSw.read() ==0))
     {
-        FrontLeftSw = Bounce();
-        FrontRightSw = Bounce();
-        BackRightSw = Bounce();
-        BackLeftSw = Bounce();
-        RightSideRightSw = Bounce();
-        RightSideLeftSw = Bounce();
-        LeftSideRightSw = Bounce();
-        LeftSideLeftSw = Bounce();
 
-        pinMode(FRONT_LEFT_SWITCH, INPUT_PULLUP);
-        pinMode(FRONT_RIGHT_SWITCH, INPUT_PULLUP);
-        pinMode(RIGHTSIDE_LEFT_SWITCH, INPUT_PULLUP);
-        pinMode(RIGHTSIDE_RIGHT_SWITCH, INPUT_PULLUP);
-        pinMode(LEFTSIDE_LEFT_SWITCH, INPUT_PULLUP);
-        pinMode(LEFTSIDE_RIGHT_SWITCH, INPUT_PULLUP);
-        pinMode(RIGHTSIDE_RIGHT_SWITCH, INPUT_PULLUP);
-        pinMode(BACK_RIGHT_SWITCH, INPUT_PULLUP);
-        pinMode(BACK_LEFT_SWTICH, INPUT_PULLUP);
-        FrontRightSw.attach(FRONT_RIGHT_SWITCH); // 1
-        FrontRightSw.interval(DEBOUNCE_TIME);
-        FrontLeftSw.attach(FRONT_LEFT_SWITCH); // 2
-        FrontLeftSw.interval(DEBOUNCE_TIME);
-        BackRightSw.attach(BACK_RIGHT_SWITCH); // 3
-        BackRightSw.interval(DEBOUNCE_TIME);
-        BackLeftSw.attach(BACK_LEFT_SWTICH); // 3
-        BackLeftSw.interval(DEBOUNCE_TIME);
-        RightSideRightSw.attach(RIGHTSIDE_RIGHT_SWITCH); // 4
-        RightSideRightSw.interval(DEBOUNCE_TIME);
-        RightSideLeftSw.attach(RIGHTSIDE_LEFT_SWITCH); // 5
-        RightSideLeftSw.interval(DEBOUNCE_TIME);
-        LeftSideRightSw.attach(LEFTSIDE_RIGHT_SWITCH); // 6
-        LeftSideRightSw.interval(DEBOUNCE_TIME);
-        LeftSideLeftSw.attach(LEFTSIDE_LEFT_SWITCH); // 6
-        LeftSideLeftSw.interval(DEBOUNCE_TIME);
-    }
-
-    void SwitchesProcess(void)
+      SwitchesState = FRONT_PRESSED;
+    } else
+    if (!(BackLeftSw.read() && BackRightSw.read()))
     {
-        // Serial.println("SwitchesProcess");
-        FrontRightSw.update();     // 1
-        FrontLeftSw.update();      // 2
-        BackLeftSw.update();       // 3
-        BackRightSw.update();      // 4
-        RightSideLeftSw.update();  // 5
-        RightSideRightSw.update(); // 6
-        LeftSideLeftSw.update();   // 7
-        LeftSideRightSw.update();  // 8
 
-        if ((FrontLeftSw.read() == 0) && (FrontRightSw.read() == 0))
-        {
-          SwitchesState = FRONT_PRESSED;
-        };
-        if (!(BackLeftSw.read() && BackRightSw.read()))
-        {
-          SwitchesState = BACK_PRESSED;
-        };
-        if (!(RightSideLeftSw.read() && RightSideRightSw.read()))
-        {
-          SwitchesState = RIGHT_PRESSED;
-        };
-        if (!(LeftSideLeftSw.read() && LeftSideRightSw.read()))
-        {
-          SwitchesState = LEFT_PRESSED;
-        
-        };
-    };
-    void PrintPosition(){
-        Serial.println("SwitchesState: ");
-        Serial.println(" ");
-        Serial.print("FrontRightSw: ");
-        Serial.println(FrontRightSw.read());
-        Serial.print("FrontLeftSw: ");
-        Serial.println(FrontLeftSw.read());
-        Serial.print("BackLeftSw: ");
-        Serial.println(BackLeftSw.read());
-        Serial.print("BackRightSw: ");
-        Serial.println(BackRightSw.read());
-        Serial.print("RightSideLeftSw: ");
-        Serial.println(RightSideLeftSw.read());
-        Serial.print("RightSideRightSw: ");
-        Serial.println(RightSideRightSw.read());
-        Serial.print("LeftSideLeftSw: ");
-        Serial.println(LeftSideLeftSw.read());
-        Serial.print("LeftSideRightSw: ");
-        Serial.println(LeftSideRightSw.read());
+      SwitchesState = BACK_PRESSED;
+    } else
+    if (!(RightSideLeftSw.read() && RightSideRightSw.read()))
+    {
+
+      SwitchesState = RIGHT_PRESSED;
+    } else
+    if (!(LeftSideLeftSw.read() && LeftSideRightSw.read()))
+    {
+
+      SwitchesState = LEFT_PRESSED;
+    } else
+    {
+      SwitchesState = NONE_PRESSED;
     }
-    char CheckBumperState(void){
+  };
+  void PrintPosition()
+  {
+    Serial.println("SwitchesState: ");
+    Serial.println(" ");
+    Serial.print("FrontRightSw: ");
+    Serial.println(FrontRightSw.read());
+    Serial.print("FrontLeftSw: ");
+    Serial.println(FrontLeftSw.read());
+    Serial.print("BackLeftSw: ");
+    Serial.println(BackLeftSw.read());
+    Serial.print("BackRightSw: ");
+    Serial.println(BackRightSw.read());
+    Serial.print("RightSideLeftSw: ");
+    Serial.println(RightSideLeftSw.read());
+    Serial.print("RightSideRightSw: ");
+    Serial.println(RightSideRightSw.read());
+    Serial.print("LeftSideLeftSw: ");
+    Serial.println(LeftSideLeftSw.read());
+    Serial.print("LeftSideRightSw: ");
+    Serial.println(LeftSideRightSw.read());
+  }
 
-        // This function returns 0 if none of the switches are pressed, it returns 1 if the front is pressed, and so on.
-        // The position  of the bot is accessed via ThetaXY[3][1];
-        // To check that a switch is really "pressed", we will check if we are within SWITCH_THRESHOLD of X_MAX, X_MIN, Y_MAX or Y_MIN;
-        // as well as if both switches on that side are pressed.
-
-        if((FrontLeftSw.read() == 0) && (FrontRightSw.read()==0)){
-           return FRONT_PRESSED;
-        };
-        if(!(BackLeftSw.read() && BackRightSw.read())){
-           return BACK_PRESSED;
-        };
-        if(!(RightSideLeftSw.read() && RightSideRightSw.read())){
-           return RIGHT_PRESSED;
-        };
-        if(!(LeftSideLeftSw.read() && LeftSideRightSw.read())){
-           return LEFT_PRESSED;
-        };
-        return 0;
-    };
 };
 
 class TOFArray
 {
 private:
-    struct TOFData_mm
-    {
-        uint16_t FrontBigTOFMeasurementmm = 0;
-        uint16_t BackTOFMeasurementmm = 0;
-        uint16_t RightTOFMeasurementmm = 0;
-        uint16_t LeftTOFMeasurementmm = 0;
-        VL53L0X_RangingMeasurementData_t FrontSmallTOFMeasurementmm;
-        VL53L0X_RangingMeasurementData_t BackSmallTOFMeasurementmm;
-        VL53L0X_RangingMeasurementData_t RightSmallTOFMeasurementmm;
-        VL53L0X_RangingMeasurementData_t LeftSmallTOFMeasurementmm;
-    };
-    Adafruit_VL53L1X BigTOF_Front;
-    Adafruit_VL53L1X BigTOF_Back;
-    Adafruit_VL53L1X BigTOF_Right;
-    Adafruit_VL53L1X BigTOF_Left;
-    Adafruit_VL53L0X SmallTOF_Front;
-    Adafruit_VL53L0X SmallTOF_Back;
-    Adafruit_VL53L0X SmallTOF_Right;
-    Adafruit_VL53L0X SmallTOF_Left;
-    TOFData_mm TOFData;
+  struct TOFData_mm
+  {
+    uint16_t FrontBigTOFMeasurementmm = 0;
+    uint16_t BackTOFMeasurementmm = 0;
+    uint16_t RightTOFMeasurementmm = 0;
+    uint16_t LeftTOFMeasurementmm = 0;
+    VL53L0X_RangingMeasurementData_t FrontSmallTOFMeasurementmm;
+    VL53L0X_RangingMeasurementData_t BackSmallTOFMeasurementmm;
+    VL53L0X_RangingMeasurementData_t RightSmallTOFMeasurementmm;
+    VL53L0X_RangingMeasurementData_t LeftSmallTOFMeasurementmm;
+  };
+  Adafruit_VL53L1X BigTOF_Front;
+  Adafruit_VL53L1X BigTOF_Back;
+  Adafruit_VL53L1X BigTOF_Right;
+  Adafruit_VL53L1X BigTOF_Left;
+  Adafruit_VL53L0X SmallTOF_Front;
+  Adafruit_VL53L0X SmallTOF_Back;
+  Adafruit_VL53L0X SmallTOF_Right;
+  Adafruit_VL53L0X SmallTOF_Left;
+  TOFData_mm TOFData;
 
 public:
-    TOFArray()
-    { // CONSTRUCTOR
+  TOFArray()
+  { // CONSTRUCTOR
 
-        //   Wire.begin();
-        BigTOF_Front = Adafruit_VL53L1X(XSHUT_PIN1, 4);
-        BigTOF_Back = Adafruit_VL53L1X(XSHUT_PIN2, 5);
-        BigTOF_Right = Adafruit_VL53L1X(XSHUT_PIN3, 6);
-        BigTOF_Left = Adafruit_VL53L1X(XSHUT_PIN4, 7);
+    //   Wire.begin();
+    BigTOF_Front = Adafruit_VL53L1X(XSHUT_PIN1, 4);
+    BigTOF_Back = Adafruit_VL53L1X(XSHUT_PIN2, 5);
+    BigTOF_Right = Adafruit_VL53L1X(XSHUT_PIN3, 6);
+    BigTOF_Left = Adafruit_VL53L1X(XSHUT_PIN4, 7);
 
-        SmallTOF_Front = Adafruit_VL53L0X();
-        SmallTOF_Back = Adafruit_VL53L0X();
-        SmallTOF_Right = Adafruit_VL53L0X();
-        SmallTOF_Left = Adafruit_VL53L0X();
-    };
+    SmallTOF_Front = Adafruit_VL53L0X();
+    SmallTOF_Back = Adafruit_VL53L0X();
+    SmallTOF_Right = Adafruit_VL53L0X();
+    SmallTOF_Left = Adafruit_VL53L0X();
+  };
 
-    void setIDL0()
+  void setIDL0()
+  {
+    Serial.println("Secodn set of sensors");
+    // all reset
+    digitalWrite(SHT_LOX1, LOW);
+    digitalWrite(SHT_LOX2, LOW);
+    digitalWrite(SHT_LOX3, LOW);
+    digitalWrite(SHT_LOX4, LOW);
+    delay(10);
+    // all unreset
+    digitalWrite(SHT_LOX1, HIGH);
+    digitalWrite(SHT_LOX2, HIGH);
+    digitalWrite(SHT_LOX3, HIGH);
+    digitalWrite(SHT_LOX4, HIGH);
+    delay(10);
+
+    // activating LOX1
+    digitalWrite(SHT_LOX1, HIGH);
+    digitalWrite(SHT_LOX2, LOW);
+    digitalWrite(SHT_LOX3, LOW);
+    digitalWrite(SHT_LOX4, LOW);
+
+    // initing LOX1 (SMALL SENSORS)
+    if (!SmallTOF_Front.begin(LOX1_ADDRESS))
     {
-        Serial.println("Secodn set of sensors");
-        // all reset
-        digitalWrite(SHT_LOX1, LOW);
-        digitalWrite(SHT_LOX2, LOW);
-        digitalWrite(SHT_LOX3, LOW);
-        digitalWrite(SHT_LOX4, LOW);
-        delay(10);
-        // all unreset
-        digitalWrite(SHT_LOX1, HIGH);
-        digitalWrite(SHT_LOX2, HIGH);
-        digitalWrite(SHT_LOX3, HIGH);
-        digitalWrite(SHT_LOX4, HIGH);
-        delay(10);
+      Serial.println(F("Failed to boot first VL53L0X"));
+      while (1)
+        ;
+    };
+    delay(10);
 
-        // activating LOX1
-        digitalWrite(SHT_LOX1, HIGH);
-        digitalWrite(SHT_LOX2, LOW);
-        digitalWrite(SHT_LOX3, LOW);
-        digitalWrite(SHT_LOX4, LOW);
+    // activating LOX2
+    digitalWrite(SHT_LOX2, HIGH);
+    digitalWrite(SHT_LOX3, LOW);
+    digitalWrite(SHT_LOX4, LOW);
+    delay(10);
 
-        // initing LOX1 (SMALL SENSORS)
-        if (!SmallTOF_Front.begin(LOX1_ADDRESS))
-        {
-            Serial.println(F("Failed to boot first VL53L0X"));
-            while (1)
-                ;
-        };
-        delay(10);
-
-        // activating LOX2
-        digitalWrite(SHT_LOX2, HIGH);
-        digitalWrite(SHT_LOX3, LOW);
-        digitalWrite(SHT_LOX4, LOW);
-        delay(10);
-
-        // initing LOX2
-        if (!SmallTOF_Back.begin(LOX2_ADDRESS))
-        {
-            Serial.println(F("Failed to boot second VL53L0X"));
-            while (1)
-                ;
-        };
-
-        digitalWrite(SHT_LOX3, HIGH);
-        digitalWrite(SHT_LOX4, LOW);
-        delay(10);
-        // Initizlizing LOX3
-        if (!SmallTOF_Right.begin(LOX3_ADDRESS))
-        {
-            Serial.println(F("Failed to boot second VL53L0X"));
-            while (1)
-                ;
-        };
-        delay(10);
-
-        // activating LOX4
-        digitalWrite(SHT_LOX4, HIGH);
-        delay(10);
-        // Initializig LOX4
-        if (!SmallTOF_Left.begin(LOX4_ADDRESS))
-        {
-            Serial.println(F("Failed to boot second VL53L0X"));
-            while (1)
-                ;
-        };
+    // initing LOX2
+    if (!SmallTOF_Back.begin(LOX2_ADDRESS))
+    {
+      Serial.println(F("Failed to boot second VL53L0X"));
+      while (1)
+        ;
     };
 
-    void read_L0x_sensors()
+    digitalWrite(SHT_LOX3, HIGH);
+    digitalWrite(SHT_LOX4, LOW);
+    delay(10);
+    // Initizlizing LOX3
+    if (!SmallTOF_Right.begin(LOX3_ADDRESS))
+    {
+      Serial.println(F("Failed to boot second VL53L0X"));
+      while (1)
+        ;
+    };
+    delay(10);
+
+    // activating LOX4
+    digitalWrite(SHT_LOX4, HIGH);
+    delay(10);
+    // Initializig LOX4
+    if (!SmallTOF_Left.begin(LOX4_ADDRESS))
+    {
+      Serial.println(F("Failed to boot second VL53L0X"));
+      while (1)
+        ;
+    };
+  };
+
+  void read_L0x_sensors()
+  {
+
+    SmallTOF_Front.rangingTest(&TOFData.FrontSmallTOFMeasurementmm, false); // pass in 'true' to get debug data printout!
+    SmallTOF_Back.rangingTest(&TOFData.BackSmallTOFMeasurementmm, false);   // pass in 'true' to get debug data printout!
+    SmallTOF_Right.rangingTest(&TOFData.RightSmallTOFMeasurementmm, false); // pass in 'true' to get debug data printout!
+    SmallTOF_Left.rangingTest(&TOFData.LeftSmallTOFMeasurementmm, false);   // pass in 'true' to get debug data printout!
+
+    // print sensor one reading
+    Serial.print(F("1: "));
+    if (TOFData.FrontSmallTOFMeasurementmm.RangeStatus != 4)
+    { // if not out of range
+      Serial.println(TOFData.FrontSmallTOFMeasurementmm.RangeMilliMeter);
+    }
+    else
+    {
+      Serial.println(F("Out of range"));
+    };
+
+    Serial.print(F(" "));
+
+    // print sensor two reading
+    Serial.print(F("2: "));
+    if (TOFData.BackSmallTOFMeasurementmm.RangeStatus != 4)
+    {
+      Serial.println(TOFData.BackSmallTOFMeasurementmm.RangeMilliMeter);
+    }
+    else
+    {
+      Serial.println(F("Out of range"));
+    };
+
+    Serial.print(F(" "));
+    // print sensor three reading
+    Serial.print(F("3: "));
+    if (TOFData.RightSmallTOFMeasurementmm.RangeStatus != 4)
+    {
+      Serial.println(TOFData.RightSmallTOFMeasurementmm.RangeMilliMeter);
+    }
+    else
+    {
+      Serial.println(F("Out of range"));
+    };
+
+    // print sensor four reading
+    Serial.print(F("4: "));
+    if (TOFData.LeftSmallTOFMeasurementmm.RangeStatus != 4)
+    {
+      Serial.println(TOFData.LeftSmallTOFMeasurementmm.RangeMilliMeter);
+    }
+    else
+    {
+      Serial.println(F("Out of range"));
+    };
+  };
+
+  // Initializing the L1x sensors (BIG SENSORS)
+  void setIDL1()
+  {
+    Serial.println("First set of sensors");
+    Wire.begin();
+    delay(100);
+    Serial.println("Wire I2C initialized");
+    if (!BigTOF_Front.begin(L1X1_ADDRESS, &Wire))
+    {
+      Serial.print(F("Error on init of VL sensor: "));
+      Serial.println(BigTOF_Front.vl_status);
+      while (1)
+        delay(10);
+    };
+    Serial.print("First Sensor OK");
+
+    if (!BigTOF_Back.begin(L1X2_ADDRESS, &Wire))
+    {
+      Serial.print(F("Error on init of VL sensor: "));
+      Serial.println(BigTOF_Back.vl_status);
+      while (1)
+        delay(10);
+    };
+    if (!BigTOF_Right.begin(L1X3_ADDRESS, &Wire))
+    {
+      Serial.print(F("Error on init of VL sensor: "));
+      Serial.println(BigTOF_Right.vl_status);
+      while (1)
+        delay(10);
+    };
+    if (!BigTOF_Left.begin(L1X4_ADDRESS, &Wire))
+    {
+      Serial.print(F("Error on init of VL sensor: "));
+      Serial.println(BigTOF_Left.vl_status);
+      while (1)
+        delay(10);
+    };
+
+    Serial.println(F("VL53L1X sensors OK!"));
+
+    Serial.print(F("BigFront Sensor ID: 0x"));
+    Serial.println((BigTOF_Front).sensorID(), HEX);
+    Serial.print(F("BigBack Sensor ID: 0x"));
+    Serial.println((BigTOF_Back).sensorID(), HEX);
+    Serial.print(F("BigRight Sensor ID: 0x"));
+    Serial.println((BigTOF_Right).sensorID(), HEX);
+    Serial.print(F("BigLeft Sensor ID: 0x"));
+    Serial.println((BigTOF_Left).sensorID(), HEX);
+
+    if (!BigTOF_Front.startRanging())
+    {
+      Serial.print(F("Couldn't start ranging: "));
+      Serial.println(BigTOF_Front.vl_status);
+      while (1)
+        delay(10);
+    };
+    if (!BigTOF_Back.startRanging())
+    {
+      Serial.print(F("Couldn't start ranging: "));
+      Serial.println(BigTOF_Back.vl_status);
+      while (1)
+        delay(10);
+    };
+
+    if (!BigTOF_Right.startRanging())
+    {
+      Serial.print(F("Couldn't start ranging: "));
+      Serial.println(BigTOF_Right.vl_status);
+      while (1)
+        delay(10);
+    };
+    if (!BigTOF_Left.startRanging())
+    {
+      Serial.print(F("Couldn't start ranging: "));
+      Serial.println(BigTOF_Left.vl_status);
+      while (1)
+        delay(10);
+    };
+    Serial.println(F("Ranging started"));
+
+    // Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
+    BigTOF_Front.setTimingBudget(50);
+    BigTOF_Back.setTimingBudget(50);
+    BigTOF_Right.setTimingBudget(50);
+    BigTOF_Left.setTimingBudget(50);
+    Serial.print(F("Timing budget (ms): "));
+    Serial.println(BigTOF_Front.getTimingBudget());
+    Serial.println(BigTOF_Back.getTimingBudget());
+    Serial.println(BigTOF_Right.getTimingBudget());
+    Serial.println(BigTOF_Left.getTimingBudget());
+  };
+  void TOFSensorTest()
+  {
+    int16_t distance;
+    int16_t distance1;
+
+    if (BigTOF_Front.dataReady())
+    {
+      // new measurement for the taking!
+      distance = BigTOF_Front.distance();
+      if (distance == -1)
+      {
+        // something went wrong!
+        Serial.print(F("Couldn't get distance: "));
+        Serial.println(BigTOF_Front.vl_status);
+        return;
+      }
+      Serial.print(F("Distance: "));
+      Serial.print(distance);
+      Serial.println(" mm");
+
+      // data is read out, time for another reading!
+      BigTOF_Front.clearInterrupt();
+    };
+    if (BigTOF_Back.dataReady())
+    {
+      // new measurement for the taking!
+      distance1 = BigTOF_Back.distance();
+      if (distance1 == -1)
+      {
+        // something went wrong!
+        Serial.print(F("Couldn't get distance: "));
+        Serial.println(BigTOF_Back.vl_status);
+        return;
+      }
+      Serial.print(F("Distance: "));
+      Serial.print(distance1);
+      Serial.println(" mm");
+
+      // data is read out, time for another reading!
+      BigTOF_Back.clearInterrupt();
+    };
+    if (BigTOF_Right.dataReady())
+    {
+      // new measurement for the taking!
+      distance1 = BigTOF_Right.distance();
+      if (distance1 == -1)
+      {
+        // something went wrong!
+        Serial.print(F("Couldn't get distance: "));
+        Serial.println(BigTOF_Right.vl_status);
+        return;
+      }
+      Serial.print(F("Distance: "));
+      Serial.print(distance1);
+      Serial.println(" mm");
+
+      // data is read out, time for another reading!
+      BigTOF_Right.clearInterrupt();
+    };
+    if (BigTOF_Left.dataReady())
+    {
+      // new measurement for the taking!
+      distance1 = BigTOF_Left.distance();
+      if (distance1 == -1)
+      {
+        // something went wrong!
+        Serial.print(F("Couldn't get distance: "));
+        Serial.println(BigTOF_Left.vl_status);
+        return;
+      }
+      Serial.print(F("Distance: "));
+      Serial.print(distance1);
+      Serial.println(" mm");
+
+      // data is read out, time for another reading!
+      BigTOF_Left.clearInterrupt();
+    };
+  };
+
+  void InitializeTOFs()
+  {
+    // Serial.begin(115200);
+
+    Serial.println(F("Adafruit VL53L1X sensor demo"));
+    setIDL1();
+    setIDL0();
+    read_L0x_sensors();
+
+    byte count = 0;
+
+    for (byte i = 1; i < 120; i++)
     {
 
-        SmallTOF_Front.rangingTest(&TOFData.FrontSmallTOFMeasurementmm, false); // pass in 'true' to get debug data printout!
-        SmallTOF_Back.rangingTest(&TOFData.BackSmallTOFMeasurementmm, false);   // pass in 'true' to get debug data printout!
-        SmallTOF_Right.rangingTest(&TOFData.RightSmallTOFMeasurementmm, false); // pass in 'true' to get debug data printout!
-        SmallTOF_Left.rangingTest(&TOFData.LeftSmallTOFMeasurementmm, false);   // pass in 'true' to get debug data printout!
+      Wire.beginTransmission(i);
+      if (Wire.endTransmission() == 0)
+      {
+        Serial.print("Found address: ");
+        Serial.print(i, DEC);
+        Serial.print(" (0x");
+        Serial.print(i, HEX);
+        Serial.println(")");
+        count++;
+        delay(1); // maybe unneeded?
+      };          // end of good response
+    };            // end of for loop
+    Serial.println("Done.");
+    Serial.print("Found ");
+    Serial.print(count, DEC);
+    Serial.println(" device(s).");
 
-        // print sensor one reading
-        Serial.print(F("1: "));
-        if (TOFData.FrontSmallTOFMeasurementmm.RangeStatus != 4)
-        { // if not out of range
-            Serial.println(TOFData.FrontSmallTOFMeasurementmm.RangeMilliMeter);
-        }
-        else
-        {
-            Serial.println(F("Out of range"));
-        };
-
-        Serial.print(F(" "));
-
-        // print sensor two reading
-        Serial.print(F("2: "));
-        if (TOFData.BackSmallTOFMeasurementmm.RangeStatus != 4)
-        {
-            Serial.println(TOFData.BackSmallTOFMeasurementmm.RangeMilliMeter);
-        }
-        else
-        {
-            Serial.println(F("Out of range"));
-        };
-
-        Serial.print(F(" "));
-        // print sensor three reading
-        Serial.print(F("3: "));
-        if (TOFData.RightSmallTOFMeasurementmm.RangeStatus != 4)
-        {
-            Serial.println(TOFData.RightSmallTOFMeasurementmm.RangeMilliMeter);
-        }
-        else
-        {
-            Serial.println(F("Out of range"));
-        };
-
-        // print sensor four reading
-        Serial.print(F("4: "));
-        if (TOFData.LeftSmallTOFMeasurementmm.RangeStatus != 4)
-        {
-            Serial.println(TOFData.LeftSmallTOFMeasurementmm.RangeMilliMeter);
-        }
-        else
-        {
-            Serial.println(F("Out of range"));
-        };
-    };
-
-    // Initializing the L1x sensors (BIG SENSORS)
-    void setIDL1()
-    {
-        Serial.println("First set of sensors");
-        Wire.begin();
-        delay(100);
-        Serial.println("Wire I2C initialized");
-        if (!BigTOF_Front.begin(L1X1_ADDRESS, &Wire))
-        {
-            Serial.print(F("Error on init of VL sensor: "));
-            Serial.println(BigTOF_Front.vl_status);
-            while (1)
-                delay(10);
-        };
-        Serial.print("First Sensor OK");
-
-        if (!BigTOF_Back.begin(L1X2_ADDRESS, &Wire))
-        {
-            Serial.print(F("Error on init of VL sensor: "));
-            Serial.println(BigTOF_Back.vl_status);
-            while (1)
-                delay(10);
-        };
-        if (!BigTOF_Right.begin(L1X3_ADDRESS, &Wire))
-        {
-            Serial.print(F("Error on init of VL sensor: "));
-            Serial.println(BigTOF_Right.vl_status);
-            while (1)
-                delay(10);
-        };
-        if (!BigTOF_Left.begin(L1X4_ADDRESS, &Wire))
-        {
-            Serial.print(F("Error on init of VL sensor: "));
-            Serial.println(BigTOF_Left.vl_status);
-            while (1)
-                delay(10);
-        };
-
-        Serial.println(F("VL53L1X sensors OK!"));
-
-        Serial.print(F("BigFront Sensor ID: 0x"));
-        Serial.println((BigTOF_Front).sensorID(), HEX);
-        Serial.print(F("BigBack Sensor ID: 0x"));
-        Serial.println((BigTOF_Back).sensorID(), HEX);
-        Serial.print(F("BigRight Sensor ID: 0x"));
-        Serial.println((BigTOF_Right).sensorID(), HEX);
-        Serial.print(F("BigLeft Sensor ID: 0x"));
-        Serial.println((BigTOF_Left).sensorID(), HEX);
-
-        if (!BigTOF_Front.startRanging())
-        {
-            Serial.print(F("Couldn't start ranging: "));
-            Serial.println(BigTOF_Front.vl_status);
-            while (1)
-                delay(10);
-        };
-        if (!BigTOF_Back.startRanging())
-        {
-            Serial.print(F("Couldn't start ranging: "));
-            Serial.println(BigTOF_Back.vl_status);
-            while (1)
-                delay(10);
-        };
-
-        if (!BigTOF_Right.startRanging())
-        {
-            Serial.print(F("Couldn't start ranging: "));
-            Serial.println(BigTOF_Right.vl_status);
-            while (1)
-                delay(10);
-        };
-        if (!BigTOF_Left.startRanging())
-        {
-            Serial.print(F("Couldn't start ranging: "));
-            Serial.println(BigTOF_Left.vl_status);
-            while (1)
-                delay(10);
-        };
-        Serial.println(F("Ranging started"));
-
-        // Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
-        BigTOF_Front.setTimingBudget(50);
-        BigTOF_Back.setTimingBudget(50);
-        BigTOF_Right.setTimingBudget(50);
-        BigTOF_Left.setTimingBudget(50);
-        Serial.print(F("Timing budget (ms): "));
-        Serial.println(BigTOF_Front.getTimingBudget());
-        Serial.println(BigTOF_Back.getTimingBudget());
-        Serial.println(BigTOF_Right.getTimingBudget());
-        Serial.println(BigTOF_Left.getTimingBudget());
-    };
-    void TOFSensorTest()
-    {
-        int16_t distance;
-        int16_t distance1;
-
-        if (BigTOF_Front.dataReady())
-        {
-            // new measurement for the taking!
-            distance = BigTOF_Front.distance();
-            if (distance == -1)
-            {
-                // something went wrong!
-                Serial.print(F("Couldn't get distance: "));
-                Serial.println(BigTOF_Front.vl_status);
-                return;
-            }
-            Serial.print(F("Distance: "));
-            Serial.print(distance);
-            Serial.println(" mm");
-
-            // data is read out, time for another reading!
-            BigTOF_Front.clearInterrupt();
-        };
-        if (BigTOF_Back.dataReady())
-        {
-            // new measurement for the taking!
-            distance1 = BigTOF_Back.distance();
-            if (distance1 == -1)
-            {
-                // something went wrong!
-                Serial.print(F("Couldn't get distance: "));
-                Serial.println(BigTOF_Back.vl_status);
-                return;
-            }
-            Serial.print(F("Distance: "));
-            Serial.print(distance1);
-            Serial.println(" mm");
-
-            // data is read out, time for another reading!
-            BigTOF_Back.clearInterrupt();
-        };
-        if (BigTOF_Right.dataReady())
-        {
-            // new measurement for the taking!
-            distance1 = BigTOF_Right.distance();
-            if (distance1 == -1)
-            {
-                // something went wrong!
-                Serial.print(F("Couldn't get distance: "));
-                Serial.println(BigTOF_Right.vl_status);
-                return;
-            }
-            Serial.print(F("Distance: "));
-            Serial.print(distance1);
-            Serial.println(" mm");
-
-            // data is read out, time for another reading!
-            BigTOF_Right.clearInterrupt();
-        };
-        if (BigTOF_Left.dataReady())
-        {
-            // new measurement for the taking!
-            distance1 = BigTOF_Left.distance();
-            if (distance1 == -1)
-            {
-                // something went wrong!
-                Serial.print(F("Couldn't get distance: "));
-                Serial.println(BigTOF_Left.vl_status);
-                return;
-            }
-            Serial.print(F("Distance: "));
-            Serial.print(distance1);
-            Serial.println(" mm");
-
-            // data is read out, time for another reading!
-            BigTOF_Left.clearInterrupt();
-        };
-    };
-
-    void InitializeTOFs()
-    {
-        // Serial.begin(115200);
-
-        Serial.println(F("Adafruit VL53L1X sensor demo"));
-        setIDL1();
-        setIDL0();
-        read_L0x_sensors();
-
-        byte count = 0;
-
-        for (byte i = 1; i < 120; i++)
-        {
-
-            Wire.beginTransmission(i);
-            if (Wire.endTransmission() == 0)
-            {
-                Serial.print("Found address: ");
-                Serial.print(i, DEC);
-                Serial.print(" (0x");
-                Serial.print(i, HEX);
-                Serial.println(")");
-                count++;
-                delay(1); // maybe unneeded?
-            };            // end of good response
-        };                // end of for loop
-        Serial.println("Done.");
-        Serial.print("Found ");
-        Serial.print(count, DEC);
-        Serial.println(" device(s).");
-
-        /*
-        vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
-        vl.VL53L1X_SetInterruptPolarity(0);
-    */
-    };
+    /*
+    vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
+    vl.VL53L1X_SetInterruptPolarity(0);
+*/
+  };
 };
 // SMALL TOF SENSORS NEED TO BE IMPLEMENTED
 /*

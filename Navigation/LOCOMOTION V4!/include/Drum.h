@@ -79,14 +79,14 @@ private:
         // If we are already passed this angle then we have to spin all the way to reset and go back.
         if (rotChoice)
         {
-            int angle = SlotAng - CurrAngle;
-            int steps = RadToSteps() * angle;
+          //  int angle = SlotAng - CurrAngle;
+         //   int steps = RadToSteps() * angle;
             // TODO: DrumStepper move to steps
         }
         else
         {
-            int angle = (2 * M_PI - CurrAngle) + SlotAng;
-            int steps = RadToSteps() * angle;
+          //  int angle = (2 * M_PI - CurrAngle) + SlotAng;
+        //    int steps = RadToSteps() * angle;
             // TODO: DrumStepper move to steps
         };
     }
