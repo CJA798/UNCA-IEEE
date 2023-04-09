@@ -45,6 +45,16 @@
 #define InGreenAng (5)
 #define InRedAng (6)
 
+
+//These are the Values in radians for positions
+#define Position_In_1(0)
+#define Position_In_2(1.076257283)
+#define Position_In_3(2.511266994)
+#define Position_In_4(3.22877185)
+#define Position_In_5(4.663781561)
+#define Position_In_6(5.381286416)
+
+
 #define OutYellowAng1 (7)
 #define OutYellowAng2 (8)
 #define OutPinkAng (9)
@@ -73,39 +83,59 @@ private:
         return StepsPerRad;
     }
 
-    void doRotation(int SlotAng, bool rotChoice)
+
+
+    //modify this function for loading only
+    //int doRotation(int SlotAng, bool rotChoice)
+    int doRotation(int NewPosition )
     {
         // The plan is that if we aren't currently spun to this angle then we move the amount to get there.
         // If we are already passed this angle then we have to spin all the way to reset and go back.
-        if (rotChoice)
-        {
-          //  int angle = SlotAng - CurrAngle;
-         //   int steps = RadToSteps() * angle;
+        //if (rotChoice)
+       // {
+
+
+
+            int CurrAngle = Position_In_6 - NewAngle;
+            int steps = RadToSteps() * CurrAngle;
+            //rotate to this angle by giving steps to Chase
+            motor.setTargetAbs(steps);
+            
+
+
+
+
+            //int angle = SlotAng - CurrAngle;
+            //int steps = RadToSteps() * angle;
             // TODO: DrumStepper move to steps
-        }
+        //}
+        /*
         else
         {
-          //  int angle = (2 * M_PI - CurrAngle) + SlotAng;
-        //    int steps = RadToSteps() * angle;
+            int angle = (2 * M_PI - CurrAngle) + SlotAng;
+            int steps = RadToSteps() * angle;
             // TODO: DrumStepper move to steps
-        };
+        }
+        */
     }
 
 public:
     Drum() : DrumStepper(STORAGE_MTRDIR, STORAGE_MTRSTEP) // CONDSTRUCTOR
 
-    {
+             {
         DrumStepper
             .setMaxSpeed(1000)
             .setAcceleration(1000);
 
         // Add whatever code u want to run when the drum object is constructed
-    };
+             };
     void HomeDrumStepper(void)
     { // Call and I will home the stepper. Blocking (returns after stepper is homed)
         DrumStepper.setTargetRel(262);
         DrumController.move(DrumStepper);
-    };
+    }
+
+    //FOR LOADING ONLY
     void moveDrumToLocation(char move)
     {
         switch (move)
@@ -116,33 +146,35 @@ public:
             // Or it will be more than.
             // If the item is more than then we will zero out the drum and move to
             // Next item. If not then we just move to the next item.
-            doRotation(InYellowAng1, CurrAngle <= InYellowAng1);
+            doRotation(Position_In_2);
+            //CurrAngle = InYellowAng1;
             break;
 
         case InYellowDuck2:
-            doRotation(InYellowAng2, CurrAngle <= InYellowAng2);
+            doRotation(Position_In_4);
 
             break;
 
         case InPinkDuck:
-            doRotation(InPinkAng, CurrAngle <= InPinkAng);
+            doRotation(Position_In_3);
 
             break;
 
         case InWhiteColumn:
-            doRotation(InWhiteAng, CurrAngle <= InWhiteAng);
+            doRotation(Position_In_1);
             break;
 
         case InGreenColumn:
-            doRotation(InGreenAng, CurrAngle <= InGreenAng);
+            doRotation(Position_In_5);
             break;
 
         case InRedColumn:
-            doRotation(InRedAng, CurrAngle <= InRedAng);
+            doRotation(Position_In_6);
 
             break;
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // This is the out cases of the case statement
+        //Dont worry about this right now
         case OutYellowDuck1:
             doRotation(OutYellowAng1, CurrAngle <= OutYellowAng1);
             break;
