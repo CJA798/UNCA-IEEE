@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <Navigation.h>
-#include <Drum.h>
 #define SERIAL_CHAR_STORAGAE_LENGTH 15
 char InputBit[15] = {0};
 class USBSerial
@@ -23,15 +22,11 @@ public:
       Serial.println();
     };
   };
-
-private:
 };
-DriverObject Driver;
-Drum StorageDrum;
 USBSerial LaptopSerial;
 int State = 0;
 char MegaState = 0;
-
+DriverObject Driver;
 void NavStateMachine(void)
 {
   switch (State)
@@ -80,19 +75,25 @@ void NavStateMachine(void)
 };
 void setup()
 {
+  Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
   digitalWrite(LED_BUILTIN, LOW);
-  LaptopSerial = USBSerial();
+  Serial.print("Starting up");
+  Drum.HomeDrumStepper();
 };
 
 void loop()
 {
-  Driver.BumperProcess();
-  LaptopSerial.SerialProcess();
-  switch (MegaState)
-  {
-  case 0: // DO NOTHING
-    digitalWrite(LED_BUILTIN, HIGH);
-    break;
-  }
+  DrumState = 0;
+  // Driver.Process();
+  item = InYellowDuck2;
+  Drum.doRotation();
+  // switch (MegaState)
+  // {
+  // case 0: // DO NOTHING
+  // digitalWrite(LED_BUILTIN, HIGH);
+  //  break;
+  // }
 };

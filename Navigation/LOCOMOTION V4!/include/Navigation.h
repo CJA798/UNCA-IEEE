@@ -1,13 +1,11 @@
 #include <macros.h>
 #include <TeensyStep.h>
 #include <math.h>
-#include <Coordinates.h>
-#include <Map.h>
+#include<Drum.h>
 #include <Ports.h>
-#include <iostream>
+//#include <iostream>
 #include <MiscFunctions.h>
-#include <iostream>
-#include <array>
+
 #include <Sensors.h>
 using namespace std;
 bool debug = false;
@@ -24,11 +22,13 @@ char NavState = IDLE; // A nav state of 0 means the bot is not moving. A nav sta
 bool IsMoving = IDLE;
 char MoveState = IDLE;
 char ComplexMoveState = IDLE;
+
+bool ComplexMoveStarted = IDLE;
+
+StorageDrum Drum;
 Orientation BotOrientation;
 BumperSwitches Bumpers;
 elapsedMillis MoveTimer;
-bool ComplexMoveStarted = IDLE;
-
 class DriverObject
 {
 
@@ -41,8 +41,7 @@ public:
                    Controller()
 
   // MUST PASS CONSTRUCTOR OBJECTS FROM THE CONTROLLER CLASS
-  {
-    Bumpers = BumperSwitches();
+  { 
     motor_1
         .setMaxSpeed(MAX_MTR_SPEED)      // steps/s
         .setAcceleration(MAX_MTR_ACCEL); // steps/s^2
@@ -62,14 +61,15 @@ public:
     {
       InputPose[i][0] = 0;
     };
-  }
-  void BumperProcess(void)
+  };
+
+  //
+  void Process(void)
   {
+    Drum.DrumProcess();
     Bumpers.SwitchesProcess();
     if (SwitchesState == NONE_PRESSED)
     {
-      Serial.print("NoSwitchesPressed");
-      delay(1000);
       return;
     };
      Serial.print("SwitchesState: ");
@@ -316,9 +316,7 @@ public:
     }
     */
   void ComputeTranslation(void) // Process that will move the bot from BotOrientation to InputPose[3][1]. MoveState must be TRANSLATING to run.
-  //  Input is in form [ Theta ]
-  //                   [    X  ]
-  //                   [    Y  ]
+
   {
     if (MoveState != TRANSLATING)
     {

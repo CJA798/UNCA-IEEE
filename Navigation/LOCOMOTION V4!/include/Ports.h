@@ -12,6 +12,8 @@
 #define DEBOUNCE_TIME 10
 #define SCL_PIN 19
 #define SDA_PIN 18
+
+#define LIMIT_SWITCH_PIN (14)
 // STEPPER MOTOR PINOUT
 #define MTR1STEP (43)
 #define MTR1DIR (42)

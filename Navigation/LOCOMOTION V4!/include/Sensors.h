@@ -30,6 +30,7 @@ Bounce RightSideRightSw;
 Bounce RightSideLeftSw;
 Bounce LeftSideRightSw;
 Bounce LeftSideLeftSw;
+
 char SwitchesState = 4;
 bool ChangeInSwitchState = 0;
 double SwitchAngle = 0;
@@ -48,7 +49,7 @@ public:
     RightSideLeftSw = Bounce();
     LeftSideRightSw = Bounce();
     LeftSideLeftSw = Bounce();
-
+ 
     pinMode(FRONT_LEFT_SWITCH, INPUT_PULLUP);
     pinMode(FRONT_RIGHT_SWITCH, INPUT_PULLUP);
     pinMode(RIGHTSIDE_LEFT_SWITCH, INPUT_PULLUP);
@@ -58,6 +59,8 @@ public:
     pinMode(RIGHTSIDE_RIGHT_SWITCH, INPUT_PULLUP);
     pinMode(BACK_RIGHT_SWITCH, INPUT_PULLUP);
     pinMode(BACK_LEFT_SWTICH, INPUT_PULLUP);
+
+
     FrontRightSw.attach(FRONT_RIGHT_SWITCH); // 1
     FrontRightSw.interval(DEBOUNCE_TIME);
     FrontLeftSw.attach(FRONT_LEFT_SWITCH); // 2
