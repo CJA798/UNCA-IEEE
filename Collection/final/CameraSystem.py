@@ -13,6 +13,7 @@ from pycoral.adapters import classify
 class CameraSystem:
     def __init__(self):
         self._model = 'improv_12k_00EfficientDet_edgetpu.tflite'
+        self._class_model = 'model_edgetpu.tflite'
         #self._camera_id = 0
         #self._frame_width = 240
         #self._frame_height = 120
@@ -30,6 +31,7 @@ class CameraSystem:
         self.camera.configure(self._preview_config)
         self.camera.start()
         self.initialize_detector()
+        self.initialize_classifier()
 
         self.img_to_classify = None
     
@@ -39,6 +41,12 @@ class CameraSystem:
         detection_options = processor.DetectionOptions(max_results=self._max_results, score_threshold=self._score_threshold)
         options = vision.ObjectDetectorOptions(base_options=base_options, detection_options=detection_options)
         self._detector = vision.ObjectDetector.create_from_options(options)
+
+    def initialize_classifier(self):
+        base_options = core.BaseOptions(file_name=self._class_model, use_coral=self._enable_edgetpu, num_threads=self._num_threads)
+        classification_options = processor.ClassificationOptions(max_results=1, score_threshold=0.5)
+        options = vision.ImageClassifierOptions(base_options=base_options, classification_options=classification_options)
+        self._classifier = vision.ImageClassifier.create_from_options(options)
 
 
     def run_inference(self, image: np.ndarray):
@@ -243,22 +251,20 @@ class CameraSystem:
     
 
     def is_duck_standing(self):
-        ''' This function takes in a TFLite Interptere and Image, and returns classifications '''
+        ''' This method returns True if the duck on the flipper is standing '''
         image = self.img_to_classify
-        # Load model onto the TF Lite Interpreter
-        interpreter = make_interpreter('model_edgetpu.tflite')
-        interpreter.allocate_tensors()
-        labels = read_label_file('labels.txt')
+        # Convert the image from BGR to RGB as required by the TFLite model.
+        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # Create TensorImage from the RGB image
+        tensor_image = vision.TensorImage.create_from_array(rgb_image)
+        # List classification results
+        categories = self._classifier.classify(tensor_image)
+        
 
-        size = common.input_size(interpreter)
-        common.set_input(interpreter, cv2.resize(image, size, fx=0, fy=0,
-                                                interpolation=cv2.INTER_CUBIC))
-        interpreter.invoke()
-        results = classify.get_classes(interpreter)
-        print(f'Label: {labels[results[0].id]}, Score: {results[0].score}')
+        print(categories.classifications[0].categories)
 
          # Check if the image is classified as Flip or Push
-        if labels[results[0].id] == 'Push':
-            return True
-        else:
-            return False
+        #if labels[results[0].id] == 'Push':
+            #return True
+        #else:
+            #return False
