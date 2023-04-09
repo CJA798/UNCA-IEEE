@@ -1,9 +1,10 @@
 #include <macros.h>
 #include <TeensyStep.h>
 #include <math.h>
-#include<Drum.h>
+#include <Drum.h>
 #include <Ports.h>
-//#include <iostream>
+#include <Serial.h>
+// #include <iostream>
 #include <MiscFunctions.h>
 
 #include <Sensors.h>
@@ -41,7 +42,7 @@ public:
                    Controller()
 
   // MUST PASS CONSTRUCTOR OBJECTS FROM THE CONTROLLER CLASS
-  { 
+  {
     motor_1
         .setMaxSpeed(MAX_MTR_SPEED)      // steps/s
         .setAcceleration(MAX_MTR_ACCEL); // steps/s^2
@@ -66,19 +67,18 @@ public:
   //
   void Process(void)
   {
-   // Drum.DrumProcess();
     Bumpers.SwitchesProcess();
     if (SwitchesState == NONE_PRESSED)
     {
       return;
     };
-     Serial.print("SwitchesState: ");
-     Serial.println(SwitchesState);
+    Serial.print("SwitchesState: ");
+    Serial.println(SwitchesState);
     Controller.emergencyStop();
     if ((BotOrientation.Theta <= PI / 3) && (BotOrientation.Theta >= -(PI / 3)))
     { // We are pointed North
       //
-    
+
       switch (SwitchesState)
       {
       case FRONT_PRESSED:
@@ -176,26 +176,28 @@ public:
     SwitchesState = NONE_PRESSED;
     UpdateDesiredPose(0, 0, 0);
   };
-  void Nudge(char NorthSouthOrWest){
-    switch(NorthSouthOrWest){
-      case NORTH:
-      UpdateDesiredPose(BotOrientation.Theta,BotOrientation.X, BotOrientation.Y - 5);
+  void Nudge(char NorthSouthOrWest)
+  {
+    switch (NorthSouthOrWest)
+    {
+    case NORTH:
+      UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X, BotOrientation.Y - 5);
       ComputeTranslation();
       delay(100);
       break;
-      case SOUTH:
-      UpdateDesiredPose(BotOrientation.Theta,BotOrientation.X, BotOrientation.Y + 5);
+    case SOUTH:
+      UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X, BotOrientation.Y + 5);
       ComputeTranslation();
       break;
-      case WEST:
+    case WEST:
       UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X + 5, BotOrientation.Y);
       ComputeTranslation();
       break;
-      case EAST:
+    case EAST:
       UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X - 5, BotOrientation.Y);
       ComputeTranslation();
       break;
-      };
+    };
   };
   bool IsMoving(void)
   {
