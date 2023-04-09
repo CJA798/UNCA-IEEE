@@ -161,7 +161,7 @@ def sequenceForTower3(serial_stepper, robot: Robot):
 def outputSerial(serial_stepper, position):
     if DrumStatus == 0:
         serial.reset_output_buffer()
-        str_data = position
+        str_data = position + '\n'
         serial.write(str_data.encode())
         DrumStatus = 1
     elif DrumStatus == 1:
@@ -202,29 +202,36 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     #Flipper statuses and what it will be doing. The flipped case is ignored since it will need to consider the item for each case of flip or sweep
     if len(flipper_data) > 0 and flipper_status != FlipperStatus.ORIENTED:
         #Here I have to consider all of the ducks and columns
-        if flipper_data[0][0] <= 1:
-            if flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
-                #Orienting the duck
-                robot.CollectionSystem.Flipper.rotate_platform
-            else:
-                #Duck is oriented
-                robot.CollectionSystem.Flipper.stop_rotation
-                flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
-        elif flipper_data[0][0] >= 2:
-            if flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
-                #Orienting the Column
-                robot.CollectionSystem.Flipper.rotate_platform
-            else:
-                #Oriented
-                robot.CollectionSystem.Flipper.stop_rotation
-                flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
+        if flipper_data[0][0] == 0 and yellowDuckCounter == 2:
+            robot.CollectionSystem.Sweep.sweep
+        else:
+            if flipper_data[0][0] <= 1:
+                if flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
+                    #Orienting the duck
+                    robot.CollectionSystem.Flipper.rotate_platform
+                else:
+                    #Duck is oriented
+                    robot.CollectionSystem.Flipper.stop_rotation
+                    flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
+            elif flipper_data[0][0] >= 2:
+                if flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
+                    #Orienting the Column
+                    robot.CollectionSystem.Flipper.rotate_platform
+                else:
+                    #Oriented
+                    robot.CollectionSystem.Flipper.stop_rotation
+                    flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
     
     '''
     This area is for Carlos to determine whether the object needs to be sweeped or flipped into the elevator. 
     
     
     '''
-    #moveObject(robot, flipper_status)
+    if CameraSystem.is_duck_standing and flipper_status == FlipperStatus.ORIENTED:
+        robot.CollectionSystem.Sweep.push
+        flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.EMPTY
+    else:
+        robot.CollectionSystem.Flipper.flip_platform
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #elevator states
@@ -317,7 +324,7 @@ def drumSerial(item, serial_stepper, robot):
     
     if DrumStatus == 0:
         serial_stepper.reset_output_buffer()
-        str_data = position
+        str_data = position + '\n'
         serial_stepper.write(str_data.encode())
         DrumStatus = 1
     elif DrumStatus == 1:

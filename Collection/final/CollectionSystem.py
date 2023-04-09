@@ -3,6 +3,7 @@ from FlipperPlatform import Flipper
 from ElevatorPlatform import Elevator
 from PusherSystem import Pushers
 from BraceSystem import Brace
+from Sweeper import Sweeper
 
 
 class CollectionSystem:
@@ -13,6 +14,7 @@ class CollectionSystem:
         self.Elevator = Elevator()
         self.Pushers = Pushers()
         self.Brace = Brace()
+        self.Sweep = Sweeper()
 
 
 class CollectionStatus:
