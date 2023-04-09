@@ -28,7 +28,7 @@ class Brace:
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
         # Set initial brace position on instantiation
-        Brace.BraceInit(self)
+        self.BraceInit()
 
     #async def wait(self, duration: int):
     #   await asyncio.sleep(duration)

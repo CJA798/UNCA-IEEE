@@ -4,8 +4,8 @@ from pi_servo_hat import PiServoHat
 
 
 ''' TODO: CALIBRATE SERVO AND FIND VALUES '''
-_ROTATION_SERVO_CHANNEL = 0
-_FLIPPER_SERVO_CHANNEL = 1
+_ROTATION_SERVO_CHANNEL = 14
+_FLIPPER_SERVO_CHANNEL = 13
 
 _STOP_ORIENTATION = 107
 _START_ORIENTATION = 180
@@ -42,6 +42,7 @@ class Flipper:
         # Stop servos on instantiation
         self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ORIENTATION, _SWING)
         self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _RESET_FLIPPER, _SWING)
+        print("Initializing Flipper")
 
 
     async def wait(self, duration: int) -> None:
@@ -62,10 +63,10 @@ class Flipper:
     def flip_platform(self) -> None:
         ''' This method activates the flipping platform '''
         for i in range(0, -20, -1):
-            self.hat.move_servo_position(13, i)
+            self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, i)
             sleep(.01)
         for i in range(-20, 0, 1):
-            self.hat.move_servo_position(13, i)
+            self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, i)
             sleep(.01)
         
         self.set_status(FlipperStatus.EMPTY)

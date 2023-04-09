@@ -3,8 +3,8 @@ from time import sleep
 from pi_servo_hat import PiServoHat
 
 
-_ORIENTATION_SERVO_CHANNEL = 3
-_ELEVATOR_SERVO_CHANNEL = 4
+_ORIENTATION_SERVO_CHANNEL = 2
+_ELEVATOR_SERVO_CHANNEL = 1
 _STOP_ORIENTATION = 107
 _START_ORIENTATION = 180
 _SWING = 180
@@ -34,6 +34,7 @@ class Elevator():
         self.hat.set_pwm_frequency(50)
         # Lower elevator on instantiation
         self.lowerToGround()
+        print("Initialized Elevator")
     
     async def wait(self, duration: int):
         await asyncio.sleep(duration)
@@ -57,7 +58,7 @@ class Elevator():
         Raises the platform up to the duck location
         '''
         #The determined position of the servo for ground is -110
-        self.hat.move_servo_position(1, -48) # Push into Cylinder pos
+        self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, -48) # Push into Cylinder pos
         sleep(1)
         self.status = ElevatorStatus.RAISED
         
@@ -71,7 +72,7 @@ class Elevator():
         '''
         #The determined position of the servo for ground is 230
         self.setStatus(ElevatorStatus.READY)
-        self.hat.move_servo_position(1, 115) # return home elevader pos
+        self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 115) # return home elevader pos
         sleep(1)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

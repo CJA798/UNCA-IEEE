@@ -3,7 +3,7 @@ from pi_servo_hat import PiServoHat
 
 
 ''' TODO: CALIBRATE SERVO AND FIND VALUES'''
-_SWEEPER_SERVO_CHANNEL = 12
+_SWEEPER_SERVO_CHANNEL = 0
 _ROTATE_SWEEPER = 180
 _STOP_SWEEPER = 107
 
@@ -25,7 +25,7 @@ class Sweeper:
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
         # Stop servo on instantiation
-        self.hat.move_servo_position(_SWEEPER_SERVO_CHANNEL, _STOP_SWEEPER, _SWING)
+        self.reset_sweeper()
 
     ''' TODO: ADD ALL THE SWEEPER FUNCTIONS '''
     def reset_sweeper(self) -> None:

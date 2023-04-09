@@ -187,7 +187,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     #I will start from the beginning and move to the end. Should be easy...
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #The intake states that can happen and what will be happening.
-    if intake_status == IntakeStatus.INTAKE_OFF and len(flipper_data) < 1:
+    '''if intake_status == IntakeStatus.INTAKE_OFF and len(flipper_data) < 1:
         robot.CollectionSystem.Intake.StartIntake()
         robot.CollectionSystem.Intake.status = IntakeStatus.INTAKE_ON
     elif len(flipper_data) > 0:
@@ -195,7 +195,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         robot.CollectionSystem.Intake.status = IntakeStatus.INTAKE_OFF
     elif False:
         pass #We are just going to make a timing function for the intake if there is some kind of jam.
-    
+    '''
     '''Check how many ducks we have when this item is brought into the system. This function may need to be moved around to push out or in depending on the elevator'''
     if len(flipper_data) > 1:
         robot.CollectionSystem.Sweep.sweep()

@@ -5,8 +5,8 @@ from pi_servo_hat import PiServoHat
 
 ''' TODO: CALIBRATE SERVO AND FIND VALUES'''
 #call Pusher1 top and Pusher2 bottom(for Dennis)
-_TOP_PUSHER_SERVO_CHANNEL = 5
-_BOT_PUSHER_SERVO_CHANNEL = 6
+_TOP_PUSHER_SERVO_CHANNEL = 4
+_BOT_PUSHER_SERVO_CHANNEL = 5
 
 
 #class FlipperPlatformStatus:
@@ -34,6 +34,7 @@ class Pushers:
         # Stop servos on instantiation
         self.RetractPusherTop()
         self.RetractPusherBot()
+        print("Initializing Pushers")
 
     #Pusher 1 is for pillars
     def RetractPusherTop(self):
