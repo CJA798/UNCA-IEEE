@@ -14,7 +14,7 @@ from pycoral.adapters import classify
 class CameraSystem:
     def __init__(self):
         self._model = 'improv_12k_00EfficientDet_edgetpu.tflite'
-        self._class_model = 'model.tflite'
+        self._class_model = 'test_model.tflite'
         #self._camera_id = 0
         #self._frame_width = 240
         #self._frame_height = 120
