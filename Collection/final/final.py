@@ -256,7 +256,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     if elevator_status == ElevatorStatus.ORIENTED_OBJECT:
         '''Elevator needs to be updated to raise to a single position instead of having a duck raise and column raise'''
         robot.CollectionSystem.Elevator.raisePlatform
-        sleep(.25)
+        
         if elevator_data[0][0] == 0:
             yellowDuckCounter = yellowDuckCounter + 1
         if elevator_data[0][0] == 3:
@@ -275,11 +275,11 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         The pusher class needs to have two separate pushers. One for top and one for bottom. Those have their specified 
         functions that will move them independently'''
         robot.CollectionSystem.Pushers.LoadingPillarPusher
-        sleep(.25)
+        
         robot.CollectionSystem.Pushers.RetractPusherBot
-        sleep(.25)
+        
         robot.CollectionSystem.Elevator.lowerToGround
-        sleep(.25)
+        
         
         
     

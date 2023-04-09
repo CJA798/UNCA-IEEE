@@ -42,9 +42,18 @@ class Sweeper:
 
     def sweep(self) -> None:
         ''' This method runs the sweeping sequence '''
-        print("Stopping Sweeper")
+        self.hat.move_servo_position(0, 0) # fast kicking
+        sleep(5)
+        self.hat.move_servo_position(0, 50)
 
 
     def push(self) -> None:
         ''' This method starts the pushing sequence from flipper to elevator '''
-        print("Pushing to Elevator")
+        self.hat.move_servo_position(0, 80) # fast-ish pushing
+        sleep(1.5)
+        self.hat.move_servo_position(0, 50) # stops
+        sleep(1)
+        self.hat.move_servo_position(0, 0)
+        sleep(.77)
+        self.hat.move_servo_position(0, 50)
+        sleep(1)

@@ -1,4 +1,4 @@
-import time
+from import sleep
 import asyncio
 from pi_servo_hat import PiServoHat
 
@@ -28,36 +28,91 @@ class Brace:
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
         # Set initial brace position on instantiation
-        Brace.BraceClosed(self)
+        Brace.BraceInit(self)
 
     #async def wait(self, duration: int):
     #   await asyncio.sleep(duration)
 
 #opens brace
-    def BraceOpen(self):
-        self.set_status(BraceStatus.OPEN)
-        self.hat.move_servo_position(_BRACE_SERVO_CHANNEL, 180)
+    def BraceShake(self):
+        self.hat.move_servo_position(9, 10)
+        self.hat.move_servo_position(8, 5)
+        self.hat.sleep(0.5)
+        self.hat.move_servo_position(8, 0)
+        self.hat.move_servo_position(9, 5)
+        self.hat.sleep(0.5)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #closes brace
-    def BraceClosed(self):
-        self.set_status(BraceStatus.CLOSE)
-        self.hat.move_servo_position(_BRACE_SERVO_CHANNEL, -110)
+    def BraceActive(self):
+        for i in range(120, 0, -1):
+            self.hat.move_servo_position(8, i)
+            sleep(.005)
+        for i in range(52, 2, -1):
+            self.hat.move_servo_position(7, i)
+            sleep(.005)
+        for i in range(135, 10, -1):
+            self.hat.move_servo_position(9, i)
+            sleep(.005)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #moves hook to help with duck(not using currently) 
         #state: open or closed
         #value: from 240 to -110
-    def HookActivation(self):
-        self.set_status(BraceStatus.FILLING)
-        self.hat.move_servo_position(_HOOK_SERVO_CHANNEL, 230)
+    def BraceInit(self):
+        for i in range(10, 135, 1):
+            self.hat.move_servo_position(9, i)
+            sleep(.005)
+        for i in range(0, 53, 1):
+            self.hat.move_servo_position(7, i)
+            sleep(.005)
+        for i in range(0, 118, 1):
+            self.hat.move_servo_position(8, i)
+            sleep(.005)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 #done task
-    def CompletedTask(self):
-        self.set_status(BraceStatus.LETGO)
-        Brace.BraceOpen(self)
+    def twoTowerSet(self):
+        for i in range(10, 135, 1):
+            self.hat.move_servo_position(9, i)
+            sleep(.005)
+        for i in range(0, 53, 1):
+            self.hat.move_servo_position(7, i)
+            sleep(.005)
+        for i in range(0, 118, 1):
+            self.hat.move_servo_position(8, i)
+            sleep(.005)
+        for i in range(135, 10, -1):
+            self.hat.move_servo_position(9, i)
+            sleep(.005)
+
+# has to be in twoTowerSet to work
+    def twoTowerDrop(self):
+        for i in range(10, 135, 1):
+            self.hat.move_servo_position(9, i)
+            sleep(.005)
+
+    def twoTowerClose(self):
+        for i in range(135, 10, -1):
+            self.hat.move_servo_position(9, i)
+            sleep(.005)
+
+    def threeTowerDrop(self):
+        for i in range(10, 135, 1):
+            self.hat.move_servo_position(9, i)
+            sleep(.005)
+        for i in range(0, 118, 1):
+            self.hat.move_servo_position(8, i)
+            sleep(.005)
+
+    def threeTowerClose(self):
+        for i in range(120, 0, -1):
+            self.hat.move_servo_position(8, i)
+            sleep(.005)
+        for i in range(135, 10, -1):
+            self.hat.move_servo_position(9, i)
+            sleep(.005)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -76,8 +131,7 @@ class Brace:
         self.set.status(BraceStatus.BRACE_TOP_OPEN)
         self.hat.move_servo_position(_BRACE_TOP_SERVO_CHANNEL, 230)
         await self.wait(10)
-        #wait until intial time
-        self.set.status(BraceStatus.BRACE_TOP_CLOSING)
+        #wait until intial         self.set.status(BraceStatus.BRACE_TOP_CLOSING)
         self.hat.move_servo_position(_BRACE_TOP_SERVO_CHANNEL, -100) #not sure what the value is supposed to be
 
 
