@@ -61,13 +61,13 @@ void setup()
   //{
     delay(100);
  // };
-  State = 1;
+//  State = 1;
   Serial.println("STARTING");
-  delay(1000);
+ // delay(1000);
 };
 
 void loop(){
-
-  Driver.BumperProcess();
-  NavStateMachine();
+StorageDrum.TestRotation();
+ // Driver.BumperProcess();
+ // NavStateMachine();
 };

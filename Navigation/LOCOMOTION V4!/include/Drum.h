@@ -3,7 +3,6 @@
 #include <math.h>
 #include <macros.h>
 #include <Ports.h>
-#include <Navigation.h>
 
 /*I need to store the current angle of the bot in every move that I make
     CurrAngle
@@ -47,15 +46,13 @@
 #define InGreenAng (5)
 #define InRedAng (6)
 
-
-//These are the Values in radians for positions
-#define Position_In_1(0)
-#define Position_In_2(1.076257283)
-#define Position_In_3(2.511266994)
-#define Position_In_4(3.22877185)
-#define Position_In_5(4.663781561)
-#define Position_In_6(5.381286416)
-
+// These are the Values in radians for positions
+#define Position_In_1 (0)
+#define Position_In_2 (1.076257283)
+#define Position_In_3 (2.511266994)
+#define Position_In_4 (3.22877185)
+#define Position_In_5 (4.663781561)
+#define Position_In_6 (5.381286416)
 
 #define OutYellowAng1 (7)
 #define OutYellowAng2 (8)
@@ -63,7 +60,7 @@
 #define OutWhiteAng (10)
 #define OutGreenAng (11)
 #define OutRedAng (12)
-
+#define STEPS_PER_RAD_DRUM 2069
 class Drum
 {
 private:
@@ -71,6 +68,7 @@ private:
     int CurrAngle;
     Stepper DrumStepper;
     StepControl DrumController;
+    int DegreeCount;
     int RadToSteps()
     {
         /*Calculation for drum steps per rad
@@ -84,36 +82,28 @@ private:
         int StepsPerRad = StepsPerRotation / (2 * M_PI) * GearRatio;
         return StepsPerRad;
     }
+    
 
-
-
-    //modify this function for loading only
-    //int doRotation(int SlotAng, bool rotChoice)
+    // modify this function for loading only
+    // int doRotation(int SlotAng, bool rotChoice)
     int doRotation(int NewPosition, int pillar_or_duck)
     {
         // The plan is that if we aren't currently spun to this angle then we move the amount to get there.
         // If we are already passed this angle then we have to spin all the way to reset and go back.
-        //if (rotChoice)
-       // {
+        // if (rotChoice)
+        // {
 
+        int CurrAngle = Position_In_6 - NewPosition;
+        int steps = RadToSteps() * CurrAngle;
+        // rotate to this angle by giving steps to Chase
+        DrumStepper.setTargetAbs(steps);
+        DrumController.moveAsync(DrumStepper);
 
+        // Controller.isMoving();
 
-            int CurrAngle = Position_In_6 - NewPosition;
-            int steps = RadToSteps() * CurrAngle;
-            //rotate to this angle by giving steps to Chase
-            motor.setTargetAbs(steps);
-           // Controller.isMoving();
-            
-
-            
-
-
-
-
-
-            //int angle = SlotAng - CurrAngle;
-            //int steps = RadToSteps() * angle;
-            // TODO: DrumStepper move to steps
+        // int angle = SlotAng - CurrAngle;
+        // int steps = RadToSteps() * angle;
+        //  TODO: DrumStepper move to steps
         //}
         /*
         else
@@ -123,27 +113,63 @@ private:
             // TODO: DrumStepper move to steps
         }
         */
-    }
+        return 0;
+    };
 
 public:
-    Drum() : DrumStepper(STORAGE_MTRDIR, STORAGE_MTRSTEP) // CONDSTRUCTOR
+    Drum() : DrumStepper(STORAGE_MTRSTEP, STORAGE_MTRDIR) // CONDSTRUCTOR
 
-             {
+    {
         DrumStepper
             .setMaxSpeed(1000)
             .setAcceleration(1000);
 
         // Add whatever code u want to run when the drum object is constructed
-             };
+    };
     void HomeDrumStepper(void)
     { // Call and I will home the stepper. Blocking (returns after stepper is homed)
         DrumStepper.setTargetRel(262);
         DrumController.move(DrumStepper);
     }
+    void TestRotation()
+    {
+        char Input = '0';
+        // Serial.begin(9600);
+        if (Serial.available())
+        {
+            Input = Serial.read();
+            Serial.print("Input: ");
+            Serial.println(Input);
+        }
 
-    //FOR LOADING ONLY
+        switch (Input)
+        {
+        case '0':
+            break;
+        case '1':
+            DrumStepper.setTargetRel((PI / 180) * STEPS_PER_RAD_DRUM);
+            DrumController.move(DrumStepper);
+            Serial.println("+1 degree");
+            DegreeCount++;
+            Serial.print("Degree Count: ");
+            Serial.println(DegreeCount);
+            break;
+        case '2':
+            DrumStepper.setTargetRel(-(PI / 180) * STEPS_PER_RAD_DRUM);
+            DrumController.move(DrumStepper);
+            DegreeCount--;
+            Serial.println("-1 degree");
+            Serial.print("Degree Count: ");
+            Serial.println(DegreeCount);
+            break;
+        default:
+            break;
+        }
+    }
+    // FOR LOADING ONLY
     void moveDrumToLocation(char move)
     {
+        /*
         switch (move)
         {
         case InYellowDuck1:
@@ -153,7 +179,7 @@ public:
             // If the item is more than then we will zero out the drum and move to
             // Next item. If not then we just move to the next item.
             doRotation(Position_In_2);
-            //CurrAngle = InYellowAng1;
+            // CurrAngle = InYellowAng1;
             break;
 
         case InYellowDuck2:
@@ -180,7 +206,7 @@ public:
             break;
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // This is the out cases of the case statement
-        //Dont worry about this right now
+        // Dont worry about this right now
         case OutYellowDuck1:
             doRotation(OutYellowAng1, CurrAngle <= OutYellowAng1);
             break;
@@ -209,6 +235,8 @@ public:
             doRotation(OutRedAng, CurrAngle <= OutRedAng);
 
             break;
+
         }
+        */
     }
 };
