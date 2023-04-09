@@ -269,6 +269,7 @@ class CameraSystem:
         image = self.draw_areas(image)
         # Stop the program if the ESC key is pressed.
         cv2.imshow('object_detector', image)
+        cv2.imshow('object_classifier', self.img_to_classify)
         #cv2.imshow('HSV', hsv)
         #cv2.imshow('Gray', gray).
     
@@ -342,14 +343,13 @@ class CameraSystem:
         tensor_image = vision.TensorImage.create_from_array(rgb_image)
         # List classification results
         categories = self._classifier.classify(tensor_image)
-
-        print(categories.classifications[0].categories[0].category_name)
-        return False
+        category = categories.classifications[0].categories[0].category_name
+        print(category)
         # Check if the image is classified as Flip or Push
-        #if labels[results[0].id] == 'Push':
-            #return True
-        #else:
-            #return False
+        if category == 'Push':
+            return True
+        else:
+            return False
 
 
     
