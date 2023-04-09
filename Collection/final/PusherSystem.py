@@ -23,57 +23,63 @@ class PusherStatus:
 #class FlipperPlatform:
 class Pushers:
     def __init__(self):      
-        self.status = PusherStatus.RETRACTED
-        self.current_angle = 0
-        self.num_objects = 0
+        self.statusTop = PusherStatus.RETRACTED
+        self.statusBot = PusherStatus.RETRACTED
+        
         self.hat = PiServoHat()
         # Restart Servo Hat (in case Hat is frozen/locked)
         self.hat.restart()
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
         # Stop servos on instantiation
-        self.RetractPusher(self, _TOP_PUSHER_SERVO_CHANNEL, -110)
-        self.RetractPusher(self, _BOT_PUSHER_SERVO_CHANNEL, -110)
+        self.RetractPusherTop(self)
+        self.RetractPusherBot(self)
 
     #Pusher 1 is for pillars
-    def RetractPusher(self, pin, howFar):
+    def RetractPusherTop(self):
         ''' This method retracts a specific pusher a certain distance '''
-        self.set_status(PusherStatus.RETRACTING)
-        print("Retracting Pusher {} this ammount: {}".format(pin, howFar))
-        self.hat.move_servo_position(pin, howFar)
-        self.set_status(PusherStatus.RETRACTED)
+        self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, -110)
+        self.statusTop = PusherStatus.RETRACTED
+        
+    def RetractPusherBot(self):
+        ''' This method retracts a specific pusher a certain distance '''
+        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, -110)
+        self.statusBot = PusherStatus.RETRACTED
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #loads pillar(not a powerful push)
-    def LoadingPillarPusher1(self) -> None:
+    def LoadingPillarPusher(self) -> None:
         ''' This method uses the bottom pusher to load an object '''
-        self.set_status(PusherStatus.LOADING)
-        print("Loading Item")
-        self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 100)
-        self.set_status(PusherStatus.LOADED)
-        Pushers.RetractPusher(self, _TOP_PUSHER_SERVO_CHANNEL, -10)
+        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 100)
+        
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 #powerful push to unload pillars and pink duck
-    def UnloadingPillarPusher2(self) -> None:
+    def UnloadingPillarPusherBot(self) -> None:
         ''' This method uses the top pusher to unload pillars or the pink duck '''
-        self.set_status(PusherStatus.UNLOADING)
-        print("Unloading Pillar or Pink Duck")
         self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 200)
-        self.set_status(PusherStatus.UNLOADED)
-        Pushers.RetractPusher(self, _BOT_PUSHER_SERVO_CHANNEL, -110)
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-#powerful push to unload Ducks
-    def UnloadingYellowDuck(self) -> None:
-        ''' This method uses the bottom pusher to unload a yellow duck '''
-        self.set_status(PusherStatus.UNLOADING)
-        print("Unloading Yellow Duck")
+        self.statusBot = PusherStatus.UNLOADED
+        
+        
+    def UnloadingPillarPusherTop(self) -> None:
+        ''' This method uses the top pusher to unload pillars or the pink duck '''
         self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 200)
-        self.set_status(PusherStatus.UNLOADED)
-        Pushers.RetractPusher(self, _TOP_PUSHER_SERVO_CHANNEL, -110)
+        self.statusTop = PusherStatus.UNLOADED
+       
+        
+    def Half_UnloadingPillarPusherBot(self) -> None:
+        ''' This method uses the top pusher to unload pillars or the pink duck '''
+        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 150)
+        self.statusBot = PusherStatus.UNLOADED
+        
+        
+    def Half_UnloadingPillarPusherTop(self) -> None:
+        ''' This method uses the top pusher to unload pillars or the pink duck '''
+        self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 150)
+        self.statusTop = PusherStatus.UNLOADED
+        
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def get_status(self) -> PusherStatus:

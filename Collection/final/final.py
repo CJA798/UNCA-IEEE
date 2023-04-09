@@ -124,6 +124,7 @@ def sequenceForTower3(serial_stepper, robot: Robot):
     #The red/green columns are backwards so I need to unload a green column from the other slot then the red. Finally the pink
     elif columnPosition[0] == 4:
         if greenColumnCounter > 2:
+            #Green column position
             PusherPosition = outputSerial(serial_stepper, 'D')
         if PusherPosition == PusherStatus.READY and greenColumnCounter > 2:
             robot.CollectionSystem.Pushers.Half_UnloadingPillarPusherTop
@@ -133,6 +134,7 @@ def sequenceForTower3(serial_stepper, robot: Robot):
             greenColumnCounter = greenColumnCounter - 1
         
         if greenColumnCounter == 2 and len(columnPosition) > 1:
+            #Red/Green column position, this case is for when red is first
             PusherPosition = outputSerial(serial_stepper, 'E')
         if PusherPosition == PusherStatus.READY and greenColumnCounter == 2 and len(columnPosition) > 1:
             robot.CollectionSystem.Pushers.Half_UnloadingPillarPusherTop
@@ -142,6 +144,7 @@ def sequenceForTower3(serial_stepper, robot: Robot):
             columnPosition.pop
         
         if greenColumnCounter == 2 and columnPosition == 1:
+            #Pink Duck position
             PusherPosition = outputSerial(serial_stepper, 'B')
         if PusherPosition == PusherStatus.READY and greenColumnCounter == 2 and len(columnPosition) > 1:
             #Once this if statement finishes then we tell waiting to finish that we are done and need to wait for the next tower to be ready to be built
@@ -154,8 +157,7 @@ def sequenceForTower3(serial_stepper, robot: Robot):
     return 0
             
         
-    pass
-
+#Serial Communication for the drum if you only need to write a known position. There is another for intake and finding the appropriate slot
 def outputSerial(serial_stepper, position):
     if DrumStatus == 0:
         serial.reset_output_buffer()
@@ -176,8 +178,8 @@ if __name__ == '__main__':
 def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, serial_stepper):
     flipper_status = robot.CollectionSystem.Flipper.status
     elevator_status = robot.CollectionSystem.Elevator.status
-    #pusherBot_status = robot.CollectionSystem.Pushers.statusBot
-    #pusherTop_status = robot.CollectionSystem.Pushers.statusTop
+    pusher_status = robot.CollectionSystem.Pushers.statusBot
+    
     brace_status = robot.CollectionSystem.Brace.status
     intake_status = robot.CollectionSystem.Intake.status
     currentObject = elevator_data[0][0]
@@ -188,7 +190,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     if intake_status == IntakeStatus.INTAKE_OFF and len(flipper_data) < 1:
         robot.CollectionSystem.Intake.StartIntake()
         robot.CollectionSystem.Intake.status = IntakeStatus.INTAKE_ON
-    elif len(flipper_data) > 1:
+    elif len(flipper_data) > 0:
         robot.CollectionSystem.Intake.StopIntake
         robot.CollectionSystem.Intake.status = IntakeStatus.INTAKE_OFF
     elif False:
@@ -207,7 +209,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
             else:
                 #Duck is oriented
                 robot.CollectionSystem.Flipper.stop_rotation
-                flipper_status = FlipperStatus.ORIENTED
+                flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
         elif flipper_data[0][0] >= 2:
             if flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
                 #Orienting the Column
@@ -215,7 +217,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
             else:
                 #Oriented
                 robot.CollectionSystem.Flipper.stop_rotation
-                flipper_status = FlipperStatus.ORIENTED
+                flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
     
     '''
     This area is for Carlos to determine whether the object needs to be sweeped or flipped into the elevator. 
@@ -230,35 +232,33 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         #Here I need to do a few things. First is consider whether or not the object is oriented.
         #After that then I need to move the elevator up to the desired height and let the pushers know that I'm ready and to wait for drum response.
         if elevator_data[0][0] <= 1:
-            if flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or elevator_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
-                robot.CollectionSystem.Elevator.RotatePlatform
+            if elevator_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or elevator_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
+                robot.CollectionSystem.Elevator.rotate_platform
             else:
-                robot.CollectionSystem.Elevator.StopRotation
-                elevator_status = ElevatorStatus.ORIENTED_OBJECT
+                robot.CollectionSystem.Elevator.stop_rotation
+                elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.ORIENTED_OBJECT
         elif elevator_data[0][0] >= 2:
             if elevator_data[0][2] > Global_Static.PILLAR_MAX_THRESH or elevator_data[0][2] < Global_Static.PILLAR_MIN_THRESH:
-                robot.CollectionSystem.Elevator.RotatePlatform
+                robot.CollectionSystem.Elevator.rotate_platform
             else:
-                robot.CollectionSystem.Elevator.StopRotation
-                elevator_status = ElevatorStatus.ORIENTED_OBJECT
+                robot.CollectionSystem.Elevator.stop_rotation
+                elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.ORIENTED_OBJECT
     
     #Once the elevator is oriented then it will raise the object
     
     if elevator_status == ElevatorStatus.ORIENTED_OBJECT:
         '''Elevator needs to be updated to raise to a single position instead of having a duck raise and column raise'''
-        robot.CollectionSystem.Elevator.raisePlatformToDuck
+        robot.CollectionSystem.Elevator.raisePlatform
         sleep(.25)
-        elevator_status = ElevatorStatus.RAISED
-    elif elevator_status == ElevatorStatus.RAISED and pusher_status != PusherStatus.READY:
-        pusher_status = drumSerial(elevator_data[0][0], serial_stepper)
         if elevator_data[0][0] == 0:
             yellowDuckCounter = yellowDuckCounter + 1
         if elevator_data[0][0] == 3:
             greenColumnCounter = greenColumnCounter + 1
         if elevator_data[0][0] == 2:
             whiteColumnCounter = whiteColumnCounter + 1
-                    
-                
+        
+    elif elevator_status == ElevatorStatus.RAISED and pusher_status != PusherStatus.READY:
+        pusher_status = robot.CollectionSystem.Pushers.statusBot = drumSerial(elevator_data[0][0], serial_stepper, robot)
         
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #This is pusher states. Once the pusher is done then it will also set the elevator status to ready state.
@@ -267,18 +267,17 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         '''This still needs to have all of the pusher class updated. We will also need the elevator class to be updated.
         The pusher class needs to have two separate pushers. One for top and one for bottom. Those have their specified 
         functions that will move them independently'''
-        robot.CollectionSystem.Pushers.LoadingPillarPusher1
+        robot.CollectionSystem.Pushers.LoadingPillarPusher
         sleep(.25)
-        robot.CollectionSystem.Pushers.RetractPusher
+        robot.CollectionSystem.Pushers.RetractPusherBot
         sleep(.25)
         robot.CollectionSystem.Elevator.lowerToGround
         sleep(.25)
-        elevator_status = ElevatorStatus.READY
-        pusher_status = PusherStatus.RETRACTED
+        
         
     
     
-def drumSerial(item, serial_stepper):
+def drumSerial(item, serial_stepper, robot):
     position = ''
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Yellow Duck case of the drum
@@ -297,7 +296,7 @@ def drumSerial(item, serial_stepper):
     if item == 2 and whiteColumnCounter == 1:
         #We need to worry about loading then unloading. After this we can move onto the next object.
         positon = 'c'
-        firstWhiteCol(position, serial_stepper)
+        firstWhiteCol(position, serial_stepper, robot)
         position = ''
         return
     elif item == 2 and whiteColumnCounter > 1:
@@ -324,6 +323,29 @@ def drumSerial(item, serial_stepper):
     elif DrumStatus == 1:
         if serial_stepper.in_waiting > 0:
             DrumStatus = serial.readline().decode('utf-8').rstrip()
-    elif DrumStatus == "Something":
-        DrumStatus = 0
+    elif DrumStatus == 'R':
         return PusherStatus.READY
+    
+    
+    TimeToUnload = 0
+    def firstWhiteCol(position, serial_stepper, robot: Robot):
+        if TimeToUnload == 0:
+            pusherStatus = outputSerial(serial_stepper, position)
+        
+        if pusherStatus == PusherStatus.READY and TimeToUnload == 0:
+            robot.CollectionSystem.Pushers.LoadingPillarPusherBot
+            sleep(.25)
+            robot.CollectionSystem.Pushers.RetractPusherBot
+            sleep(.25)
+            TimeToUnload = 1
+        
+        if TimeToUnload == 1:
+            pusherStatus = outputSerial(serial_stepper, 'C')
+        if pusherStatus == PusherStatus.READY and TimeToUnload == 1:
+            robot.CollectionSystem.Pushers.UnloadingPillarPusherTop
+            sleep(.25)
+            robot.CollectionSystem.Pushers.RetractPusherTop
+            sleep(.25)
+            robot.CollectionSystem.Elevator.lowerToGround
+            sleep(.25)
+        

@@ -22,8 +22,8 @@ _ROTATION_MAX_THRESHOLD = 90
 
 class FlipperStatus:
     EMPTY = 0
-    ORIENTING = 1
-    FLIPPING = 2
+    ORIENTED = 1
+    
     CLEAN = 3
 
 
@@ -51,8 +51,6 @@ class Flipper:
 
     def rotate_platform(self) -> None:
         ''' This method rotates the orientation platform '''
-        self.set_status(FlipperStatus.ORIENTING)
-        print("Orienting")
         self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _START_ORIENTATION, _SWING)
         
 
@@ -61,13 +59,12 @@ class Flipper:
         self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ORIENTATION, _SWING)
 
 
-    async def flip_platform(self) -> None:
+    def flip_platform(self) -> None:
         ''' This method activates the flipping platform '''
-        self.set_status(FlipperStatus.FLIPPING)
         self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _FLIP_FLIPPER, _SWING)
-        await self.wait(0.5)
+        
         self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _RESET_FLIPPER, _SWING)
-        await self.wait(0.5)
+        
         self.set_status(FlipperStatus.EMPTY)
         print("Platform flipped")
         

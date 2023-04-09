@@ -43,34 +43,25 @@ class Elevator():
     def rotate_platform(self) -> None:
         ''' This method rotates the orientation platform '''
         self.set_status(ElevatorStatus.ORIENTING)
-        print("Orienting")
         self.hat.move_servo_position(_ORIENTATION_SERVO_CHANNEL, _START_ORIENTATION, _SWING)
         
 
 
     def stop_rotation(self) -> None:
-        print("Stop rotation")
         self.hat.move_servo_position(_ORIENTATION_SERVO_CHANNEL, _STOP_ORIENTATION, _SWING)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #This is the servo movement to raise and lower the platform
-    def raisePlatformToDuck(self):
+    def raisePlatform(self):
         '''
         Raises the platform up to the duck location
         '''
         #The determined position of the servo for ground is -110
-        self.setStatus(ElevatorStatus.RAISING)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, -110, self.swing)
-        sleep(0.5)
+        self.status = ElevatorStatus.RAISED
+        
 
-    def raisePlatformToColumn(self):
-        '''
-        Raises the platform up to the column location
-        '''
-        #The determined position of the servo for ground is 0
-        self.setStatus(ElevatorStatus.RAISING)
-        self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 0, self.swing)
-        sleep(0.5)
+    
         
 
     def lowerToGround(self):
@@ -78,9 +69,8 @@ class Elevator():
         Lowers the platform back to the base state
         '''
         #The determined position of the servo for ground is 230
-        self.setStatus(ElevatorStatus.LOWERING)
+        self.setStatus(ElevatorStatus.READY)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 230, self.swing)
-        sleep(1)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Getters and Setters

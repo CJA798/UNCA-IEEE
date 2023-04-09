@@ -50,6 +50,7 @@ class IntakeSystem:
         self.hat.move_servo_position(_INTAKE_SERVO1_CHANNEL, _ROTATE_INTAKE_SERVO1, _SWING)
         self.hat.move_servo_position(_INTAKE_SERVO2_CHANNEL, _ROTATE_INTAKE_SERVO2, _SWING)
         self.hat.move_servo_position(_INTAKE_SERVO3_CHANNEL, _ROTATE_INTAKE_SERVO3, _SWING)
+        self.status = IntakeStatus.INTAKE_ON
 
 
     def StopIntake(self) -> None:
@@ -58,6 +59,7 @@ class IntakeSystem:
         self.hat.move_servo_position(_INTAKE_SERVO1_CHANNEL, _STOP_INTAKE_SERVO1, _SWING)
         self.hat.move_servo_position(_INTAKE_SERVO2_CHANNEL, _STOP_INTAKE_SERVO2, _SWING)
         self.hat.move_servo_position(_INTAKE_SERVO3_CHANNEL, _STOP_INTAKE_SERVO3, _SWING)
+        self.status = IntakeStatus.INTAKE_OFF
 
 
     
