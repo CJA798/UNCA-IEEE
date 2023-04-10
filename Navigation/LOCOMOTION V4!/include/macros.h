@@ -17,7 +17,7 @@
 #define LOX4_ADDRESS 0x37
 
 #define RESET_TIME 100
-
+#define DEBOUNCE_TIME 100
 //-------KINEMATICS CONSTANTS-------------------------------------------------------
 #define ONE_OVR_RT_2 (0.707106)     // (1/sqrt(2))
 #define STEPS_PER_ROTATION (400)    // (200steps per rotation) * (16 microsteps per step)
@@ -28,10 +28,10 @@
 #define MAX_MTR_SPEED (800)         // Steps/s maximum is 300000
 #define MAX_MTR_ACCEL (400)         // Steps/s^2 skips at around 15000
 
-#define NORTH_WALL (91)
-#define SOUTH_WALL (0)
-#define EAST_WALL (99)
-#define WEST_WALL (-99)
+#define NORTH_WALL (90)
+#define SOUTH_WALL (1)
+#define EAST_WALL (110)
+#define WEST_WALL (-110)
 #define NORTH ('N')
 #define SOUTH ('S')
 #define EAST ('E')

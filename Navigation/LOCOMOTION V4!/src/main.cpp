@@ -1,6 +1,7 @@
 #include <Arduino.h>
-#include <Navigation.h>
 #include <TeensyThreads.h>
+#include <Navigation.h>
+
 #define ROTATE_90_CW 1
 #define ROTATE_180_CW 2
 #define ROTATE_90_CCW 3
@@ -10,18 +11,21 @@
 #define GOTO_SW_POS 7
 #define GOTO_SE_POS 8
 #define GOTO_POND_POS 9
-int State = 0;
-char MegaState = 0;
-bool NavigationProcessRunning = false;
+void note(int num, long dur);
+
+int NavThreadId = 0;
+bool Nudging = false;
+volatile char State;
+void StartTune(void);
 DriverObject Driver;
 USBSerialMaster RaspberryPi; // Change SerialState to TRANSMITTING and put message in buffer
-
+void NavStateMachine(void);
 //////////////////////  Threads  ///////////////////////
-void NavigationThread(void)
+void Raspi(void)
 {
-  while (NavigationProcessRunning)
+  while (1)
   {
-    Driver.BumperProcess();
+    RaspberryPi.SerialProcess();
   };
 }
 
@@ -29,6 +33,7 @@ void NavigationThread(void)
 void setup()
 {
   RaspberryPi = USBSerialMaster();
+  Drum.StartTune();
   debug = false;
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -37,32 +42,32 @@ void setup()
   Serial.print("Starting up");
   State = 1;
  // debug = true;
-  threads.addThread(NavigationThread);
+  threads.addThread(Raspi);
   Drum.HomeDrumStepper();
 };
+char temp = 1;
 //////////////////////  Loop  ///////////////////////
 void loop()
 {
-  RaspberryPi.SerialProcess();
   Drum.DrumProcess();
+  //NavStateMachine();
+ /// Bumpers.SwitchesProcess();
+ // Driver.BumperProcess();
 };
-void RaspberryPiAsMaster()
-{
-  switch (Command)
-  {
-  };
-}
+
 void NavStateMachine(void)
 
 {
+  Serial.print("INSIDE NAV STATE MACHINE: ");
+
   switch (State)
   {
   case 0:
     Serial.println("IdleState");
-    delay(1000);
+
     break;
   case 1:
-    Driver.UpdateDesiredPose(0, 0, 10);
+    Driver.UpdateDesiredPose(0, 0, 4);
     MoveState = TRANSLATING;
     State = 2;
     Driver.ComputeTranslation();
@@ -70,32 +75,77 @@ void NavStateMachine(void)
   case 2:
     if (!Driver.IsMoving())
     {
-      delay(1000);
-      Driver.UpdateDesiredPose(0, 0, -20);
+      delay(100);
+      Driver.UpdateDesiredPose(0, 0, -2);
       MoveState = TRANSLATING;
       Driver.ComputeTranslation();
+
       State = 3;
     };
     break;
   case 3:
     if (!Driver.IsMoving())
     {
-      Driver.ComputeTranslation();
-      Driver.UpdateDesiredPose(0, EAST_WALL, 0);
+      delay(100);
+      Driver.UpdateDesiredPose(0, EAST_WALL, -2);
       MoveState = TRANSLATING;
       Driver.ComputeTranslation();
+
       State = 4;
     };
-  default:
+    break;
   case 4:
     if (!Driver.IsMoving())
     {
-      delay(1000);
-      Driver.UpdateDesiredPose(0, 0, 0);
+      delay(100);
+      Driver.UpdateDesiredPose(0, EAST_WALL - 10, NORTH_WALL);
       MoveState = TRANSLATING;
       Driver.ComputeTranslation();
+
       State = 5;
+    };
+  case 5:
+    if (!Driver.IsMoving())
+    {
+      delay(100);
+      Driver.UpdateDesiredPose(0, EAST_WALL, NORTH_WALL);
+      MoveState = TRANSLATING;
+      Driver.ComputeTranslation();
+
+      State = 6;
+    };
+    break;
+  case 6:
+    if (!Driver.IsMoving())
+    {
+      delay(100);
+      Driver.UpdateDesiredPose(0, WEST_WALL, NORTH_WALL);
+      MoveState = TRANSLATING;
+      Driver.ComputeTranslation();
+
+      State = 7;
+    };
+    break;
+  case 7:
+    if (!Driver.IsMoving())
+    {
+      delay(100);
+      Driver.UpdateDesiredPose(0, WEST_WALL, SOUTH_WALL);
+      MoveState = TRANSLATING;
+      Driver.ComputeTranslation();
+      State = 8;
+    };
+    break;
+  case 8:
+    if (!Driver.IsMoving())
+    {
+      delay(100);
+      Driver.UpdateDesiredPose(0, 0, NORTH_WALL / 2);
+      MoveState = TRANSLATING;
+      Driver.ComputeTranslation();
+      State = 9;
     };
     break;
   };
 };
+

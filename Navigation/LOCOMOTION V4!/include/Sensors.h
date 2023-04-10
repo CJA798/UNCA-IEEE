@@ -30,8 +30,8 @@ Bounce RightSideRightSw;
 Bounce RightSideLeftSw;
 Bounce LeftSideRightSw;
 Bounce LeftSideLeftSw;
-
-char SwitchesState = 4;
+bool HitWallFlag = false;
+volatile char SwitchesState = 4;
 bool ChangeInSwitchState = 0;
 double SwitchAngle = 0;
 class BumperSwitches
@@ -49,7 +49,7 @@ public:
     RightSideLeftSw = Bounce();
     LeftSideRightSw = Bounce();
     LeftSideLeftSw = Bounce();
- 
+
     pinMode(FRONT_LEFT_SWITCH, INPUT_PULLUP);
     pinMode(FRONT_RIGHT_SWITCH, INPUT_PULLUP);
     pinMode(RIGHTSIDE_LEFT_SWITCH, INPUT_PULLUP);
@@ -59,7 +59,6 @@ public:
     pinMode(RIGHTSIDE_RIGHT_SWITCH, INPUT_PULLUP);
     pinMode(BACK_RIGHT_SWITCH, INPUT_PULLUP);
     pinMode(BACK_LEFT_SWTICH, INPUT_PULLUP);
-
 
     FrontRightSw.attach(FRONT_RIGHT_SWITCH); // 1
     FrontRightSw.interval(DEBOUNCE_TIME);
@@ -79,7 +78,7 @@ public:
     LeftSideLeftSw.interval(DEBOUNCE_TIME);
   }
 
-  void SwitchesProcess(void)
+  bool SwitchesProcess(void)
   {
     // Serial.println("SwitchesProcess");
     FrontRightSw.update();     // 1
@@ -90,31 +89,43 @@ public:
     RightSideRightSw.update(); // 6
     LeftSideLeftSw.update();   // 7
     LeftSideRightSw.update();  // 8
-    SwitchesState = NONE_PRESSED;
     if (!(FrontLeftSw.read() && FrontRightSw.read()))
     {
-
+      HitWallFlag = 1;
       SwitchesState = FRONT_PRESSED;
+      return true;
     }
     else if (!(BackLeftSw.read() && BackRightSw.read()))
     {
-
+      HitWallFlag = 1;
       SwitchesState = BACK_PRESSED;
+
+      return true;
     }
     else if (!(RightSideLeftSw.read() && RightSideRightSw.read()))
     {
-
+      HitWallFlag = 1;
       SwitchesState = RIGHT_PRESSED;
+
+      return true;
     }
     else if (!(LeftSideLeftSw.read() && LeftSideRightSw.read()))
     {
-
+      HitWallFlag = 1;
       SwitchesState = LEFT_PRESSED;
+
+      return true;
+    }
+    else
+    {
+      return false;
     };
   };
   void PrintPosition()
   {
     Serial.println("SwitchesState: ");
+    Serial.println(SwitchesState);
+
     Serial.println(" ");
     Serial.print("FrontRightSw: ");
     Serial.println(FrontRightSw.read());
@@ -132,6 +143,7 @@ public:
     Serial.println(LeftSideLeftSw.read());
     Serial.print("LeftSideRightSw: ");
     Serial.println(LeftSideRightSw.read());
+    Serial.print("\n\n");
   }
 };
 

@@ -37,7 +37,7 @@
 #define OutGreenColumn ('D')
 #define OutRedColumn ('E')
 #define HOME_DRUM ('H')
-
+#define RUN_STATE_MACHINE ('R')
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Making the angle for all of the objects being loaded. Then we can deal with it using the helper method
 // TODO: Fill out the appropriate angle for all of the items.
@@ -50,9 +50,9 @@
 #define FOUR_PI (12.566370614)
 // These are the Values in radians for positions
 // load
-#define IN_POSITION_GREEN_PILLAR (85)    // green
+#define IN_POSITION_GREEN_PILLAR (0)     // green
 #define IN_POSITION_RED_PILLAR (1550)    //  red/green
-#define IN_POSITION_WHITE_PILLAR (11675) // white
+#define IN_POSITION_WHITE_PILLAR (11580) // white
 #define IN_POSITION_YELLOW_DUCK2 (9700)  // yellow duck 2
 #define IN_POSITION_PINK_DUCK (6850)     // pink duck
 #define IN_POSITION_YELLOW_DUCK1 (4200)  // yellow duck 1
@@ -72,6 +72,51 @@
 #define OutRedAng (12)
 #define STEPS_PER_RAD_DRUM 2069
 #define DRUM_STEPPER_MAX_SPEED 2000
+#define SPECIAL ('*')
+void InitDrumAsSpeaker(void);
+void note(int num, long dur);
+char MegaState = 0;
+// defines pins numbers
+const int stepPin = 41;
+const int dirPin = 40;
+
+// here comes a bunch of 'useful' vars; dont mind
+int coun;
+bool dir = 0;
+int del;
+int c = 1912;
+int cf = 1805;
+int d = 1703;
+int df = 1607;
+int e = 1517;
+int f = 1431;
+int ff = 1351;
+int g = 1275;
+int gf = 1203;
+int a = 1136;
+int af = 1072;
+int b = 1012;
+int c1 = floor(c / 2);
+int cf1 = floor(cf / 2);
+int d1 = floor(d / 2);
+int df1 = floor(df / 2);
+int e1 = floor(e / 2);
+int f1 = floor(1431 / 2);
+int ff1 = floor(1351 / 2);
+int g1 = floor(1275 / 2);
+int gf1 = floor(1203 / 2);
+int a1 = floor(1136 / 2);
+int af1 = floor(1072 / 2);
+int b1 = floor(1012 / 2);
+int e0 = e * 2;
+int g0 = g * 2;
+int b0 = b * 2;
+int af0 = af * 2;
+int a0 = a * 2;
+int f0 = f * 2;
+int use = 180;
+int tempo = 120;
+int oct = 5;
 bool Homed = false;
 char DrumState = 0;
 char item = 0;
@@ -175,15 +220,20 @@ public:
                 Homed = false;
                 // HomeDrumStepper();
                 break;
+            case SPECIAL:
+                StartTune();
+                HomeDrumStepper();
+                break;
+            case RUN_STATE_MACHINE:
+
+                break;
             default:
                 break;
             }
-            // if(Homed == true){
-            DrumStepper.setTargetAbs(-(NewPosition + 250));
+            DrumStepper.setTargetAbs(NewPosition);
             DrumController.move(DrumStepper);
             Serial.print("finished");
             Serial.println(Command);
-            //}
             Command = 0;
         };
     };
@@ -272,10 +322,52 @@ public:
             break;
         }
     };
-
+    void StartTune(void)
+    {
+        InitDrumAsSpeaker();
+        note(e, 200);
+        delay(100);
+        note(e, 200);
+        delay(100);
+        note(e, 400);
+        delay(100);
+        note(c, 200);
+        delay(100);
+        note(d, 200);
+        delay(100);
+        note(g, 400);
+        delay(100);
+    }
     bool isDone()
     {
         return DrumController.isRunning();
+    }
+    void InitDrumAsSpeaker()
+    {
+        // Sets the two pins as Outputs
+        pinMode(41, OUTPUT);
+        pinMode(40, OUTPUT);
+    }
+
+    void note(int num, long dur)
+    {
+        del = (num * oct) / 10;
+        dir = !dir;
+        digitalWrite(dirPin, dir);
+        coun = floor((dur * 5 * tempo) / del);
+        for (int x = 0; x < coun; x++)
+        {
+            digitalWrite(stepPin, HIGH);
+            delayMicroseconds(del);
+            digitalWrite(stepPin, LOW);
+            delayMicroseconds(del);
+        }
+    }
+
+    void pa(int durp)
+    {
+        int ker = floor(durp / 100) * tempo;
+        delay(ker);
     }
 
     /*

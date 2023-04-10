@@ -9,9 +9,12 @@
 // #include <iostream>
 #include <MiscFunctions.h>
 
+bool NavigationProcessRunning = true;
 #include <Sensors.h>
 using namespace std;
-
+#define NUDGE_DISTANCE 10
+#define NUDGE_SPEED 50
+#define NUDGE_ACCEL 1000
 struct Orientation
 {
   double Theta; // Difference in angle between the bots current frame of reference
@@ -69,17 +72,30 @@ public:
   //
   void BumperProcess(void)
   {
-    Bumpers.SwitchesProcess();
-    if (SwitchesState == NONE_PRESSED)
+
+    if (debug)
     {
-      return;
+      Serial.println("Bumper Process Started");
+      Serial.print("X: ");
+      Serial.print(BotOrientation.X);
+      Serial.print(" Y: ");
+      Serial.print(BotOrientation.Y);
+      Serial.print(" Theta: ");
+      Serial.println(BotOrientation.Theta);
+      Serial.println();
+      Serial.print("Switches State: ");
+      Serial.println(SwitchesState);
+      Serial.println();
     };
-    Serial.print("SwitchesState: ");
-    Serial.println(SwitchesState);
+    // NavigationProcessRunning = false;
     Controller.emergencyStop();
+    // Nudging = true;
+    //  delay(100);
     if ((BotOrientation.Theta <= PI / 3) && (BotOrientation.Theta >= -(PI / 3)))
     { // We are pointed North
       //
+      if (debug)
+        Serial.println("Facing North");
 
       switch (SwitchesState)
       {
@@ -104,6 +120,9 @@ public:
         Nudge(SOUTH);
         break;
       };
+      SwitchesState = NONE_PRESSED;
+
+      return;
     };
     if ((BotOrientation.Theta >= PI / 6) && (BotOrientation.Theta <= (11 / 16) * PI))
     { // We are pointed East
@@ -127,6 +146,8 @@ public:
         Nudge(WEST);
         break;
       };
+      SwitchesState = NONE_PRESSED;
+      return;
     };
     if ((BotOrientation.Theta <= -PI / 6) && (BotOrientation.Theta >= -(11 / 16) * PI))
     { // We are pointed West
@@ -150,6 +171,8 @@ public:
         break;
       };
       //
+      SwitchesState = NONE_PRESSED;
+      return;
     };
     if ((BotOrientation.Theta >= (5 / 6) * PI) || (BotOrientation.Theta <= -(5 / 6) * PI))
     { // We are pointed South
@@ -172,34 +195,79 @@ public:
         Nudge(NORTH);
         break;
       };
+      SwitchesState = NONE_PRESSED;
+      return;
 
       //
     };
-    SwitchesState = NONE_PRESSED;
-    UpdateDesiredPose(0, 0, 0);
+    // SwitchesState = NONE_PRESSED;
+    // MoveState = IDLE;
   };
   void Nudge(char NorthSouthOrWest)
   {
+    Serial.println("BEFORE NUDGE");
+    Serial.print("X: ");
+    Serial.print(BotOrientation.X);
+    Serial.print(" Y: ");
+    Serial.print(BotOrientation.Y);
+    Serial.print(" Theta: ");
+    Serial.println(BotOrientation.Theta);
+    Serial.println(NorthSouthOrWest);
     switch (NorthSouthOrWest)
     {
     case NORTH:
-      UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X, BotOrientation.Y - 5);
-      ComputeTranslation();
-      delay(100);
+
+      motor_1.setTargetRel(-NUDGE_DISTANCE);
+      motor_2.setTargetRel(NUDGE_DISTANCE);
+      motor_3.setTargetRel(-NUDGE_DISTANCE);
+      motor_4.setTargetRel(NUDGE_DISTANCE);
       break;
     case SOUTH:
-      UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X, BotOrientation.Y + 5);
-      ComputeTranslation();
+      motor_1.setTargetRel(NUDGE_DISTANCE);
+      motor_2.setTargetRel(-NUDGE_DISTANCE);
+      motor_3.setTargetRel(NUDGE_DISTANCE);
+      motor_4.setTargetRel(-NUDGE_DISTANCE);
+
       break;
     case WEST:
-      UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X + 5, BotOrientation.Y);
-      ComputeTranslation();
+      motor_1.setTargetRel(NUDGE_DISTANCE);
+      motor_2.setTargetRel(NUDGE_DISTANCE);
+      motor_3.setTargetRel(-NUDGE_DISTANCE);
+      motor_4.setTargetRel(-NUDGE_DISTANCE);
+      // UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X + 5, BotOrientation.Y);
+      // ComputeTranslation();
       break;
     case EAST:
-      UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X - 5, BotOrientation.Y);
-      ComputeTranslation();
+      motor_1.setTargetRel(-NUDGE_DISTANCE);
+      motor_2.setTargetRel(-NUDGE_DISTANCE);
+      motor_3.setTargetRel(NUDGE_DISTANCE);
+      motor_4.setTargetRel(NUDGE_DISTANCE);
+      // UpdateDesiredPose(BotOrientation.Theta, BotOrientation.X - 5, BotOrientation.Y);
+      // ComputeTranslation();
       break;
     };
+    motor_1
+        .setMaxSpeed(NUDGE_SPEED)
+        .setAcceleration(NUDGE_ACCEL);
+    motor_2
+        .setMaxSpeed(NUDGE_SPEED)
+        .setAcceleration(NUDGE_ACCEL);
+    motor_3
+        .setMaxSpeed(NUDGE_SPEED)
+        .setAcceleration(NUDGE_ACCEL);
+    motor_4
+        .setMaxSpeed(NUDGE_SPEED)
+        .setAcceleration(NUDGE_ACCEL);
+    Controller.move(motor_1, motor_2, motor_3, motor_4);
+    delay(5000);
+    Serial.println("after NUDGE");
+    Serial.print("X: ");
+    Serial.print(BotOrientation.X);
+    Serial.print(" Y: ");
+    Serial.print(BotOrientation.Y);
+    Serial.print(" Theta: ");
+    Serial.println(BotOrientation.Theta);
+    SwitchesState = NONE_PRESSED;
   };
   bool IsMoving(void)
   {
@@ -353,7 +421,7 @@ public:
       Serial.println("NewWheelSteps:");
       PrintMatrix((mtx_type *)NewWheelSteps, 4, 1);
     };
-    Controller.moveAsync(motor_1, motor_2, motor_3, motor_4);
+    Controller.move(motor_1, motor_2, motor_3, motor_4);
   }
   void TestMotors(void)
   {

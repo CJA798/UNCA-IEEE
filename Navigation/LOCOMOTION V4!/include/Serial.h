@@ -52,8 +52,8 @@ public:
         if (debug == true)
         {
             Serial.print("Message: ");
-        }
-        Serial.println(Message);
+            Serial.println(Message);
+        };
 
         Command = Message[MESSAGE_LENGTH - 1];
         if (debug == true)

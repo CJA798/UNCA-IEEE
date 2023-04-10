@@ -9,7 +9,7 @@
 #define LEFTSIDE_LEFT_SWITCH 31   //     |37                 33|
 #define BACK_RIGHT_SWITCH 34      //     |__36_____________34__|
 #define BACK_LEFT_SWTICH 32       //
-#define DEBOUNCE_TIME 10
+
 #define SCL_PIN 19
 #define SDA_PIN 18
 #define RESET_PIN 4

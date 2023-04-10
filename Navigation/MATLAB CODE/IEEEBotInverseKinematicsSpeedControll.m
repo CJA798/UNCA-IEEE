@@ -27,9 +27,9 @@ WheelSpeeds = (1/Radius)*(Trans*V)
 stepsperrad= 13750.98;
 stepsperdist= 432.1518 ;
 FullRotSteps= -34560
-Vx = 0; % Speed in X
+Vx = 1; % Speed in X
 Vy = 0; % Speed in Y
-Vomega = 1; % Rotational Speed
+Vomega = 0; % Rotational Speed
 X = Vx;
 Y = Vy; 
 
