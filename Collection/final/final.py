@@ -276,7 +276,7 @@ def drumSerial(item, serial_stepper, robot):
     elif DrumStatus == 1:
         if serial_stepper.in_waiting > 0:
             DrumStatus = serial_stepper.readline().decode('utf-8').rstrip()
-            print(DrumStatus)
+            print("Read the line")
     elif DrumStatus == "finished" + position:
         DrumStatus = 0
         position = ''
