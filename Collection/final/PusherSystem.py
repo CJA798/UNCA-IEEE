@@ -72,7 +72,7 @@ class Pushers:
         ''' This method uses the top pusher to unload pillars or the pink duck '''
         self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 200)
         sleep(2)
-        self.RetractPusherBot()
+        self.RetractPusherTop()
         self.statusTop = PusherStatus.UNLOADED
        
         
@@ -88,7 +88,7 @@ class Pushers:
         ''' This method uses the top pusher to unload pillars or the pink duck '''
         self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 150)
         sleep(1.5)
-        self.RetractPusherBot()
+        self.RetractPusherTop()
         self.statusTop = PusherStatus.UNLOADED
         
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

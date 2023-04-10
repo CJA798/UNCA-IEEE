@@ -19,6 +19,7 @@ class ElevatorStatus:
     RAISING = 4 #Raising until done.
     RAISED = 5 #Done and letting drum rotate to get the object pushed in
     LOWERING = 6 #Done with being pushed and lower. Once done going into empty
+    FILLED = 7
 
 
 class Elevator():

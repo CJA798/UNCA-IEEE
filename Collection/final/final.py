@@ -108,6 +108,7 @@ def sequenceForTower3(serial_stepper, robot: Robot):
         
 #Serial Communication for the drum if you only need to write a known position. There is another for intake and finding the appropriate slot
 def outputSerial(serial_stepper, position):
+    global DrumStatus
     if DrumStatus == 0:
         serial_stepper.reset_output_buffer()
         str_data = "Input: " + position + '\n'
@@ -187,8 +188,10 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     if CameraSystem.is_duck_standing3 and flipper_status == FlipperStatus.ORIENTED:
         robot.CollectionSystem.Sweep.push()
         flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.EMPTY
+        elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
     else:
         robot.CollectionSystem.Flipper.flip_platform()
+        elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #elevator states
@@ -222,20 +225,17 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         
         
         
-    elif elevator_status == ElevatorStatus.RAISED and pusher_status != PusherStatus.READY and CurrItem != -1:
+    elif elevator_status != ElevatorStatus.READY and pusher_status != PusherStatus.READY and CurrItem != -1:
         pusher_status = robot.CollectionSystem.Pushers.statusBot = drumSerial(CurrItem, serial_stepper, robot)
         
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #This is pusher states. Once the pusher is done then it will also set the elevator status to ready state.
     
-    if pusher_status == PusherStatus.READY:
+    if pusher_status == PusherStatus.READY and elevator_status == ElevatorStatus.RAISED:
         '''This still needs to have all of the pusher class updated. We will also need the elevator class to be updated.
         The pusher class needs to have two separate pushers. One for top and one for bottom. Those have their specified 
         functions that will move them independently'''
         robot.CollectionSystem.Pushers.LoadingPillarPusher()
-        
-        robot.CollectionSystem.Pushers.RetractPusherBot()
-        
         robot.CollectionSystem.Elevator.lowerToGround()
         CurrItem = -1
         
