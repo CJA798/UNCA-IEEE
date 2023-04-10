@@ -1,15 +1,17 @@
 #include <macros.h>
 #include <TeensyStep.h>
 #include <math.h>
+
+#include <Serial.h>
 #include <Drum.h>
 #include <Ports.h>
-#include <Serial.h>
+
 // #include <iostream>
 #include <MiscFunctions.h>
 
 #include <Sensors.h>
 using namespace std;
-bool debug = false;
+
 struct Orientation
 {
   double Theta; // Difference in angle between the bots current frame of reference
@@ -65,7 +67,7 @@ public:
   };
 
   //
-  void Process(void)
+  void BumperProcess(void)
   {
     Bumpers.SwitchesProcess();
     if (SwitchesState == NONE_PRESSED)
@@ -219,105 +221,7 @@ public:
     motor_3.setPosition(0);
     motor_4.setPosition(0);
   }
-  /*
-    void ComputeNextStep(void) // Computes the desired incremental step (vector) based on our bots current position and orientation. and the global InputPose.
-    // If we are skewed at an angle, we need to rotate the input vector to match the bot's orientation. (done via translational and rotational matrices)
 
-    {
-      double DeltaTheta = (InputPose[0][0] - BotOrientation.Theta)*PROPORTIONAL_DIVIDER; // Compute the X and Y distances to move
-      double DeltaX = (InputPose[1][0] - BotOrientation.X)*PROPORTIONAL_DIVIDER;
-      double DeltaY = (InputPose[2][0] - BotOrientation.Y)*PROPORTIONAL_DIVIDER;
-      Serial.println("DELTAS");
-      Serial.println(DeltaTheta);
-      Serial.println(DeltaX);
-      Serial.println(DeltaY);
-      // If bot is not at an angle
-      ComplexStep[0][0] = DeltaTheta;                                      // Set DeltaTheta
-      ComplexStep[1][0] = DeltaX; // Set the X and Y distances to move
-      ComplexStep[2][0] = DeltaY;
-
-      BotOrientation.Theta += DeltaTheta; // Update the bots position
-      BotOrientation.X += DeltaX;
-      BotOrientation.Y += DeltaY;
-
-      Serial.println("ComplexSteps");
-      PrintMatrix((mtx_type *)ComplexStep, 3, 1);
-      Serial.println("BotOrientation");
-      Serial.println(BotOrientation.Theta);
-      Serial.println(BotOrientation.X);
-      Serial.println(BotOrientation.Y);
-      MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)ComplexStep, 4, 3, 1, (mtx_type *)NewWheelSpeeds);
-    };
-     complex move attempt
-    void ComplexMove(void)
-    {
-
-      switch (ComplexMoveState)
-      {
-      case 0: // No move in InputPose
-
-        break;
-      case 1: // Starting input move
-              // Serial.print("MoveTimer : ");
-              //  Serial.println(MoveTimer);
-
-
-        ComputeNextStep();
-        Serial.println("NewWheelSpeeds");
-        PrintMatrix((mtx_type *)NewWheelSpeeds, 4, 1);
-
-        motor_1
-            .setMaxSpeed(NewWheelSpeeds[0][0])
-            .setAcceleration(COMPLEX_MOVE_ACCEL);
-        motor_2
-            .setMaxSpeed(NewWheelSpeeds[1][0])
-            .setAcceleration(COMPLEX_MOVE_ACCEL);
-        motor_3
-            .setMaxSpeed(NewWheelSpeeds[2][0])
-            .setAcceleration(COMPLEX_MOVE_ACCEL);
-        motor_4
-            .setMaxSpeed(NewWheelSpeeds[3][0])
-            .setAcceleration(COMPLEX_MOVE_ACCEL);
-        SpinMotor1.rotateAsync(motor_1);
-        SpinMotor2.rotateAsync(motor_2);
-        SpinMotor3.rotateAsync(motor_3);
-        SpinMotor4.rotateAsync(motor_4);
-
-        MoveTimer = 0; // Reset the move timer
-        // we now must wait for time period to be up.
-        ComplexMoveState = 3;
-        break;
-      case 2:
-        int32_t mtr1Speed = SpinMotor1.getCurrentSpeed();
-        int32_t mtr2Speed = SpinMotor2.getCurrentSpeed();
-        int32_t mtr3Speed = SpinMotor3.getCurrentSpeed();
-        int32_t mtr4Speed = SpinMotor4.getCurrentSpeed();
-
-        SpinMotor1.overrideSpeed(NewWheelSpeeds[0][0] / mtr1Speed);
-        SpinMotor2.overrideSpeed(NewWheelSpeeds[1][0] / mtr2Speed);
-        SpinMotor3.overrideSpeed(NewWheelSpeeds[2][0] / mtr3Speed);
-        SpinMotor4.overrideSpeed(NewWheelSpeeds[3][0] / mtr4Speed);
-        ComplexMoveState = 3;
-        break;
-      case 3:
-        // Serial.print("MoveTimer : ");
-        // Serial.println(MoveTimer);
-        if (MoveTimer >= MOVE_TIME_PERIOD)
-        { // Waiting for time period to be up
-          ComplexMoveState = 2;
-          Serial.println("STATE 2 TO STATE 1");
-        };
-       // if ( Delta >=   0.1 || (InputPose[2][0] >= (BotOrientation.Y- .001))) || (InputPose[0][0] >= (BotOrientation.Theta- .1)))
-       // { // Checking if the move is complete, if it is, we go to the "Do Nothing" State
-        //  ComplexMoveState = 0;
-        //  Serial.println("STATE 2 TO STATE 0");
-       // };
-        break;
-      default:
-        break;
-      };
-    }
-    */
   void ComputeTranslation(void) // Process that will move the bot from BotOrientation to InputPose[3][1]. MoveState must be TRANSLATING to run.
 
   {

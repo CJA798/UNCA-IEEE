@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 using namespace std;
-
+bool debug = false;
 #include <Ports.h>
 #define RECEIVING 'R'
 #define TRANSMITTING 'T'
@@ -14,11 +14,11 @@ using namespace std;
 #define BUFFER_SIZE 90
 #define EXECUTING 'E'
 #define SAFE_BUFFER_SIZE 80 // Use this to avoid buffer overflow(2 bits for padding)
-#define INPUT_QUALIFIER "put: "
-#define MESSAGE_LENGTH 5
+#define INPUT_QUALIFIER "input: "
+#define MESSAGE_LENGTH 8
 char buffer[BUFFER_SIZE - 1];
 String Message;
-int Command = 0;
+char Command = 0;
 char SerialState = RECEIVING;
 int rd = 0, wr, n; // rd = read, wr = write, n = number of bytes in buffer
 const int led_pin = 13;
@@ -30,9 +30,7 @@ public:
     int SerialWriteCounter = 0;
     USBSerialMaster()
     {
-        // string Message;
         SOFTWARE_SERIAL.begin(SOFTWARE_SERIAL_BAUD);
-        // HARDWARE_SERIAL.begin(HARDWARE_SERIAL_BAUD);
         digitalWrite(RESET_PIN, HIGH);
         pinMode(RESET_PIN, OUTPUT);
     };
@@ -51,16 +49,19 @@ public:
         }; // Turn off LED if it has been on for too long.
         Serial.flush();
         delay(100);
-        //  HARDWARE_SERIAL.write(buffer, MessageSize);
-        Serial.print("Message: ");
-        Serial.println(Message);
-        if (Message.indexOf(INPUT_QUALIFIER))
+        if (debug == true)
         {
-            int pos = Message.lastIndexOf('\n');
-            Command = Message[pos - 1];
+            Serial.print("Message: ");
+        }
+        Serial.println(Message);
+
+        Command = Message[MESSAGE_LENGTH - 1];
+        if (debug == true)
+        {
             Serial.print("Command: ");
             Serial.println(Command);
-        }
+        };
+
         Message = "";
     };
 };

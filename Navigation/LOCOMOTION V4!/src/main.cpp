@@ -1,13 +1,59 @@
 #include <Arduino.h>
 #include <Navigation.h>
 #include <TeensyThreads.h>
-
+#define ROTATE_90_CW 1
+#define ROTATE_180_CW 2
+#define ROTATE_90_CCW 3
+#define ROTATE_180_CCW 4
+#define GOTO_NW_POS 5
+#define GOTO_NE_POS 6
+#define GOTO_SW_POS 7
+#define GOTO_SE_POS 8
+#define GOTO_POND_POS 9
 int State = 0;
 char MegaState = 0;
+bool NavigationProcessRunning = false;
 DriverObject Driver;
 USBSerialMaster RaspberryPi; // Change SerialState to TRANSMITTING and put message in buffer
-// to send a message to the pi
+
+//////////////////////  Threads  ///////////////////////
+void NavigationThread(void)
+{
+  while (NavigationProcessRunning)
+  {
+    Driver.BumperProcess();
+  };
+}
+
+//////////////////////  Setup  ///////////////////////
+void setup()
+{
+  RaspberryPi = USBSerialMaster();
+  debug = false;
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
+  Serial.print("Starting up");
+  State = 1;
+ // debug = true;
+  threads.addThread(NavigationThread);
+  Drum.HomeDrumStepper();
+};
+//////////////////////  Loop  ///////////////////////
+void loop()
+{
+  RaspberryPi.SerialProcess();
+  Drum.DrumProcess();
+};
+void RaspberryPiAsMaster()
+{
+  switch (Command)
+  {
+  };
+}
 void NavStateMachine(void)
+
 {
   switch (State)
   {
@@ -52,34 +98,4 @@ void NavStateMachine(void)
     };
     break;
   };
-};
-void Thread1(void)
-{ // Serial Process Thread
-
-  RaspberryPi.SerialProcess();
-  Serial.print("test");
-};
-void Thread2(void)
-{ // Navigation Thread
-  // NavStateMachine();
-  Serial.print("t2");
-};
-void setup()
-{
-  RaspberryPi = USBSerialMaster();
-  // threads.addThread(Thread1); // Add thread that processes serial inputs
-  // threads.addThread(Thread2); // Add thread that controls navigation
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
-  Serial.print("Starting up");
-  State = 1;
-};
-
-void loop()
-{
-  RaspberryPi.SerialProcess();
-  // NOTHING IN MY SERIAL LOOP; ALL CODE THAT IS PROCESSED
-  // IS IN THE THREADS
 };

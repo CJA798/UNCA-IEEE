@@ -36,6 +36,7 @@
 #define OutWhiteColumn ('C')
 #define OutGreenColumn ('D')
 #define OutRedColumn ('E')
+#define HOME_DRUM ('H')
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Making the angle for all of the objects being loaded. Then we can deal with it using the helper method
@@ -49,9 +50,9 @@
 #define FOUR_PI (12.566370614)
 // These are the Values in radians for positions
 // load
-#define IN_POSITION_GREEN_PILLAR (0)     // green
+#define IN_POSITION_GREEN_PILLAR (85)    // green
 #define IN_POSITION_RED_PILLAR (1550)    //  red/green
-#define IN_POSITION_WHITE_PILLAR (11580) // white
+#define IN_POSITION_WHITE_PILLAR (11675) // white
 #define IN_POSITION_YELLOW_DUCK2 (9700)  // yellow duck 2
 #define IN_POSITION_PINK_DUCK (6850)     // pink duck
 #define IN_POSITION_YELLOW_DUCK1 (4200)  // yellow duck 1
@@ -71,7 +72,7 @@
 #define OutRedAng (12)
 #define STEPS_PER_RAD_DRUM 2069
 #define DRUM_STEPPER_MAX_SPEED 2000
-bool Homed = 0;
+bool Homed = false;
 char DrumState = 0;
 char item = 0;
 Bounce LimitSwitch;
@@ -120,29 +121,71 @@ public:
     void DrumProcess(void)
 
     {
-        DrumStepper.setMaxSpeed(DRUM_STEPPER_MAX_SPEED);
-        Serial.print("Drum State: ");
-        Serial.println(DrumState);
-        // switch (DrumState)
-        //{
-        // case 0:
-        //     HomeDrumStepper();
-        //     DrumState = 1;
-        //     item = InYellowDuck1;
-        //     break;
-        // case 1:
-        // Move the drum to the correct position
-        //  doRotation();
-        if (!DrumController.isRunning())
+        if (Command > 0)
         {
-            DrumState = 2;
-        };
+            if (debug)
+            {
+                Serial.println("Command");
+                Serial.print(Command);
+            }
 
-        //     break;
-        // default:
-        //    break;
-        //};
-        // delay(50);
+            switch (Command)
+            {
+            case InYellowDuck1:
+                if (debug)
+                {
+                    Serial.println("InYellowDuck1");
+                };
+                NewPosition = IN_POSITION_YELLOW_DUCK1;
+                break;
+            case InYellowDuck2:
+                NewPosition = IN_POSITION_YELLOW_DUCK2;
+                break;
+            case InPinkDuck:
+                NewPosition = IN_POSITION_PINK_DUCK;
+                break;
+            case InWhiteColumn:
+                NewPosition = IN_POSITION_WHITE_PILLAR;
+                break;
+            case InGreenColumn:
+                NewPosition = IN_POSITION_GREEN_PILLAR;
+                break;
+            case InRedColumn:
+                NewPosition = IN_POSITION_RED_PILLAR;
+                break;
+            case OutYellowDuck1:
+                NewPosition = OUT_POSITION_YELOW_DUCK2;
+                break;
+            case OutYellowDuck2:
+                NewPosition = OUT_POSITION_YELLOW_DUCK1;
+                break;
+            case OutPinkDuck:
+                NewPosition = OUT_POSITION_PINK_DUCK;
+                break;
+            case OutWhiteColumn:
+                NewPosition = OUT_POSITION_WHITE_PILLAR;
+                break;
+            case OutGreenColumn:
+                NewPosition = OUT_POSITION_GREEN_PILLAR;
+                break;
+            case OutRedColumn:
+                NewPosition = OUT_POSITION_RED_PILLAR;
+                break;
+            case HOME_DRUM:
+                Homed = false;
+                // HomeDrumStepper();
+                break;
+            default:
+                break;
+            }
+            // if(Homed == true){
+            DrumStepper.setTargetAbs(-(NewPosition + 250));
+            DrumController.move(DrumStepper);
+            Serial.print("finished");
+            Serial.println(Command);
+            //}
+            Command = 0;
+        };
     };
 
     void HomeDrumStepper(void)
@@ -152,23 +195,23 @@ public:
             return;
         };
         DrumStepper.setMaxSpeed(DRUM_STEPPER_MAX_SPEED);
-        Serial.println("Homing Drum");
+        // Serial.println("Homing Drum");
         DrumStepper.setTargetRel(-FOUR_PI * STEPS_PER_RAD_DRUM);
         DrumController.moveAsync(DrumStepper);
         bool LimitSwitchState;
         delay(50);
         LimitSwitch.update();
         LimitSwitchState = LimitSwitch.read();
-        Serial.print("Limit Switch State: ");
-        Serial.println(LimitSwitchState);
+        //   Serial.print("Limit Switch State: ");
+        //  Serial.println(LimitSwitchState);
         while (LimitSwitchState == 1)
         {
             LimitSwitch.update();
             LimitSwitchState = LimitSwitch.read();
-            Serial.print("Limit Switch State: ");
-            Serial.println(LimitSwitchState);
+            //      Serial.print("Limit Switch State: ");
+            //     Serial.println(LimitSwitchState);
         };
-        Serial.print("Drum Impacted");
+        // Serial.print("Drum Impacted");
         DrumController.emergencyStop();
         delay(200);
         DrumStepper.setTargetRel(.5 * STEPS_PER_RAD_DRUM);
@@ -181,15 +224,15 @@ public:
         {
             LimitSwitch.update();
             LimitSwitchState = LimitSwitch.read();
-            Serial.print("Limit Switch State: ");
-            Serial.println(LimitSwitchState);
+            //  Serial.print("Limit Switch State: ");
+            //  Serial.println(LimitSwitchState);
         };
 
         DrumController.emergencyStop();
         DrumStepper.setPosition(0);
         DrumStepper.setMaxSpeed(DRUM_STEPPER_MAX_SPEED);
-        Homed = 1;
-        Serial.println("Drum Homed");
+        Homed = true;
+        // Serial.println("Drum Homed");
         delay(500);
     };
     void TestRotation()
