@@ -125,7 +125,7 @@ def outputSerial(serial_stepper, position):
 
   
 CurrItem = -1
-def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, serial_stepper):
+def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, serial_stepper, camera: CameraSystem):
     #this is the state machine for the entire system.
     global CurrItem
     global DrumStatus
@@ -154,14 +154,18 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         pass #We are just going to make a timing function for the intake if there is some kind of jam.
     '''
     '''Check how many ducks we have when this item is brought into the system. This function may need to be moved around to push out or in depending on the elevator'''
-    if len(flipper_data) > 1:
+    if len(flipper_data) > 2:
         robot.CollectionSystem.Sweep.sweep()
+        print("Too many Items")
+        print(len(flipper_data))
+        print(flipper_data)
     if len(flipper_data) > 0 and flipper_data[0][0] == 0 and yellowDuckCounter == 2:
         robot.CollectionSystem.Sweep.sweep()
+        print("Too many Ducks")
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Flipper statuses and what it will be doing. The flipped case is ignored since it will need to consider the item for each case of flip or sweep
-    if len(flipper_data) == 1 and flipper_status != FlipperStatus.ORIENTED:
+    if len(flipper_data) > 0 and flipper_status != FlipperStatus.ORIENTED:
         #Here I have to consider all of the ducks and columns
         if flipper_data[0][0] <= 1:
             if flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
@@ -172,26 +176,32 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
                 robot.CollectionSystem.Flipper.stop_rotation()
                 flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
         elif flipper_data[0][0] >= 2:
-            if flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
+            if flipper_data[0][2] > Global_Static.PILLAR_MAX_THRESH or flipper_data[0][2] < Global_Static.PILLAR_MIN_THRESH:
                 #Orienting the Column
                 robot.CollectionSystem.Flipper.rotate_platform()
+                print(flipper_data[0][2])
             else:
                 #Oriented
                 robot.CollectionSystem.Flipper.stop_rotation()
                 flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
+                print("job done")
     
     '''
     This area is for Carlos to determine whether the object needs to be sweeped or flipped into the elevator. 
     
     
     '''
-    if CameraSystem.is_duck_standing3 and flipper_status == FlipperStatus.ORIENTED:
-        robot.CollectionSystem.Sweep.push()
-        flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.EMPTY
-        elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
-    else:
-        robot.CollectionSystem.Flipper.flip_platform()
-        elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
+    if len(flipper_data) > 0 and flipper_status == FlipperStatus.ORIENTED:
+        duck_standing = camera.is_duck_standing3()
+        if duck_standing and flipper_status == FlipperStatus.ORIENTED and elevator_status == ElevatorStatus.READY:
+            robot.CollectionSystem.Sweep.push()
+            flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.EMPTY
+            elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
+            CurrItem = flipper_data[0][0]
+        else:
+            robot.CollectionSystem.Flipper.flip_platform()
+            elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
+            CurrItem = flipper_data[0][0]
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #elevator states
@@ -225,7 +235,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         
         
         
-    elif elevator_status != ElevatorStatus.READY and pusher_status != PusherStatus.READY and CurrItem != -1:
+    elif elevator_status != ElevatorStatus.READY and pusher_status != PusherStatus.READY and CurrItem >= 0 and CurrItem <= 4:
         pusher_status = robot.CollectionSystem.Pushers.statusBot = drumSerial(CurrItem, serial_stepper, robot)
         
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -268,9 +278,11 @@ def drumSerial(item, serial_stepper, robot):
     global position
     if DrumStatus == 0:
         position = positionSelection(item, serial_stepper, robot)
+        if position == 'z':
+            return
     
     
-    if DrumStatus == 0:
+    if DrumStatus == 0 and position != '':
         serial_stepper.reset_output_buffer()
         str_data = "Input: " + position + "\n"
         serial_stepper.write(str_data.encode())
@@ -308,7 +320,7 @@ def positionSelection(item, serial_stepper, robot: Robot):
         #We need to worry about loading then unloading. After this we can move onto the next object.
         position = 'c'
         firstWhiteCol(position, serial_stepper, robot)
-        return ''
+        return 'z'
         
     elif item == 2 and whiteColumnCounter > 1:
         return 'c'
@@ -346,7 +358,7 @@ def main():
                 if cv2.waitKey(1) == 27:
                     break
                 #I think all cases of the intake has been completed
-                CollectionStateMachine(robot, elevator_data, mid_data, flipper_data, serial_stepper)
+                CollectionStateMachine(robot, elevator_data, mid_data, flipper_data, serial_stepper, camera)
                 
                 '''We are going to have to figure out something right here to solve'''
                 '''if serial_stepper.in_waiting > 0:

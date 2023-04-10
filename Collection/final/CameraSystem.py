@@ -27,7 +27,7 @@ class CameraSystem:
         self._min_area = 0.02 * self._frame_width * self._frame_height
         self._max_area = self._frame_width * self._frame_height
         self._max_results = 4
-        self._score_threshold = 0.40
+        self._score_threshold = 0.5
         self.camera = Picamera2()
         self._preview_config = self.camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (self._frame_width, self._frame_height)})
        
@@ -356,7 +356,7 @@ class CameraSystem:
         tensor_image = vision.TensorImage.create_from_array(rgb_image)
         # List classification results
         categories = self._classifier.classify(tensor_image)
-        print(categories)
+        #print(categories)
         category = categories.classifications[0].categories[0].category_name
         print(category)
         # Check if the image is classified as Flip or Push

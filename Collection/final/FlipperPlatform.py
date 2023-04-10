@@ -8,7 +8,7 @@ _ROTATION_SERVO_CHANNEL = 14
 _FLIPPER_SERVO_CHANNEL = 13
 
 _STOP_ORIENTATION = 107
-_START_ORIENTATION = 150
+_START_ORIENTATION = 120
 
 _RESET_FLIPPER = 0
 _FLIP_FLIPPER = 180
@@ -62,11 +62,11 @@ class Flipper:
 
     def flip_platform(self) -> None:
         ''' This method activates the flipping platform '''
-        for i in range(0, -20, -1):
-            self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, i)
+        for i in range(0, -45, -1):
+            self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, i, 180)
             sleep(.01)
-        for i in range(-20, 0, 1):
-            self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, i)
+        for i in range(-45, 0, 1):
+            self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, i, 180)
             sleep(.01)
         
         self.set_status(FlipperStatus.EMPTY)
