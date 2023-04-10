@@ -184,7 +184,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     
     
     '''
-    if CameraSystem.is_duck_standing and flipper_status == FlipperStatus.ORIENTED:
+    if CameraSystem.is_duck_standing3 and flipper_status == FlipperStatus.ORIENTED:
         robot.CollectionSystem.Sweep.push()
         flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.EMPTY
     else:
@@ -243,6 +243,8 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         
 TimeToUnload = 0
 def firstWhiteCol(position, serial_stepper, robot: Robot):
+    global TimeToUnload
+
     if TimeToUnload == 0:
         pusherStatus = outputSerial(serial_stepper, position)
         if pusherStatus == PusherStatus.READY:
