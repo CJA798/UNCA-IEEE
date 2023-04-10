@@ -15,7 +15,6 @@ _ROTATION_MAX_THRESHOLD = 90
 class ElevatorStatus:
     READY = 0 #Waiting for flipper, then the camera to orient
     UNORIENTED_OBJECT = 1 #Rotate into the correct position then go to oriented
-    ORIENTING_OBJECT = 2 #Rotating while waiting for Threshhold to be met
     ORIENTED_OBJECT = 3 #Rotated and can move straight into raising
     RAISING = 4 #Raising until done.
     RAISED = 5 #Done and letting drum rotate to get the object pushed in
@@ -43,7 +42,6 @@ class Elevator():
 # This is the orientation platform on the elevator
     def rotate_platform(self) -> None:
         ''' This method rotates the orientation platform '''
-        self.set_status(ElevatorStatus.ORIENTING)
         self.hat.move_servo_position(_ORIENTATION_SERVO_CHANNEL, _START_ORIENTATION, _SWING)
         
 

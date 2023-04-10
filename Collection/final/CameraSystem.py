@@ -25,7 +25,7 @@ class CameraSystem:
         self._min_area = 0.02 * self._frame_width * self._frame_height
         self._max_area = self._frame_width * self._frame_height
         self._max_results = 10
-        self._score_threshold = 0.7
+        self._score_threshold = 0.35
         self.camera = Picamera2()
         self._preview_config = self.camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (self._frame_width, self._frame_height)})
        
@@ -95,12 +95,16 @@ class CameraSystem:
         # Convert oriented_image to hsv to identify colors easily
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         # Convert oriented_image to grayscale to identify white
-        h, _, gray = cv2.split(hsv)
+        _, _, gray = cv2.split(hsv)
         # Convert oriented_image to grayscale
         #gray = cv2.cvtColor(hsv, cv2.COLOR_BGR2GRAY)
 
         # Convert oriented_image to binary
         _, bw = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+        # Debug previews
+        #cv2.imshow('HSV', hsv)
+        #cv2.imshow('Gray', gray)
 
         # Find the contours of each bounding box
         contours = []
@@ -223,7 +227,15 @@ class CameraSystem:
         elevator_data = []
         middle_area_data = []
         flipper_data = []
-        forbidden_area_start = self._frame_width // 5
+        
+        for item in data:
+            x_coord = item[1].origin_x
+            if x_coord < self._frame_width // 2:
+                elevator_data.append(item)
+            else:
+                flipper_data.append(item)
+
+        '''forbidden_area_start = self._frame_width // 5
         forbidden_area_end = (self._frame_width * 3) // 5
         for item in data:
             x_coord = item[1].origin_x
@@ -232,7 +244,7 @@ class CameraSystem:
             else:
                 flipper_data.append(item)
             #else:
-                #middle_area_data.append(item)
+                #middle_area_data.append(item)'''
 
         return elevator_data, middle_area_data, flipper_data
 
@@ -269,13 +281,12 @@ class CameraSystem:
         image = self.draw_areas(image)
         # Stop the program if the ESC key is pressed.
         cv2.imshow('object_detector', image)
-        cv2.imshow('object_classifier', self.img_to_classify)
-        #cv2.imshow('HSV', hsv)
-        #cv2.imshow('Gray', gray).
+        #cv2.imshow('object_classifier', self.img_to_classify)
+        
     
-        print('Elevator Area: {}'.format(tuple(elevator_area)))
-        print('Middle Area: {}'.format(tuple(middle_area)))
-        print('Flipper Area: {}'.format(tuple(flipper_area)))
+        #print('Elevator Area: {}'.format(tuple(elevator_area)))
+        #print('Middle Area: {}'.format(tuple(middle_area)))
+        #print('Flipper Area: {}'.format(tuple(flipper_area)))
 
         return elevator_area, middle_area, flipper_area
     

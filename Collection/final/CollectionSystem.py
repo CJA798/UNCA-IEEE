@@ -11,10 +11,10 @@ class CollectionSystem:
         self.status = CollectionStatus.COLLECTING
         self.Intake = IntakeSystem()
         self.Flipper = Flipper()
-        self.Elevator = Elevator()
         self.Pushers = Pushers()
         self.Brace = Brace()
         self.Sweep = Sweeper()
+        self.Elevator = Elevator()
 
 
 class CollectionStatus:

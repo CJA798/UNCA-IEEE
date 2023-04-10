@@ -18,14 +18,14 @@ class Global_Static:
     YELLOW_DUCK = 0
     PINK_DUCK = 1
     #Yellow Duck Angle Threshhold
-    Y_D_ANG_MIN_THRESH = 70
-    Y_D_ANG_MAX_THRESH = 100
+    Y_D_ANG_MIN_THRESH = 10
+    Y_D_ANG_MAX_THRESH = 40
     #Pink Duck angle threshhold
     P_D_ANG_MIN_THRESH = 70
     P_D_ANG_MAX_THRESH = 100
     #All pillar threshholds
-    PILLAR_MIN_THRESH = 50
-    PILLAR_MAX_THRESH = 90
+    PILLAR_MIN_THRESH = 10
+    PILLAR_MAX_THRESH = 30
 DrumStatus = 0
 yellowDuckCounter = 0
 columnPosition = []
@@ -35,59 +35,6 @@ TOWER_ONE = 'a'
 TOWER_TWO = 'b'
 DUCK_TOWER = 'c'
 
-def main():
-    # Create objects
-    camera = CameraSystem()
-    robot = Robot()
-    
-    
-    baud_rate = 115200
-    serial_stepper = serial.Serial('/dev/ttyACM0', baud_rate)
-    serial_stepper.reset_input_buffer()
-
-    try:
-        with camera.camera as cam:
-            
-            while True:
-                elevator_data, mid_data, flipper_data = camera.get_data()
-
-                if cv2.waitKey(1) == 27:
-                    break
-                #I think all cases of the intake has been completed
-                CollectionStateMachine(robot, elevator_data, mid_data, flipper_data, serial_stepper)
-                
-                '''We are going to have to figure out something right here to solve'''
-                '''if serial_stepper.in_waiting > 0:
-                    DrumStatus = serial_stepper.readline().decode('utf-8').rstrip()
-                    serial_stepper.reset_input_buffer()
-                    
-                if DrumStatus == "Output" and len(elevator_data) < 1 and len(flipper_data) < 1:
-                    break'''
-                
-
-            cv2.destroyAllWindows()
-    # When the camera is unreachable, stop the program
-    finally:
-        cv2.destroyAllWindows()
-        
-    DrumStatus = 0
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #This is the outpt function, It should be hard coded depending on the serial from the navigation Teensy
-    while True:
-        currentTower = ''
-        if serial_stepper.in_waiting > 0:
-            currentTower = serial.readline().decode('utf-8').rstrip()
-        
-        if currentTower != '':
-            WaitingToFinish = 0
-            
-            while not WaitingToFinish:
-                if currentTower == TOWER_ONE:
-                    WaitingToFinish = sequenceForTower1(serial_stepper, robot)
-                if currentTower == TOWER_TWO:
-                    WaitingToFinish = sequenceForTower2(serial_stepper, robot)
-                if currentTower == DUCK_TOWER:
-                    WaitingToFinish = sequenceForTower3(serial_stepper, robot)
         
 
 
@@ -174,15 +121,24 @@ def outputSerial(serial_stepper, position):
         DrumStatus = 0
         return PusherStatus.READY
 
-if __name__ == '__main__':
-  main()
+
   
-  
+CurrItem = -1
 def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, serial_stepper):
+    #this is the state machine for the entire system.
+    global CurrItem
+    global DrumStatus
+    global yellowDuckCounter
+    global columnPosition
+    global greenColumnCounter
+    global whiteColumnCounter
+
     flipper_status = robot.CollectionSystem.Flipper.status
     elevator_status = robot.CollectionSystem.Elevator.status
     pusher_status = robot.CollectionSystem.Pushers.statusBot
     intake_status = robot.CollectionSystem.Intake.status
+    if len(elevator_data) > 0:
+        CurrItem = elevator_data[0][0]
     #I am going to have to make a state machine for each of the objects.
     #I will start from the beginning and move to the end. Should be easy...
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -199,8 +155,9 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     '''Check how many ducks we have when this item is brought into the system. This function may need to be moved around to push out or in depending on the elevator'''
     if len(flipper_data) > 1:
         robot.CollectionSystem.Sweep.sweep()
-    if flipper_data[0][0] == 0 and yellowDuckCounter == 2:
+    if len(flipper_data) > 0 and flipper_data[0][0] == 0 and yellowDuckCounter == 2:
         robot.CollectionSystem.Sweep.sweep()
+    
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Flipper statuses and what it will be doing. The flipped case is ignored since it will need to consider the item for each case of flip or sweep
     if len(flipper_data) == 1 and flipper_status != FlipperStatus.ORIENTED:
@@ -265,8 +222,8 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         
         
         
-    elif elevator_status == ElevatorStatus.RAISED and pusher_status != PusherStatus.READY:
-        pusher_status = robot.CollectionSystem.Pushers.statusBot = drumSerial(elevator_data[0][0], serial_stepper, robot)
+    elif elevator_status == ElevatorStatus.RAISED and pusher_status != PusherStatus.READY and CurrItem != -1:
+        pusher_status = robot.CollectionSystem.Pushers.statusBot = drumSerial(CurrItem, serial_stepper, robot)
         
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #This is pusher states. Once the pusher is done then it will also set the elevator status to ready state.
@@ -280,30 +237,57 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         robot.CollectionSystem.Pushers.RetractPusherBot()
         
         robot.CollectionSystem.Elevator.lowerToGround()
+        CurrItem = -1
         
         
         
+TimeToUnload = 0
+def firstWhiteCol(position, serial_stepper, robot: Robot):
+    if TimeToUnload == 0:
+        pusherStatus = outputSerial(serial_stepper, position)
+        if pusherStatus == PusherStatus.READY:
+            robot.CollectionSystem.Pushers.LoadingPillarPusher()
+            robot.CollectionSystem.Pushers.RetractPusherBot()
+            pusherStatus = PusherStatus.RETRACTED
+            TimeToUnload = 1
     
     
+    
+    if TimeToUnload == 1:
+        pusherStatus = outputSerial(serial_stepper, 'C')
+        if pusherStatus == PusherStatus.READY:
+            robot.CollectionSystem.Pushers.UnloadingPillarPusherTop()
+            robot.CollectionSystem.Pushers.RetractPusherTop()
+            robot.CollectionSystem.Elevator.lowerToGround()
+
+position = ''
 def drumSerial(item, serial_stepper, robot):
+    global DrumStatus
+    global position
     if DrumStatus == 0:
         position = positionSelection(item, serial_stepper, robot)
     
     
     if DrumStatus == 0:
         serial_stepper.reset_output_buffer()
-        str_data = "Input: " + position + '\n'
+        str_data = "Input: " + position + "\n"
         serial_stepper.write(str_data.encode())
         DrumStatus = 1
     elif DrumStatus == 1:
         if serial_stepper.in_waiting > 0:
             DrumStatus = serial_stepper.readline().decode('utf-8').rstrip()
-            serial_stepper.reset_input_buffer()
-    elif DrumStatus == 'R':
+            print(DrumStatus)
+    elif DrumStatus == "finished" + position:
         DrumStatus = 0
+        position = ''
         return PusherStatus.READY
     
 def positionSelection(item, serial_stepper, robot: Robot):
+    global DrumStatus
+    global yellowDuckCounter
+    global columnPosition
+    global greenColumnCounter
+    global whiteColumnCounter
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Yellow Duck case of the drum
     if item == 0 and yellowDuckCounter == 1:
@@ -312,13 +296,13 @@ def positionSelection(item, serial_stepper, robot: Robot):
         return 'f'
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Pink duck loading
-    if item == 1:
+    elif item == 1:
         return 'b'
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #White Column positioning. We need to worry about if this is the first time or not.
     #If it is the first time then we need to load then unload immediately.
     #Any time after that we just need to load
-    if item == 2 and whiteColumnCounter == 1:
+    elif item == 2 and whiteColumnCounter == 1:
         #We need to worry about loading then unloading. After this we can move onto the next object.
         position = 'c'
         firstWhiteCol(position, serial_stepper, robot)
@@ -329,32 +313,72 @@ def positionSelection(item, serial_stepper, robot: Robot):
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Green column case. If this is the first two columns then we will just load into the green slot
     #If this is the third case then we need to load it in the red/green slot and save that location for later use
-    if item == 3 and greenColumnCounter <= 2:
+    elif item == 3 and greenColumnCounter <= 2:
         return 'd'
     elif item == 3 and greenColumnCounter == 3:
         columnPosition.append(3)
         return 'e'
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #This is loading the red column and saving the position
-    if item == 4:
+    elif item == 4:
         columnPosition.append(4)
         return 'e'
+        
+
+def main():
+    # Create objects
+    camera = CameraSystem()
+    robot = Robot()
     
-    TimeToUnload = 0
-    def firstWhiteCol(position, serial_stepper, robot: Robot):
-        if TimeToUnload == 0:
-            pusherStatus = outputSerial(serial_stepper, position)
-        
-        if pusherStatus == PusherStatus.READY and TimeToUnload == 0:
-            robot.CollectionSystem.Pushers.LoadingPillarPusherBot
-            robot.CollectionSystem.Pushers.RetractPusherBot()
-            TimeToUnload = 1
-        
-        if TimeToUnload == 1:
-            pusherStatus = outputSerial(serial_stepper, 'C')
-        if pusherStatus == PusherStatus.READY and TimeToUnload == 1:
-            robot.CollectionSystem.Pushers.UnloadingPillarPusherTop()
-            robot.CollectionSystem.Pushers.RetractPusherTop()
-            robot.CollectionSystem.Elevator.lowerToGround()
+    
+    baud_rate = 115200
+    serial_stepper = serial.Serial('/dev/ttyACM0', baud_rate)
+    serial_stepper.reset_input_buffer()
+
+    try:
+        with camera.camera as cam:
             
+            while True:
+                elevator_data, mid_data, flipper_data = camera.get_data()
+
+                if cv2.waitKey(1) == 27:
+                    break
+                #I think all cases of the intake has been completed
+                CollectionStateMachine(robot, elevator_data, mid_data, flipper_data, serial_stepper)
+                
+                '''We are going to have to figure out something right here to solve'''
+                '''if serial_stepper.in_waiting > 0:
+                    DrumStatus = serial_stepper.readline().decode('utf-8').rstrip()
+                    serial_stepper.reset_input_buffer()
+                    
+                if DrumStatus == "Output" and len(elevator_data) < 1 and len(flipper_data) < 1:
+                    break'''
+                
+
+            cv2.destroyAllWindows()
+    # When the camera is unreachable, stop the program
+    finally:
+        cv2.destroyAllWindows()
         
+    DrumStatus = 0
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #This is the outpt function, It should be hard coded depending on the serial from the navigation Teensy
+    while True:
+        currentTower = ''
+        if serial_stepper.in_waiting > 0:
+            currentTower = serial.readline().decode('utf-8').rstrip()
+        
+        if currentTower != '':
+            WaitingToFinish = 0
+            
+            while not WaitingToFinish:
+                if currentTower == TOWER_ONE:
+                    WaitingToFinish = sequenceForTower1(serial_stepper, robot)
+                if currentTower == TOWER_TWO:
+                    WaitingToFinish = sequenceForTower2(serial_stepper, robot)
+                if currentTower == DUCK_TOWER:
+                    WaitingToFinish = sequenceForTower3(serial_stepper, robot)
+
+
+if __name__ == '__main__':
+  main()
