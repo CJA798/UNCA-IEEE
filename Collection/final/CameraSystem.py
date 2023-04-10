@@ -27,7 +27,7 @@ class CameraSystem:
         self._min_area = 0.02 * self._frame_width * self._frame_height
         self._max_area = self._frame_width * self._frame_height
         self._max_results = 4
-        self._score_threshold = 0.5
+        self._score_threshold = 0.6
         self.camera = Picamera2()
         self._preview_config = self.camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (self._frame_width, self._frame_height)})
        
