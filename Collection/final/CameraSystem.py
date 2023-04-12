@@ -286,7 +286,7 @@ class CameraSystem:
         #cv2.imshow('object_classifier', self.img_to_classify)
         
     
-        #print('Elevator Area: {}'.format(tuple(elevator_area)))
+        print('Elevator Area: {}'.format(tuple(elevator_area)))
         #print('Middle Area: {}'.format(tuple(middle_area)))
         #print('Flipper Area: {}'.format(tuple(flipper_area)))
 
@@ -349,7 +349,9 @@ class CameraSystem:
 
     def is_duck_standing3(self):
         ''' This method returns True if the duck on the flipper is standing '''
-        image = self.img_to_classify
+        image = self.camera.capture_array()
+        self.img_to_classify = image[:, self._frame_width//2:, :]
+        #image = self.img_to_classify
         # Convert the image from BGR to RGB as required by the TFLite model.
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         # Create TensorImage from the RGB image

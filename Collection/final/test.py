@@ -10,7 +10,7 @@ test = pi_servo_hat.PiServoHat()
 test.restart()
 test.set_pwm_frequency(50)
 
-test.move_servo_position(13, 0, 180)
+test.move_servo_position(5, -110, 180)
 
 '''for i in range(0, 270, 1):
         test.move_servo_position(13, i, 180)

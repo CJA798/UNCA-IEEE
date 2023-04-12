@@ -203,10 +203,11 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
             
         elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
         flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.EMPTY
+        return
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #elevator states
-    if len(elevator_data) > 0 and elevator_status == ElevatorStatus.READY:
+    if len(elevator_data) > 0 and elevator_status == ElevatorStatus.FILLED:
         #Here I need to do a few things. First is consider whether or not the object is oriented.
         #After that then I need to move the elevator up to the desired height and let the pushers know that I'm ready and to wait for drum response.
         if elevator_data[0][0] <= 1:
@@ -277,22 +278,22 @@ def drumSerial(item, serial_stepper, robot):
         position = positionSelection(item, serial_stepper, robot)
         if position == 'z':
             return
-    
-    if DrumStatus == 0 and position != '':
-        serial_stepper.reset_output_buffer()
-        str_data = "Input: " + position + "\n"
-        serial_stepper.write(str_data.encode())
-        DrumStatus = 1
-    elif DrumStatus == 1:
-        if serial_stepper.in_waiting > 0:
-            DrumStatus = serial_stepper.readline().decode('utf-8').rstrip()
-            print("Read the line")
-        if DrumStatus != "finished" + position:
+    if position != None:
+        if DrumStatus == 0 and position != '':
+            serial_stepper.reset_output_buffer()
+            str_data = "Input: " + position + "\n"
+            serial_stepper.write(str_data.encode())
             DrumStatus = 1
-    elif DrumStatus == "finished" + position:
-        DrumStatus = 0
-        position = ''
-        return PusherStatus.READY
+        elif DrumStatus == 1:
+            if serial_stepper.in_waiting > 0:
+                DrumStatus = serial_stepper.readline().decode('utf-8').rstrip()
+                print("Read the line")
+            if DrumStatus != "finished" + position:
+                DrumStatus = 1
+        elif DrumStatus == "finished" + position:
+            DrumStatus = 0
+            position = ''
+            return PusherStatus.READY
     
 def positionSelection(item, serial_stepper, robot: Robot):
     global DrumStatus
@@ -351,8 +352,8 @@ def main():
             
             while True:
                 elevator_data, mid_data, flipper_data = camera.get_data()
-                if not elevator_data and not mid_data and not flipper_data:
-                    continue
+                #if not elevator_data and not mid_data and not flipper_data:
+                 #   continue
                 if cv2.waitKey(1) == 27:
                     break
                 #I think all cases of the intake has been completed
