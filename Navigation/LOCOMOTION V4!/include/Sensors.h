@@ -22,6 +22,7 @@
 
 #include <Adafruit_BNO055.h>
 */
+
 Bounce FrontLeftSw;
 Bounce FrontRightSw;
 Bounce BackRightSw;
@@ -34,6 +35,7 @@ bool HitWallFlag = false;
 volatile char SwitchesState = 4;
 bool ChangeInSwitchState = 0;
 double SwitchAngle = 0;
+
 class BumperSwitches
 { // This class will contain the functions to read the construct the bumpers switches, read from the switches, and set flags for when the X_min, X_max, Y_min, Y_max bounds are reached.
 

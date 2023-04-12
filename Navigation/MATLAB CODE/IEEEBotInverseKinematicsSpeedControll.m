@@ -28,8 +28,8 @@ stepsperrad= 13750.98;
 stepsperdist= 432.1518 ;
 FullRotSteps= -34560
 Vx = 1; % Speed in X
-Vy = 0; % Speed in Y
-Vomega = 0; % Rotational Speed
+Vy = 1; % Speed in Y
+Vomega = -.01; % Rotational Speed
 X = Vx;
 Y = Vy; 
 
