@@ -325,21 +325,21 @@ public:
     void StartTune(void)
     {
         InitDrumAsSpeaker();
-        note(c, 300);
-        note(d, 300);
-        note(f, 300);
-        note(d, 300);
-        note(a, 900);
-        note(a, 900);
-        note(g, 1800);
+        note(c, 200);
+        note(d, 200);
+        note(f, 200);
+        note(d, 200);
+        note(a, 600);
+        note(a, 600);
+        note(g, 1200);
         
-        note(c, 300);
-        note(d, 300);
-        note(f, 300);
-        note(d, 300);
-        note(g, 900);
-        note(g, 900);
-        note(f, 1800);
+        note(c, 200);
+        note(d, 200);
+        note(f, 200);
+        note(d, 200);
+        note(g, 600);
+        note(g, 600);
+        note(f, 1200);
         
        /*
         note(e, 200);
