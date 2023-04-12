@@ -325,6 +325,15 @@ public:
     void StartTune(void)
     {
         InitDrumAsSpeaker();
+        note(c, 100);
+        note(d, 100);
+        note(f, 100);
+        note(d, 100);
+        note(a, 300);
+        note(a, 300);
+        note(g, 600);
+        
+       /*
         note(e, 200);
         delay(100);
         note(e, 200);
@@ -337,6 +346,7 @@ public:
         delay(100);
         note(g, 400);
         delay(100);
+        */
     }
     bool isDone()
     {
