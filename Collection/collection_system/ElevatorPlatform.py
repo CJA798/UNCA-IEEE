@@ -1,29 +1,25 @@
 import asyncio
-from time import sleep
 from pi_servo_hat import PiServoHat
 
 class ElevatorStatus:
-    EMPTY = 0 #Waiting for flipper, then the camera to orient
+    READY = 0 #Waiting for flipper, then the camera to orient
     UNORIENTED_OBJECT = 1 #Rotate into the correct position then go to oriented
-    ORIENTING_OBJECT = 2 #Rotating while waiting for Threshhold to be met
-    ORIENTED_OBJECT = 3 #Rotated and can move straight into raising
-    RAISING = 4 #Raising until done.
-    RAISED = 5 #Done and letting drum rotate to get the object pushed in
-    LOWERING = 6 #Done with being pushed and lower. Once done going into empty
+    ORIENTED_OBJECT = 2 #Waiting for the camera to tell me to move to the height of an object
+    DUCK = 3
+    COLUMN = 4
+    DONE = 5 #Go back down to the ready state
+    CLEANING = 6 #The orientation isn't fixable, so cleaning
 _ROTATION_SERVO_CHANNEL = 3
 _ELEVATOR_SERVO_CHANNEL = 4
-_STOP_ROTATION = 107
-_ROTATE = 180
-_SWING = 180
-_ROTATION_MIN_THRESHOLD = 50
-_ROTATION_MAX_THRESHOLD = 90
-_ROTATION_MEAN_THRESHOLD = int((_ROTATION_MIN_THRESHOLD + _ROTATION_MAX_THRESHOLD) / 2)
 
 class Elevator():
     def __init__(self):
-        self.status = ElevatorStatus.EMPTY
+        self.status = ElevatorStatus.READY
         self.current_angle = 0
+        self.num_objects = 0
         self.swing = 180
+        self.speed = 54
+        
 
         # Instantiate the object
         self.hat = PiServoHat()
@@ -32,56 +28,44 @@ class Elevator():
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
         # Save the hat object as an attribute
-        self.lowerToGround()
     
     async def wait(self, duration: int):
         await asyncio.sleep(duration)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # This is the orientation platform on the elevator
-    def RotatePlatform(self, angle: int) -> None:
-        self.set_status(ElevatorStatus.ORIENTING)
-        print("Orienting")
-        angleError = abs(_ROTATION_MEAN_THRESHOLD - angle)
-        rotationTime = angleError / 180
-        print("Rotating {} degrees".format(angleError))
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _ROTATE, _SWING)
-        sleep(rotationTime)
+    def rotate_platform(self):
+        self.set_status(ElevatorStatus.ORIENTED_OBJECT)
+        if self.speed is not 60:
+            self.speed += 1
+        else: self.speed is 0
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, self.speed)
+ 
 
 
-    def StopRotation(self) -> None:
-        print("Stop rotation")
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ROTATION, _SWING)
+    def stop_rotation(self):
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 54)
+    
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #This is the servo movement to raise and lower the platform
-    def raisePlatformToDuck(self):
-        '''
-        Raises the platform up to the duck location
-        '''
+    async def raisePlatformToDuck(self):
         #The determined position of the servo for ground is -110
-        self.setStatus(ElevatorStatus.RAISING)
+        self.setStatus(ElevatorStatus.DUCK)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, -110, self.swing)
-        sleep(0.5)
+        await self.wait(0.5)
 
-    def raisePlatformToColumn(self):
-        '''
-        Raises the platform up to the column location
-        '''
+    async def raisePlatformToColumn(self):
         #The determined position of the servo for ground is 0
-        self.setStatus(ElevatorStatus.RAISING)
+        self.setStatus(ElevatorStatus.COLUMN)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 0, self.swing)
-        sleep(0.5)
-        
+        await self.wait(0.5)
 
-    def lowerToGround(self):
-        '''
-        Lowers the platform back to the base state
-        '''
+    async def lowerToGround(self):
         #The determined position of the servo for ground is 230
-        self.setStatus(ElevatorStatus.LOWERING)
+        self.setStatus(ElevatorStatus.DONE)
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 230, self.swing)
-        sleep(1)
+        await self.wait(0.5)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Getters and Setters
@@ -93,6 +77,8 @@ class Elevator():
         return self.current_angle
     def set_current_angle(self, angle: int):
         self.current_angle = angle
+    def get_num_objects(self):
+        return self.num_objects
 
 
 
