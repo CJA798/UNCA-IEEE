@@ -1,9 +1,7 @@
-import asyncio
 from time import sleep
 from pi_servo_hat import PiServoHat
 
-
-_ORIENTATION_SERVO_CHANNEL = 2
+_ROTATION_SERVO_CHANNEL = 2
 _ELEVATOR_SERVO_CHANNEL = 1
 _STOP_ORIENTATION = 107
 _START_ORIENTATION = 120
@@ -20,8 +18,8 @@ class ElevatorStatus:
     RAISED = 5 #Done and letting drum rotate to get the object pushed in
     LOWERING = 6 #Done with being pushed and lower. Once done going into empty
     FILLED = 7
-
-
+    
+    
 class Elevator():
     def __init__(self):
         self.status = ElevatorStatus.READY
@@ -41,14 +39,20 @@ class Elevator():
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # This is the orientation platform on the elevator
-    def rotate_platform(self) -> None:
-        ''' This method rotates the orientation platform '''
-        self.hat.move_servo_position(_ORIENTATION_SERVO_CHANNEL, _START_ORIENTATION, _SWING)
+    def rotate_platform(self):
+        self.set_status(ElevatorStatus.ORIENTED_OBJECT)
+        if self.speed is not 60:
+            self.speed += 1
+        else: self.speed is 60
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, self.speed)
         
+ 
 
 
-    def stop_rotation(self) -> None:
-        self.hat.move_servo_position(_ORIENTATION_SERVO_CHANNEL, _STOP_ORIENTATION, _SWING)
+    def stop_rotation(self):
+        self.speed = 54
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, self.speed)
+    
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #This is the servo movement to raise and lower the platform
@@ -60,9 +64,6 @@ class Elevator():
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, -55) # Push into Cylinder pos
         sleep(1)
         self.status = ElevatorStatus.RAISED
-        
-
-    
         
 
     def lowerToGround(self):
@@ -84,6 +85,8 @@ class Elevator():
         return self.current_angle
     def set_current_angle(self, angle: int):
         self.current_angle = angle
+    def get_num_objects(self):
+        return self.num_objects
 
 
 

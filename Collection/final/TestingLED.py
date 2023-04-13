@@ -1,7 +1,9 @@
 import RPi.GPIO as GPIO
 import time
+import os
+import subprocess
 
-
+#this code needs to be tested
 
 
 # set up GPIO pins
@@ -14,10 +16,17 @@ GPIO.output(3, GPIO.LOW)
 # wait for limit switch to be activated
 while GPIO.input(2):
     time.sleep(0.1)
-    GPIO.output(3, GPIO.LOW)
+    GPIO.output(3, GPIO.LOW) # this probably should be high
+   # subprocess.call(['sh', './test.sh']) #this should work
+    subprocess.call(['/bin/bash', '/home/pi/UNCA-IEEE/Collection/final/monitor_script.sh']) #this should work
+   #os.system("bash /home/pi/UNCA-IEEE/Collection/final/monitor_script.sh") this is not working
+
+
 
 # turn on LED when limit switch is activated
-GPIO.output(3, GPIO.HIGH)
+
+#here you should call the code that you want to execute 
+GPIO.output(3, GPIO.HIGH) #this ptobably should be Low
 
 # print message when limit switch is activated
 print("Limit switch activated")
