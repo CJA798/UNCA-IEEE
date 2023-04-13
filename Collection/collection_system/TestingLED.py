@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import monitor_script
 
-
+#this code needs to be tested
 
 
 # set up GPIO pins
@@ -16,6 +16,7 @@ GPIO.output(3, GPIO.LOW)
 while GPIO.input(2):
     time.sleep(0.1)
     GPIO.output(3, GPIO.LOW) # this probably should be high
+    monitor_script.call(['sh', './test.sh']) #this should work
 
 
 # turn on LED when limit switch is activated
