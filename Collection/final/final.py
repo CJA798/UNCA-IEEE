@@ -34,6 +34,9 @@ whiteColumnCounter = 0
 TOWER_ONE = 'a'
 TOWER_TWO = 'b'
 DUCK_TOWER = 'c'
+CurrItem = -1
+TimeToUnload = 0
+position = ''
 
         
 
@@ -77,7 +80,6 @@ def sequenceForTower3(serial_stepper, robot: Robot):
             PusherPosition = outputSerial(serial_stepper, 'D')
         if PusherPosition == PusherStatus.READY and greenColumnCounter > 2:
             robot.CollectionSystem.Pushers.Half_UnloadingPillarPusherTop()
-            sleep(.50)
             robot.CollectionSystem.Pushers.RetractPusherTop()
             PusherPosition = PusherStatus.RETRACTED
             greenColumnCounter = greenColumnCounter - 1
@@ -87,7 +89,6 @@ def sequenceForTower3(serial_stepper, robot: Robot):
             PusherPosition = outputSerial(serial_stepper, 'E')
         if PusherPosition == PusherStatus.READY and greenColumnCounter == 2 and len(columnPosition) > 1:
             robot.CollectionSystem.Pushers.Half_UnloadingPillarPusherTop()
-            sleep(.50)
             robot.CollectionSystem.Pushers.RetractPusherTop()
             PusherPosition = PusherStatus.RETRACTED
             columnPosition.pop()
@@ -98,7 +99,6 @@ def sequenceForTower3(serial_stepper, robot: Robot):
         if PusherPosition == PusherStatus.READY and greenColumnCounter == 2 and len(columnPosition) > 1:
             #Once this if statement finishes then we tell waiting to finish that we are done and need to wait for the next tower to be ready to be built
             robot.CollectionSystem.Pushers.UnloadingPillarPusherTop()
-            sleep(.50)
             robot.CollectionSystem.Pushers.RetractPusherTop()
             PusherPosition = PusherStatus.RETRACTED
             return 1
@@ -117,14 +117,11 @@ def outputSerial(serial_stepper, position):
     elif DrumStatus == 1:
         if serial_stepper.in_waiting > 0:
             DrumStatus = serial_stepper.readline().decode('utf-8').rstrip()
-            serial_stepper.reset_input_buffer()
     elif DrumStatus == "finished" + position:
         DrumStatus = 0
         return PusherStatus.READY
 
 
-  
-CurrItem = -1
 def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, serial_stepper, camera: CameraSystem):
     #this is the state machine for the entire system.
     global CurrItem
@@ -140,6 +137,8 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     intake_status = robot.CollectionSystem.Intake.status
     if len(elevator_data) > 0:
         CurrItem = elevator_data[0][0]
+        elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
+        
     #I am going to have to make a state machine for each of the objects.
     #I will start from the beginning and move to the end. Should be easy...
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -176,6 +175,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
                 #Duck is oriented
                 robot.CollectionSystem.Flipper.stop_rotation()
                 flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
+                return
         elif flipper_data[0][0] >= 2:
             if flipper_data[0][2] > Global_Static.PILLAR_MAX_THRESH or flipper_data[0][2] < Global_Static.PILLAR_MIN_THRESH:
                 #Orienting the Column
@@ -185,6 +185,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
                 #Oriented
                 robot.CollectionSystem.Flipper.stop_rotation()
                 flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
+                return
                 print("job done")
     
     '''
@@ -235,7 +236,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
             whiteColumnCounter = whiteColumnCounter + 1
         robot.CollectionSystem.Elevator.raisePlatform()
           
-    elif pusher_status != PusherStatus.READY and CurrItem >= 0 and CurrItem <= 4:
+    elif pusher_status != PusherStatus.READY and CurrItem >= 0 and CurrItem <= 4 and elevator_status == ElevatorStatus.RAISED:
         pusher_status = robot.CollectionSystem.Pushers.statusBot = drumSerial(CurrItem, serial_stepper, robot)
         
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -251,7 +252,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         
         
         
-TimeToUnload = 0
+
 def firstWhiteCol(position, serial_stepper, robot: Robot):
     global TimeToUnload
     global CurrItem
@@ -269,7 +270,7 @@ def firstWhiteCol(position, serial_stepper, robot: Robot):
             robot.CollectionSystem.Elevator.lowerToGround()
             CurrItem = -1
 
-position = ''
+
 def drumSerial(item, serial_stepper, robot):
     global DrumStatus
     global position
@@ -288,8 +289,6 @@ def drumSerial(item, serial_stepper, robot):
             if serial_stepper.in_waiting > 0:
                 DrumStatus = serial_stepper.readline().decode('utf-8').rstrip()
                 print("Read the line")
-            if DrumStatus != "finished" + position:
-                DrumStatus = 1
         elif DrumStatus == "finished" + position:
             DrumStatus = 0
             position = ''
@@ -346,6 +345,13 @@ def main():
     baud_rate = 115200
     serial_stepper = serial.Serial('/dev/ttyACM0', baud_rate)
     serial_stepper.reset_input_buffer()
+    
+    '''while True:
+        if serial_stepper.in_waiting > 0:
+            timeToStart = serial_stepper.readline().decode('utf-8').rstrip()
+            serial_stepper.flushInput()
+            if timeToStart == "Ready":
+                break'''
 
     try:
         with camera.camera as cam:
@@ -359,7 +365,8 @@ def main():
                 #I think all cases of the intake has been completed
                 CollectionStateMachine(robot, elevator_data, mid_data, flipper_data, serial_stepper, camera)
                 
-                '''We are going to have to figure out something right here to solve'''
+                '''We are going to have to figure out something right here to solve the issue of Chase being done
+                and us not having it done yet'''
                 '''if serial_stepper.in_waiting > 0:
                     DrumStatus = serial_stepper.readline().decode('utf-8').rstrip()
                     serial_stepper.reset_input_buffer()
