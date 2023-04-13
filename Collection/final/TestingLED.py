@@ -1,6 +1,5 @@
 import RPi.GPIO as GPIO
 import time
-import monitor_script
 import os
 import subprocess
 
