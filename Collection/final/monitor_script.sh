@@ -7,7 +7,7 @@ SERIAL_PORT="/dev/ttyACM0"
 
 while true; do
     # Run the Python script
-    python3 PyReceiving.py
+    python3 final.py
 
     # Check the exit status of the Python script
     if [ $? -eq 0 ]; then
