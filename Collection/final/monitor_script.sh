@@ -7,15 +7,15 @@ SERIAL_PORT="/dev/ttyACM0"
 
 while true; do
     # Run the Python script
-    python edge_communication_test.py
+    python3 PyReceiving.py
 
     # Check the exit status of the Python script
     if [ $? -eq 0 ]; then
-        echo "communication_test.py exited successfully"
+        echo "PyReceiving.py exited successfully"
         echo "RESET" > $SERIAL_PORT
         sleep 2
     else
-        echo "ERROR: communication_test.py exited with an error. Restarting..."
+        echo "ERROR: PyReceiving.py exited with an error. Restarting..."
 	    # Send a reset signal to the Teensy
         sleep 2
 	    echo "RESET" > $SERIAL_PORT

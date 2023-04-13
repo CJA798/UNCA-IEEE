@@ -37,6 +37,7 @@ class CameraSystem:
         self.initialize_classifier()
 
         self.img_to_classify = None
+        self.pillar_img = None
     
 
     def initialize_detector(self):
@@ -367,5 +368,13 @@ class CameraSystem:
         else:
             return False
 
-
+    def detect_pillar_color(self):
+        image = self.camera.capture_array()
+        image = image[:, self._frame_width//2:, :]
+        b = image[:,:,0]
+        g = image[:,:,1]
+        r = image[:,:,2]
+        print("R: {}".format(r))
+        print("G: {}".format(g))
+        print("B: {}".format(b))
     
