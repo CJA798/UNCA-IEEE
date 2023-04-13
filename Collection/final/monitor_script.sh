@@ -11,11 +11,11 @@ while true; do
 
     # Check the exit status of the Python script
     if [ $? -eq 0 ]; then
-        echo "PyReceiving.py exited successfully"
+        echo "final.py exited successfully"
         echo "RESET" > $SERIAL_PORT
         sleep 2
     else
-        echo "ERROR: PyReceiving.py exited with an error. Restarting..."
+        echo "ERROR: final.py exited with an error. Restarting..."
 	    # Send a reset signal to the Teensy
         sleep 2
 	    echo "RESET" > $SERIAL_PORT
