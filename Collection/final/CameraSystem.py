@@ -197,7 +197,7 @@ class CameraSystem:
         line_color = (0, 255, 0)  # green
         
         # Draw the vertical lines
-        cv2.line(image, (line_pos1, margin_size), (line_pos1, height - margin_size), line_color, thickness=2)
+        #cv2.line(image, (line_pos1, margin_size), (line_pos1, height - margin_size), line_color, thickness=2)
         cv2.line(image, (line_pos2, margin_size), (line_pos2, height - margin_size), line_color, thickness=2)
 
         # Add labels to the areas
@@ -210,8 +210,8 @@ class CameraSystem:
         cv2.putText(image, "Elevator", left_label_pos, font, font_scale, label_color, thickness=2)
 
         # Middle area
-        middle_label_pos = (line_pos1 + 10, height // 10)
-        cv2.putText(image, "Mid", middle_label_pos, font, font_scale, label_color, thickness=2)
+        #middle_label_pos = (line_pos1 + 10, height // 10)
+        #cv2.putText(image, "Mid", middle_label_pos, font, font_scale, label_color, thickness=2)
 
         # Right area (Flipper)
         right_label_pos = (line_pos2 + 10, height // 10)
@@ -287,7 +287,7 @@ class CameraSystem:
         #cv2.imshow('object_classifier', self.img_to_classify)
         
     
-        print('Elevator Area: {}'.format(tuple(elevator_area)))
+        #print('Elevator Area: {}'.format(tuple(elevator_area)))
         #print('Middle Area: {}'.format(tuple(middle_area)))
         #print('Flipper Area: {}'.format(tuple(flipper_area)))
 
@@ -297,19 +297,30 @@ class CameraSystem:
     def is_duck_standing3(self):
         ''' This method returns True if the duck on the flipper is standing '''
         image = self.camera.capture_array()
-        self.img_to_classify = image[:, self._frame_width//2:, :]
+        self.img_to_classify = image[2*self._frame_height//7:self._frame_height, 3*self._frame_width//5:, :]
+        #cv2.imshow('object_classifier', self.img_to_classify )
         #image = self.img_to_classify
         # Convert the image from BGR to RGB as required by the TFLite model.
-        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        rgb_image = cv2.cvtColor(self.img_to_classify , cv2.COLOR_BGR2RGB)
+        #cv2.imshow('object_classifier', rgb_image )
         # Create TensorImage from the RGB image
         tensor_image = vision.TensorImage.create_from_array(rgb_image)
         # List classification results
-        categories = self._classifier.classify(tensor_image)
-        #print(categories)
-        category = categories.classifications[0].categories[0].category_name
-        print(category)
-        # Check if the image is classified as Flip or Push
-        return category
+        classify = self._classifier.classify(tensor_image)
+        classifications = classify.classifications
+        # Check if any classifications were returned
+        if len(classifications) > 0:
+            classification = classifications[0]
+            if classification:
+                categories = classification.categories
+                if len(categories):
+                    category = classification.categories[0].category_name
+                    score = classification.categories[0].score
+                    print("{} ({})".format(category, score))
+                    return categories
+        print("Unable to classify object")
+        return None
+    ''' TODO: add recursion or while loop on caller'''
 
 
     def detect_pillar_color(self):

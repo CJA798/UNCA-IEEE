@@ -12,7 +12,7 @@ while true; do
     # Check the exit status of the Python script
     if [ $? -eq 0 ]; then
         echo "final.py exited successfully"
-        echo "RESET" > $SERIAL_PORT
+        #echo "RESET" > $SERIAL_PORT
         sleep 2
     else
         echo "ERROR: final.py exited with an error. Restarting..."

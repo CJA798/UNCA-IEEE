@@ -112,3 +112,13 @@ def threeTowerClose():
         time.sleep(.005)
 
 
+test.move_servo_position(0, 140)
+test.move_servo_position(1, -10)
+test.move_servo_position(2, 150)
+test.move_servo_position(3, 110)
+test.move_servo_position(4, 48)
+test.move_servo_position(5, 48)
+test.move_servo_position(6, 0)
+
+test.move_servo_position(11, -50)
+
