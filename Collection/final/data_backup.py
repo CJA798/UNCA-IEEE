@@ -64,3 +64,30 @@ print(b)
 print(c)
 print(d)
 print(e)
+
+
+def StateStartBackup():
+    
+    pass
+
+def StateCollecting(filename, YDucks, GCol, WCol, PDuck, RColPos):
+    with open(filename, 'w') as f:
+        f.write(f'1\n')
+        for i in range(0, YDucks):
+            f.write(f'0\n')
+        for i in range(0, PDuck):
+            f.write(f'1\n')
+        for i in range(0, WCol):
+            f.write(f'2\n')
+        for i in range(0, GCol):
+            f.write(f'3\n')
+        f.write(f'{RColPos}')
+
+def StateTower1():
+    pass
+
+def StateTower2():
+    pass
+
+def StateTower3():
+    pass

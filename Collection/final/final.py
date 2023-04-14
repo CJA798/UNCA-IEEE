@@ -29,6 +29,7 @@ class Global_Static:
 DrumStatus = 0
 yellowDuckCounter = 0
 columnPosition = []
+pinkDuckCounter = 0
 greenColumnCounter = 0
 whiteColumnCounter = 0
 TOWER_ONE = 'a'
@@ -37,6 +38,7 @@ DUCK_TOWER = 'c'
 CurrItem = -1
 TimeToUnload = 0
 position = ''
+pusherStatus = PusherStatus.RETRACTED
 
         
 
@@ -252,7 +254,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         
         
         
-pusherStatus = PusherStatus.RETRACTED
+
 def firstWhiteCol(position, serial_stepper, robot: Robot):
     global TimeToUnload
     global CurrItem
@@ -264,9 +266,9 @@ def firstWhiteCol(position, serial_stepper, robot: Robot):
             robot.CollectionSystem.Pushers.LoadingPillarPusher()
             TimeToUnload = 1
 
-    if TimeToUnload == 1:
+    if TimeToUnload == 1 and pusherStatus != PusherStatus.READY:
         pusherStatus = outputSerial(serial_stepper, 'C')
-        if pusherStatus == PusherStatus.READY:
+    elif pusherStatus == PusherStatus.READY:
             robot.CollectionSystem.Pushers.UnloadingPillarPusherTop()
             robot.CollectionSystem.Elevator.lowerToGround()
             CurrItem = -1
@@ -346,6 +348,52 @@ def main():
     baud_rate = 115200
     serial_stepper = serial.Serial('/dev/ttyACM0', baud_rate)
     serial_stepper.reset_input_buffer()
+    filename = 'drum_data.txt'
+
+# Read data from file and split into lines
+    with open(filename, 'r') as f:
+        lines = f.read().splitlines()
+    
+    a = []
+    b = []
+    c = []
+    d = []
+    e = []
+
+    # Loop through lines and store data in appropriate variables
+    CollectionState = lines[0]
+    
+    for line in range(1, lines):
+        data = line.split(',')
+        item_class = int(data[0])
+        if len(data) > 1:
+            position = int(data[1])
+            e.append((4, position))
+        if item_class == 0:
+            a.append(0)
+        elif item_class == 1:
+            b.append(1)
+        elif item_class == 2:
+            c.append(2)
+        elif item_class == 3:
+            d.append(3)
+    
+    if CollectionState != 0:
+        for i in range(0, a):
+            yellowDuckCounter = yellowDuckCounter + 1
+        if len(b) == 1:
+            pinkDuckCounter = 1
+        for i in range(0, c):
+            whiteColumnCounter = whiteColumnCounter + 1
+        for i in range(0, d):
+            greenColumnCounter = greenColumnCounter + 1
+        if e[0][1] == 1:
+            columnPosition.append(4)
+            columnPosition.append(3)
+        else:
+            columnPosition.append(3)
+            columnPosition.append(4)
+        
     
     '''while True:
         if serial_stepper.in_waiting > 0:
