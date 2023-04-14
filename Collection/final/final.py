@@ -197,13 +197,15 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     '''
     if len(flipper_data) > 0 and flipper_status == FlipperStatus.ORIENTED and elevator_status == ElevatorStatus.READY:
         duck_standing = camera.is_duck_standing3()
-        if duck_standing:
-            robot.CollectionSystem.Sweep.push()
-            CurrItem = flipper_data[0][0]
-        else:
-            robot.CollectionSystem.Flipper.flip_platform()
-            CurrItem = flipper_data[0][0]
-            
+        if duck_standing != None:
+            if duck_standing == "Flip":
+                robot.CollectionSystem.Flipper.flip_platform()
+                CurrItem = flipper_data[0][0]
+            elif duck_standing == "Push":
+                robot.CollectionSystem.Sweep.push()
+                CurrItem = flipper_data[0][0]
+            elif duck_standing == "Empty":
+                pass
         elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
         flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.EMPTY
         return
@@ -351,7 +353,7 @@ def main():
     filename = 'drum_data.txt'
 
 # Read data from file and split into lines
-    with open(filename, 'r') as f:
+    '''with open(filename, 'r') as f:
         lines = f.read().splitlines()
     
     a = []
@@ -392,23 +394,26 @@ def main():
             columnPosition.append(3)
         else:
             columnPosition.append(3)
-            columnPosition.append(4)
+            columnPosition.append(4)'''
         
-    
+    #if CollectionState == 0:
+        #This will be our serial to wait for Chase to start the bot
+       # pass
     '''while True:
         if serial_stepper.in_waiting > 0:
             timeToStart = serial_stepper.readline().decode('utf-8').rstrip()
             serial_stepper.flushInput()
             if timeToStart == "Ready":
                 break'''
-
+    #if CollectionState == 1:
+        #Collection State
     try:
         with camera.camera as cam:
             
             while True:
                 elevator_data, mid_data, flipper_data = camera.get_data()
                 #if not elevator_data and not mid_data and not flipper_data:
-                 #   continue
+                #   continue
                 if cv2.waitKey(1) == 27:
                     break
                 #I think all cases of the intake has been completed
@@ -428,10 +433,12 @@ def main():
     # When the camera is unreachable, stop the program
     finally:
         cv2.destroyAllWindows()
-        
+    
+    
     DrumStatus = 0
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #This is the outpt function, It should be hard coded depending on the serial from the navigation Teensy
+    #if CollectionState == 2:
     while True:
         currentTower = ''
         if serial_stepper.in_waiting > 0:
