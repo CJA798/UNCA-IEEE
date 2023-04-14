@@ -14,18 +14,20 @@ def TowerSequenceFinal1(serial_stepper, robot: Robot):
     PusherPosition = 0
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Case where the red/green is stored perfectly and I only need to push from that location for columns
-    if TimeToUnload == 0 and PusherPosition != PusherStatus.READY:
+    '''    if TimeToUnload == 0 and PusherPosition != PusherStatus.READY:
         PusherPosition = outputSerial(serial_stepper, position)
     elif PusherPosition == PusherStatus.READY:
             robot.CollectionSystem.Pushers.LoadingPillarPusher()
-            TimeToUnload = 1
+            robot.CollectionSystem.BraceSystem.BraceShake()
+            TimeToUnload = 1'''
+
 
 
     #start with white column, assuming it is loaded
     if TimeToUnload == 0 and PusherPosition != PusherStatus.READY:
         PusherPosition = outputSerial(serial_stepper, 'C') #white column
     elif PusherPosition == PusherStatus.READY:
-        robot.CollectionSystem.Pushers.Half_UnloadingPillarPusherTop() #half unloading tp pusher 1 column inside the brace
+        robot.CollectionSystem.Pushers.Half_UnloadingPillarPusherTop() #half unloading to pusher 1 column inside the brace
         robot.CollectionSystem.BraceSystem.BraceShake() #Loading and shaking brace
         TimeToUnload = 1
 

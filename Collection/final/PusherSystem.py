@@ -38,13 +38,15 @@ class Pushers:
     #Pusher 1 is for pillars
     def RetractPusherTop(self):
         ''' This method retracts a specific pusher a certain distance '''
-        self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, -70, 180)
+        #self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, -70, 180)
+        self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 1, -10)
         sleep(1)
         self.statusTop = PusherStatus.RETRACTED
         
     def RetractPusherBot(self):
         ''' This method retracts a specific pusher a certain distance '''
-        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, -110, 180)
+        #self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, -110, 180)
+        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 0, 140)
         sleep(1)
         self.statusBot = PusherStatus.RETRACTED
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,7 +54,8 @@ class Pushers:
 #loads pillar(not a powerful push)
     def LoadingPillarPusher(self) -> None:
         ''' This method uses the bottom pusher to load an object '''
-        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 200, 180)
+        #self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 200, 180)
+        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 0, 50)
         sleep(1)
         self.RetractPusherBot()
         
@@ -62,7 +65,8 @@ class Pushers:
 #powerful push to unload pillars and pink duck
     def UnloadingPillarPusherBot(self) -> None:
         ''' This method uses the top pusher to unload pillars or the pink duck '''
-        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 200, 180)
+        #self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 200, 180)
+        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 0, 90)
         sleep(2)
         self.RetractPusherBot()
         self.statusBot = PusherStatus.UNLOADED
@@ -70,15 +74,16 @@ class Pushers:
         
     def UnloadingPillarPusherTop(self) -> None:
         ''' This method uses the top pusher to unload pillars or the pink duck '''
-        self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 200, 180)
+        self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 1, 100)
         sleep(2)
         self.RetractPusherTop()
         self.statusTop = PusherStatus.UNLOADED
        
         
     def Half_UnloadingPillarPusherBot(self) -> None:
-        ''' This method uses the top pusher to unload pillars or the pink duck '''
-        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 150, 180)
+        ''' This method uses the top pusher to unload the yellow duck '''
+        #self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 150, 180)
+        self.hat.move_servo_position(_BOT_PUSHER_SERVO_CHANNEL, 0, 50)
         sleep(1.5)
         self.RetractPusherBot()
         self.statusBot = PusherStatus.UNLOADED
@@ -86,7 +91,8 @@ class Pushers:
         
     def Half_UnloadingPillarPusherTop(self) -> None:
         ''' This method uses the top pusher to unload pillars or the pink duck '''
-        self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 150, 180)
+        #self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 150, 180)
+        self.hat.move_servo_position(_TOP_PUSHER_SERVO_CHANNEL, 1, 75)
         sleep(1.5)
         self.RetractPusherTop()
         self.statusTop = PusherStatus.UNLOADED
