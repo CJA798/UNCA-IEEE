@@ -1,8 +1,8 @@
 from time import sleep
 from pi_servo_hat import PiServoHat
 
-_ROTATION_SERVO_CHANNEL = 2
-_ELEVATOR_SERVO_CHANNEL = 1
+_ROTATION_SERVO_CHANNEL = 4
+_ELEVATOR_SERVO_CHANNEL = 3
 _STOP_ORIENTATION = 107
 _START_ORIENTATION = 120
 _SWING = 180
@@ -71,7 +71,7 @@ class Elevator():
         Lowers the platform back to the base state
         '''
         #The determined position of the servo for ground is 230
-        self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 115) # return home elevader pos
+        self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 110) # return home elevader pos
         sleep(1)
         self.setStatus(ElevatorStatus.READY)
 
