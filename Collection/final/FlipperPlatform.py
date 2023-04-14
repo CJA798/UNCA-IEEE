@@ -4,8 +4,8 @@ from pi_servo_hat import PiServoHat
 
 
 ''' TODO: CALIBRATE SERVO AND FIND VALUES '''
-_ROTATION_SERVO_CHANNEL = 14
-_FLIPPER_SERVO_CHANNEL = 13
+_ROTATION_SERVO_CHANNEL = 5
+_FLIPPER_SERVO_CHANNEL = 6
 
 _STOP_ORIENTATION = 107
 _START_ORIENTATION = 120
@@ -40,8 +40,8 @@ class Flipper:
         # Set the PWM frequency to 50Hz
         self.hat.set_pwm_frequency(50)
         # Stop servos on instantiation
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ORIENTATION, _SWING)
-        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, _RESET_FLIPPER, _SWING)
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 0)
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 0)
         print("Initializing Flipper")
 
 
@@ -52,22 +52,22 @@ class Flipper:
 
     def rotate_platform(self) -> None:
         ''' This method rotates the orientation platform '''
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _START_ORIENTATION, _SWING)
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL,55) #subject to change
         
 
     def stop_rotation(self) -> None:
         ''' This method stops the orientation platform '''
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ORIENTATION, _SWING)
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 0)
 
 
     def flip_platform(self) -> None:
         ''' This method activates the flipping platform '''
-        for i in range(0, -30, -1):
-            self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, i, 180)
-            sleep(.001)
-        for i in range(-30, 0, 1):
-            self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, i, 180)
-            sleep(.01)
+        #for i in range(0, -30, -1):
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, -20)
+        sleep(.001)
+        #for i in range(-30, 0, 1):
+        self.hat.move_servo_position(_FLIPPER_SERVO_CHANNEL, 0)
+        sleep(.01)
         
         self.set_status(FlipperStatus.EMPTY)
         
