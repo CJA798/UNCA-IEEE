@@ -252,14 +252,15 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
         
         
         
-
+pusherStatus = PusherStatus.RETRACTED
 def firstWhiteCol(position, serial_stepper, robot: Robot):
     global TimeToUnload
     global CurrItem
+    global pusherStatus
 
-    if TimeToUnload == 0:
+    if TimeToUnload == 0 and pusherStatus != PusherStatus.READY:
         pusherStatus = outputSerial(serial_stepper, position)
-        if pusherStatus == PusherStatus.READY:
+    elif pusherStatus == PusherStatus.READY:
             robot.CollectionSystem.Pushers.LoadingPillarPusher()
             TimeToUnload = 1
 
