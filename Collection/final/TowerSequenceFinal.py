@@ -120,28 +120,28 @@ def TowerSequenceFinal3(serial_stepper, robot: Robot):
         elif PusherPosition == PusherStatus.READY:
             robot.CollectionSystem.Pushers.UnLoadingPillarPusherTop()
             robot.CollectionSystem.BraceSystem.BraceShake() #Loading and shaking brace
-            TimeToUnload = 4
+            TimeToUnload = 3
 
     #red is loaded first   , green half push     
     else:
-        if TimeToUnload == 2 and PusherPosition != PusherStatus.READY:
+        if TimeToUnload == 1 and PusherPosition != PusherStatus.READY:
           PusherPosition = outputSerial(serial_stepper, 'D')
         elif PusherPosition == PusherStatus.READY:
             robot.CollectionSystem.Pushers.Half_UnLoadingPillarPusherTop()
             robot.CollectionSystem.BraceSystem.BraceShake() #Loading and shaking brace
-            TimeToUnload = 3
+            TimeToUnload = 2
 
 
 
     #red half push
-    if TimeToUnload == 3 and PusherPosition != PusherStatus.READY:
+    if TimeToUnload == 2 and PusherPosition != PusherStatus.READY:
         PusherPosition = outputSerial(serial_stepper, 'E')
     elif PusherPosition == PusherStatus.READY:
             robot.CollectionSystem.Pushers.Half_UnLoadingPillarPusherTop()
             robot.CollectionSystem.BraceSystem.BraceShake() #Loading and shaking brace
-            TimeToUnload = 4
+            TimeToUnload = 3
 
-    if TimeToUnload == 4 and PusherPosition != PusherStatus.READY:
+    if TimeToUnload == 3 and PusherPosition != PusherStatus.READY:
         PusherPosition = outputSerial(serial_stepper, 'B')
     elif PusherPosition == PusherStatus.READY:
         robot.CollectionSystem.BraceSystem.threeTowerset()
