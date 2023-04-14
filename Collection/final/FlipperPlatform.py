@@ -7,7 +7,7 @@ from pi_servo_hat import PiServoHat
 _ROTATION_SERVO_CHANNEL = 5
 _FLIPPER_SERVO_CHANNEL = 6
 
-_STOP_ORIENTATION = 107
+_STOP_ORIENTATION = 49
 _START_ORIENTATION = 120
 
 _RESET_FLIPPER = 0
@@ -57,7 +57,7 @@ class Flipper:
 
     def stop_rotation(self) -> None:
         ''' This method stops the orientation platform '''
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, 0)
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, _STOP_ORIENTATION)
 
 
     def flip_platform(self) -> None:
