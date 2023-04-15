@@ -116,7 +116,7 @@ int use = 180;
 int tempo = 120;
 int oct = 5;
 bool Homed = false;
-char DrumState = 0;
+volatile char DrumState = 0;
 char item = 0;
 Bounce LimitSwitch;
 int NewPosition = 0;
@@ -164,75 +164,13 @@ public:
     void DrumProcess(void)
 
     {
-        if (Command > 0)
+        if (DrumState == NEW_MOVE)
         {
-            if (debug)
-            {
-                Serial.println("Command");
-                Serial.print(Command);
-            }
-
-            switch (Command)
-            {
-            case InYellowDuck1:
-                if (debug)
-                {
-                    Serial.println("InYellowDuck1");
-                };
-                NewPosition = IN_POSITION_YELLOW_DUCK1;
-                break;
-            case InYellowDuck2:
-                NewPosition = IN_POSITION_YELLOW_DUCK2;
-                break;
-            case InPinkDuck:
-                NewPosition = IN_POSITION_PINK_DUCK;
-                break;
-            case InWhiteColumn:
-                NewPosition = IN_POSITION_WHITE_PILLAR;
-                break;
-            case InGreenColumn:
-                NewPosition = IN_POSITION_GREEN_PILLAR;
-                break;
-            case InRedColumn:
-                NewPosition = IN_POSITION_RED_PILLAR;
-                break;
-            case OutYellowDuck1:
-                NewPosition = OUT_POSITION_YELOW_DUCK2;
-                break;
-            case OutYellowDuck2:
-                NewPosition = OUT_POSITION_YELLOW_DUCK1;
-                break;
-            case OutPinkDuck:
-                NewPosition = OUT_POSITION_PINK_DUCK;
-                break;
-            case OutWhiteColumn:
-                NewPosition = OUT_POSITION_WHITE_PILLAR;
-                break;
-            case OutGreenColumn:
-                NewPosition = OUT_POSITION_GREEN_PILLAR;
-                break;
-            case OutRedColumn:
-                NewPosition = OUT_POSITION_RED_PILLAR;
-                break;
-            case HOME_DRUM:
-                HomeDrumStepper();
-                break;
-            case SPECIAL:
-                StartTune();
-                HomeDrumStepper();
-                break;
-            case RUN_STATE_MACHINE:
-
-                break;
-            default:
-                break;
-            }
             DrumStepper.setTargetAbs(NewPosition);
             DrumController.move(DrumStepper);
-            Serial.print("finished");
-            Serial.println(Command);
-            Command = 0;
+            DrumState = WAITING;
         };
+        return;
     };
 
     void HomeDrumStepper(void)

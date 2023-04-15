@@ -2,8 +2,12 @@
 #include <TeensyThreads.h>
 #include <Navigation.h>
 #include <Servo.h>
-// Photoresistor Settings
+// #include <Photoresistor.h>
+//  Photoresistor Settings
+
 bool PhotoresistorChange(void);
+int PhotoresistSum1;
+int PhotoresistSum2;
 int DerivativeRollingAverage[20] = {0};
 int DerivativeWriteCnt = 0;
 int DerivativeAvg = 0;
@@ -14,7 +18,7 @@ int NavThreadId = 0;
 bool Nudging = false;
 char SweepState = 0;
 volatile char State;
-Servo ChipDropper = Servo();
+Servo ChipDropper;
 DriverObject Driver;
 USBSerialMaster RaspberryPi; // Change SerialState to TRANSMITTING and put message in buffer
 void NavStateMachine(void);
@@ -31,9 +35,11 @@ char temp = 1;
 //////////////////////  Setup  ///////////////////////
 void setup()
 {
+
+  bool FirstTime = true;
+  pinMode(PHOTORESISTOR_PIN, INPUT);
   RaspberryPi = USBSerialMaster();
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(PHOTORESISTOR_PIN, INPUT);
   ChipDropper.attach(CHIP_DROPPER_PIN);
   ChipDropper.write(CHIP_DROP_ZERO);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -46,7 +52,7 @@ void setup()
     delay(300);
     digitalWrite(LED_BUILTIN, LOW);
     delay(100);
-   // Drum.StartTune();
+    // Drum.StartTune();
   };
 
   // Drum.HomeDrumStepper();
@@ -61,15 +67,120 @@ void setup()
 //////////////////////  Loop  ///////////////////////
 void loop()
 {
+  // TESTING -----------------
   // PhotoresistorChange();
   // Driver.UpdateDesiredPose(0, 0, 45);
   // Driver.ComputeTranslation(0);
   // Driver.UpdateDesiredPose(DEGREE180, 0, 45);
   // Driver.ComputeTranslation(1);
-  Drum.DrumProcess();
   // Driver.SweepTheBoard();
   // TestServoDropperStates();
   //  SpinMoveTest();
+  // MAIN LOOP -----------------
+  Drum.DrumProcess(); // Function immediately returns if DrumState is not set too NEW_MOVE.
+  if (Command > 0)
+  {
+    if (debug)
+    {
+      Serial.println("Command");
+      Serial.print(Command);
+    };
+
+    switch (Command)
+    {
+    case InYellowDuck1:
+      if (debug)
+      {
+        Serial.println("InYellowDuck1");
+      };
+      NewPosition = IN_POSITION_YELLOW_DUCK1;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case InYellowDuck2:
+      NewPosition = IN_POSITION_YELLOW_DUCK2;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case InPinkDuck:
+      NewPosition = IN_POSITION_PINK_DUCK;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case InWhiteColumn:
+      NewPosition = IN_POSITION_WHITE_PILLAR;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case InGreenColumn:
+      NewPosition = IN_POSITION_GREEN_PILLAR;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case InRedColumn:
+      NewPosition = IN_POSITION_RED_PILLAR;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case OutYellowDuck1:
+      NewPosition = OUT_POSITION_YELOW_DUCK2;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case OutYellowDuck2:
+      NewPosition = OUT_POSITION_YELLOW_DUCK1;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case OutPinkDuck:
+      NewPosition = OUT_POSITION_PINK_DUCK;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case OutWhiteColumn:
+      NewPosition = OUT_POSITION_WHITE_PILLAR;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case OutGreenColumn:
+      NewPosition = OUT_POSITION_GREEN_PILLAR;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+    case OutRedColumn:
+      NewPosition = OUT_POSITION_RED_PILLAR;
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      break;
+      // case HOME_DRUM: We dont need this state, homing on startup.
+      // HomeDrumStepper();
+      // break;
+    case SPECIAL:
+      Serial.print("finished");
+      Serial.println(Command);
+      Command = 0;
+      Drum.StartTune();
+      Drum.HomeDrumStepper();
+      break;
+    case RUN_STATE_MACHINE: // Returns once our move is complete.
+      NavStateMachine();    // Will keep on progressing through NavStateMachine each
+      break;                // time the loop is ran untill the NavStateMachine is finished. To interrupt the SM send in a new command.
+    default:
+      break;
+    };
+  };
 };
 void SpinMoveTest(void)
 {
@@ -307,95 +418,42 @@ void TestServoDropperStates(void)
   delay(5000);
 };
 void SweepBoardStateMachine(void)
-{ /*This state machine will:
- -Start from the origin and first travel towards the first chip drop location; stopping
- before the intake mechanism hits the wall. It will then wait on a message that collection is done,
-  or their is nothing to collect, from the raspberry pi.
-  -The bot will then move towards the middle of the board about 1/3rd of the way from the top to bottom. (0, 30)
-  -The bot will then make another pass towards the west wall of the board again, collecting as it goes; and waiting on an OK from the PI to keep proceeding.
-  - bot will then travel to a safe location to rotate without hitting the wall.
-  - bot will then rotate 90 degrees to face forward
-  - The bot will then move towards the north wall sweeping everything from it to the chip drop location (may require a loop)
-  - The bot will then move towards the
- */
-  switch (SweepState)
-  {
-  case 0: // Collect on the way to chip drop one
-    Driver.UpdateDesiredPose(0, -95, 2);
-    Driver.ComputeTranslation(0);
-    SweepState++;
-    break;                              // Rotate
-  case 1:                               // Move to a safe rotation location
-    Driver.UpdateDesiredPose(0, 0, 30); //
-    Driver.ComputeTranslation(0);
-    SweepState++;
-    break;
-  case 2:                                      // Rotate 90 deg WE ARE NOW FACING FORWARDS
-    Driver.UpdateDesiredPose(DEGREE90, 0, 30); //
-    Driver.ComputeTranslation(1);
-    SweepState++;
-    break;
-  case 3:                                                                // Move to chip drop one
-    Driver.UpdateDesiredPose(DEGREE90, CHIP_DROP_X, BOTTOM_CHIP_DROP_Y); //
-    Driver.ComputeTranslation(0);
-    delay(BOT_STOP_DELAY);
-    digitalWrite(LED_BUILTIN, HIGH); // DROP CHIP
-    ChipDropper.write(CHIP_DROP_ZERO - DROP_DIST);
-    delay(SERVO_DROP_DELAY);
-    ChipDropper.write(CHIP_DROP_ZERO);
-    SweepState++;
-    break;
-  case 4:
-    Driver.UpdateDesiredPose(DEGREE90, CHIP_DROP_X, 75); //
-    Driver.ComputeTranslation(0);
-    SweepState++;
-    break;
-  case 5:
-    Driver.UpdateDesiredPose(DEGREE90, 0, 45);
-    Driver.ComputeTranslation(0);
-  }
+{ /* State Machine List of Coordinates. This state machine will not
 
-  Driver.UpdateDesiredPose(0, SOUTH_WALL, 45);
-  Driver.ComputeTranslation(0); // rotate 180 degrees clockwise to make the intake system face the switch
-  Driver.UpdateDesiredPose(DEGREE180, SOUTH_WALL, 45);
-  Driver.ComputeTranslation(1);
-  Driver.UpdateDesiredPose(DEGREE180, CHIP_DROP_X, BOTTOM_CHIP_DROP_Y);
-  Driver.ComputeTranslation(0);
+*/
 
   delay(BOT_STOP_DELAY);
   digitalWrite(LED_BUILTIN, HIGH);
-  // -<<< ADD DROP CHIP CODE HERE
+
   ChipDropper.write(CHIP_DROP_ZERO - DROP_DIST);
   delay(SERVO_DROP_DELAY);
   digitalWrite(LED_BUILTIN, LOW);
   ChipDropper.write(CHIP_DROP_ZERO);
-  State++;
   Driver.UpdateDesiredPose(DEGREE180, CHIP_DROP_X, TOP_CHIP_DROP_Y); // Goto second drop location
   Driver.ComputeTranslation(0);
   delay(BOT_STOP_DELAY);
   digitalWrite(LED_BUILTIN, HIGH);
-  // -<<< ADD DROP CHIP CODE HERE
+
   ChipDropper.write(CHIP_DROP_ZERO + DROP_DIST);
   delay(SERVO_DROP_DELAY);
   digitalWrite(LED_BUILTIN, LOW);
-  State++; // <-- ADD DROP CHIP CODE HERE
-  Driver.SweepTheBoard();
 };
 
 void NavStateMachine(void)
 
 {
-  Serial.print("INSIDE NAV STATE MACHINE: ");
-
   switch (State)
   {
-  case 0:
-    Serial.println("IdleState");
-
+  case 0: // WAITING FOR PHOTORESISTOR TO BE TRIGGERED TO START MOVEMENT
+    if (PhotoresistorChange() == true)
+    {
+      Driver.UpdateDesiredPose(0, 0, 3);
+      State = 1;
+      Driver.ComputeTranslation(0);
+    }
     break;
   case 1:
-    Driver.UpdateDesiredPose(0, 0, 4);
-
+    Driver.UpdateDesiredPose(0, CHIP_DROP_X, BOTTOM_CHIP_DROP_Y);
     State = 2;
     Driver.ComputeTranslation(0);
     break;
@@ -452,35 +510,40 @@ void NavStateMachine(void)
     Driver.ComputeTranslation(0);
     State = 9;
     break;
+
+  case LAST_CASE:
+    Command = 0;
+    break;
   };
 };
+
 bool PhotoresistorChange(void)
 {
-  DerivativeAvg = 0;
-  PrevValue = 0;
-  int i;
-  for (i = 0; i < NUM_SAMPLES; i++)
+
+  if (FirstTime) // take an average of 10 readings if it is the first time we are running this
   {
-    PrevValue += analogRead(PHOTORESISTOR_PIN);
-  }
-  for (i = 0; i < NUM_SAMPLES; i++)
-  {
-    DerivativeAvg += analogRead(PHOTORESISTOR_PIN);
-  }
-  DerivativeAvg = PrevValue - DerivativeAvg;
-  // Serial.print("\n Derivate: ");
-  // Serial.print(DerivativeAvg);
-  // Serial.print("\n PrevValue: ");
-  // Serial.print(PrevValue);
-  delay(500);
-  if (fabs(DerivativeAvg) > LED_ON_THRESHOLD)
-  {
-    return 1;
+    for (int i = 0; i < 10; i++)
+    {
+      PhotoresistSum1 += analogRead(PHOTORESISTOR_PIN);
+      delay(1);
+    };
   }
   else
   {
-    delay(500);
-    Serial.print(DerivativeAvg);
-    return 0;
+    for (int i = 0; i < 10; i++)
+    { // take an average of 10 readings (for comparison) if we are are not running this for the first time.
+      PhotoresistSum2 += analogRead(PHOTORESISTOR_PIN);
+      delay(1);
+    };
+  };
+  FirstTime = false;
+  PhotoresistSum2 = 0;
+  if (PhotoresistSum2 > PhotoresistSum1 + LED_ON_THRESHOLD)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
   };
 };
