@@ -4,8 +4,8 @@ from pi_servo_hat import PiServoHat
 
 
 #These pins can be changed depending on what is available
-_HOOK_SERVO_CHANNEL = 8
-_BRACE_SERVO_CHANNEL = 7
+_HOOK_SERVO_CHANNEL = 11#8
+_BRACE_SERVO_CHANNEL = 12#7
 
 
 #class FlipperPlatformStatus:
@@ -90,12 +90,12 @@ class Brace:
 # has to be in twoTowerSet to work
     def twoTowerDrop(self):
         for i in range(10, 135, 1):
-            self.hat.move_servo_position(9, i)
+            self.hat.move_servo_position(12, i)
             sleep(.005)
 
     def twoTowerClose(self):
-        for i in range(135, 10, -1):
-            self.hat.move_servo_position(9, i)
+        for i in range(50, 10, -1): #135 instead of 50
+            self.hat.move_servo_position(11, i) #this opens the bottom
             sleep(.005)
 
     def threeTowerDrop(self):

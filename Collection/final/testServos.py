@@ -122,3 +122,7 @@ test.move_servo_position(6, 0)
 
 test.move_servo_position(11, -50)
 
+test.move_servo_position(13, 120)
+test.move_servo_position(14, 125)
+
+
