@@ -27,7 +27,7 @@ with Picamera2() as picam2:
 
     # Wait for button press. When pressed, take picture.
     while True:
-        filename = '/home/pi/Pictures/%03d.jpg' % frame
+        filename = '/home/pi/Pictures/Push/%03d.jpg' % frame
         image = picam2.switch_mode_and_capture_array(capture_config)
         cropped_img = image[2*480//7:480, 3*800//5:, :]
         # Save the cropped image in /home/pi/Pictures
@@ -35,5 +35,5 @@ with Picamera2() as picam2:
         print ('Image captured: ' + filename)
         frame += 1
         flipper.rotate_platform()
-        time.sleep(2)
+        time.sleep(0.5)
         flipper.stop_rotation()

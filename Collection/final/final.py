@@ -10,6 +10,7 @@ from IntakeSystem import IntakeSystem, IntakeStatus
 from PusherSystem import PusherStatus
 from ElevatorPlatform import ElevatorStatus
 
+
 class Global_Static:
     #This is how the camera is returning the values of the detection
     WHITE_PILLAR = 2
@@ -18,14 +19,14 @@ class Global_Static:
     YELLOW_DUCK = 0
     PINK_DUCK = 1
     #Yellow Duck Angle Threshhold
-    Y_D_ANG_MIN_THRESH = 10
-    Y_D_ANG_MAX_THRESH = 40
+    Y_D_ANG_MIN_THRESH = 75
+    Y_D_ANG_MAX_THRESH = 95
     #Pink Duck angle threshhold
     P_D_ANG_MIN_THRESH = 70
     P_D_ANG_MAX_THRESH = 100
     #All pillar threshholds
-    PILLAR_MIN_THRESH = 10
-    PILLAR_MAX_THRESH = 30
+    PILLAR_MIN_THRESH = 75
+    PILLAR_MAX_THRESH = 90
 DrumStatus = 0
 yellowDuckCounter = 0
 columnPosition = []
@@ -139,7 +140,8 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     intake_status = robot.CollectionSystem.Intake.status
     if len(elevator_data) > 0:
         CurrItem = elevator_data[0][0]
-        elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
+        #We have to figure out the case for if the pi fails
+        #elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
         
     #I am going to have to make a state machine for each of the objects.
     #I will start from the beginning and move to the end. Should be easy...
@@ -157,12 +159,12 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     '''Check how many ducks we have when this item is brought into the system. This function may need to be moved around to push out or in depending on the elevator'''
     if len(flipper_data) > 0 and elevator_status == ElevatorStatus.READY:
         if len(flipper_data) > 1:
-            robot.CollectionSystem.Sweep.sweep()
+            #robot.CollectionSystem.Sweep.sweep()
             print("Too many Items")
             print(len(flipper_data))
             print(flipper_data)
         if flipper_data[0][0] == 0 and yellowDuckCounter == 2:
-            robot.CollectionSystem.Sweep.sweep()
+            #robot.CollectionSystem.Sweep.sweep()
             print("Too many Ducks")
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -173,6 +175,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
             if flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
                 #Orienting the duck
                 robot.CollectionSystem.Flipper.rotate_platform()
+                print("Moving Duck")
             else:
                 #Duck is oriented
                 robot.CollectionSystem.Flipper.stop_rotation()
@@ -201,6 +204,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
             if duck_standing == "Flip":
                 robot.CollectionSystem.Flipper.flip_platform()
                 CurrItem = flipper_data[0][0]
+                print("Did a flip")
             elif duck_standing == "Push":
                 robot.CollectionSystem.Sweep.push()
                 CurrItem = flipper_data[0][0]
@@ -350,8 +354,8 @@ def main():
     baud_rate = 115200
     serial_stepper = serial.Serial('/dev/ttyACM0', baud_rate)
     serial_stepper.reset_input_buffer()
-    filename = 'drum_data.txt'
-
+    #filename = 'drum_data.txt'
+    robot.CollectionSystem.Pushers.RetractPusherBot()
 # Read data from file and split into lines
     '''with open(filename, 'r') as f:
         lines = f.read().splitlines()

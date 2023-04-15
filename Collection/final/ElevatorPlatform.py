@@ -24,6 +24,7 @@ class Elevator():
     def __init__(self):
         self.status = ElevatorStatus.READY
         self.current_angle = 0
+        self.speed = 54
         self.swing = 180
         self.hat = PiServoHat()
         # Restart Servo Hat (in case Hat is frozen/locked)
@@ -40,17 +41,16 @@ class Elevator():
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # This is the orientation platform on the elevator
     def rotate_platform(self):
-        self.set_status(ElevatorStatus.ORIENTED_OBJECT)
-        if self.speed is not 60:
+        if self.speed != 57:
             self.speed += 1
-        else: self.speed is 60
+        else: self.speed == 57
         self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, self.speed)
         
  
 
 
     def stop_rotation(self):
-        self.speed = 54
+        self.speed = 52
         self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, self.speed)
     
 
@@ -62,7 +62,7 @@ class Elevator():
         '''
         #The determined position of the servo for ground is -110
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, -55) # Push into Cylinder pos
-        sleep(1)
+        sleep(.5)
         self.status = ElevatorStatus.RAISED
         
 
@@ -72,7 +72,7 @@ class Elevator():
         '''
         #The determined position of the servo for ground is 230
         self.hat.move_servo_position(_ELEVATOR_SERVO_CHANNEL, 110) # return home elevader pos
-        sleep(1)
+        sleep(.5)
         self.setStatus(ElevatorStatus.READY)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

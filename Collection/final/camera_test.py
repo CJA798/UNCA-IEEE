@@ -9,6 +9,8 @@ try:
             elevator_data, mid_data, flipper_data = camera.get_data()
             #if flipper_data:
             camera.is_duck_standing3()
+            camera.is_pillar_aligned()
+            print("LOOP")
             if cv2.waitKey(1) == 27:
                 break
 

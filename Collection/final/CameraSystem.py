@@ -14,7 +14,8 @@ from pycoral.adapters import classify
 class CameraSystem:
     def __init__(self):
         self._model = 'improv_12k_00EfficientDet_edgetpu.tflite'
-        self._class_model = 'empty.tflite'
+        #self._class_model = 'empty.tflite'
+        self._class_model = 'cylinders_new.tflite'
         #self._camera_id = 0
         #self._frame_width = 240
         #self._frame_height = 120
@@ -27,7 +28,7 @@ class CameraSystem:
         self._min_area = 0.02 * self._frame_width * self._frame_height
         self._max_area = self._frame_width * self._frame_height
         self._max_results = 4
-        self._score_threshold = 0.6
+        self._score_threshold = 0.50
         self.camera = Picamera2()
         self._preview_config = self.camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (self._frame_width, self._frame_height)})
        
@@ -194,11 +195,14 @@ class CameraSystem:
         # Define the vertical lines positions and color
         line_pos1 = 4 * (width // 7)
         line_pos2 = 6 * (width // 9)
+        dash_line_pos = self._frame_width//4
         line_color = (0, 255, 0)  # green
         
         # Draw the vertical lines
         #cv2.line(image, (line_pos1, margin_size), (line_pos1, height - margin_size), line_color, thickness=2)
         cv2.line(image, (line_pos2, margin_size), (line_pos2, height - margin_size), line_color, thickness=2)
+        cv2.line(image, (dash_line_pos, margin_size), (dash_line_pos, height - margin_size), line_color, thickness=2, lineType=cv2.LINE_AA, shift=0)
+
 
         # Add labels to the areas
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -317,8 +321,11 @@ class CameraSystem:
                     category = classification.categories[0].category_name
                     score = classification.categories[0].score
                     print("{} ({})".format(category, score))
-                    return categories
+                    if score < 0.7:
+                        self.is_duck_standing3()
+                    return category
         print("Unable to classify object")
+        self.is_duck_standing3()
         return None
     ''' TODO: add recursion or while loop on caller'''
 
@@ -332,4 +339,20 @@ class CameraSystem:
         print("R: {}".format(r))
         print("G: {}".format(g))
         print("B: {}".format(b))
-    
+
+
+    def is_pillar_aligned(self):
+        image = self.camera.capture_array()
+        image = image[:, :self._frame_width//2, :]
+        # Run inference
+        detection_result = self.run_inference(image)
+        detection_result = detection_result.detections
+        # Sort detections from left to right
+        detection_result = sorted(detection_result, key=lambda d: d.bounding_box.origin_x)
+        # Extract the bounding boxes from the DetectionResult object
+        bounding_boxes = [(d.bounding_box.origin_x, d.bounding_box.origin_y, d.bounding_box.width, d.bounding_box.height) for d in detection_result]
+        
+        if bounding_boxes:
+            if bounding_boxes[0][0] < self._frame_width//4:
+                return True
+        return False

@@ -29,7 +29,8 @@ class Sweeper:
     def reset_sweeper(self) -> None:
         ''' This method resets the sweeper position to the default resting position '''
         print("Resting Sweeper")
-        self.hat.move_servo_position(_SWEEPER_IN_SERVO_CHANNEL, -30)
+        self.hat.move_servo_position(_SWEEPER_IN_SERVO_CHANNEL, -40, 180)
+        sleep(1)
 
 
     def stop_sweeper(self) -> None:
@@ -47,7 +48,9 @@ class Sweeper:
 
     def push(self) -> None:
         ''' This method starts the pushing sequence from flipper to elevator '''
-        self.hat.move_servo_position(_SWEEPER_IN_SERVO_CHANNEL, 180) # fast-ish pushing
+        self.hat.move_servo_position(_SWEEPER_IN_SERVO_CHANNEL, 240, 180) # fast-ish pushing
+        print("I pushed the ducky")
+        sleep(1)
         self.reset_sweeper()
 
 
