@@ -21,12 +21,16 @@ class Global_Static:
     #Yellow Duck Angle Threshhold
     Y_D_ANG_MIN_THRESH = 75
     Y_D_ANG_MAX_THRESH = 95
+    Y_D_MAX_LAYING = 40
+    Y_D_MIN_LAYING = 25
     #Pink Duck angle threshhold
     P_D_ANG_MIN_THRESH = 70
     P_D_ANG_MAX_THRESH = 100
-    #All pillar threshholds
-    PILLAR_MIN_THRESH = 75
-    PILLAR_MAX_THRESH = 90
+    P_D_MAX_LAYING = 40
+    P_D_MIN_LAYING = 25 
+    #Pillar angle threshhold
+    PILLAR_MAX = 69
+    PILLAR_MIN = 60
 DrumStatus = 0
 yellowDuckCounter = 0
 columnPosition = []
@@ -40,7 +44,7 @@ CurrItem = -1
 TimeToUnload = 0
 position = ''
 pusherStatus = PusherStatus.RETRACTED
-
+Orientation = ''
         
 
 
@@ -133,11 +137,13 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     global columnPosition
     global greenColumnCounter
     global whiteColumnCounter
+    global Orientation
 
     flipper_status = robot.CollectionSystem.Flipper.status
     elevator_status = robot.CollectionSystem.Elevator.status
     pusher_status = robot.CollectionSystem.Pushers.statusBot
     intake_status = robot.CollectionSystem.Intake.status
+    
     if len(elevator_data) > 0:
         CurrItem = elevator_data[0][0]
         #We have to figure out the case for if the pi fails
@@ -153,6 +159,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     elif len(flipper_data) > 0:
         robot.CollectionSystem.Intake.StopIntake()
         robot.CollectionSystem.Intake.status = IntakeStatus.INTAKE_OFF
+        
     elif False:
         pass #We are just going to make a timing function for the intake if there is some kind of jam.
     '''
@@ -167,12 +174,42 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
             #robot.CollectionSystem.Sweep.sweep()
             print("Too many Ducks")
     
+    if Orientation == '':
+        Orientation = camera.is_duck_standing3()
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Flipper statuses and what it will be doing. The flipped case is ignored since it will need to consider the item for each case of flip or sweep
     if len(flipper_data) > 0 and flipper_status != FlipperStatus.ORIENTED:
         #Here I have to consider all of the ducks and columns
-        if flipper_data[0][0] <= 1:
-            if flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
+        if flipper_data[0][0] == 0:
+            if Orientation == "Push" and (flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH):
+                #Orienting the duck
+                robot.CollectionSystem.Flipper.rotate_platform()
+                print("Moving Duck")
+            else:
+                #Duck is oriented
+                robot.CollectionSystem.Flipper.stop_rotation()
+                flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
+                return
+            if Orientation == "Flip" and (flipper_data[0][2] > Global_Static.Y_D_MAX_LAYING or flipper_data[0][2] < Global_Static.Y_D_MIN_LAYING):
+                #Orienting the duck
+                robot.CollectionSystem.Flipper.rotate_platform()
+                print("Moving Duck")
+            else:
+                #Duck is oriented
+                robot.CollectionSystem.Flipper.stop_rotation()
+                flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
+                return
+        elif flipper_data[0][0] == 1:
+            if Orientation == "Push" and (flipper_data[0][2] > Global_Static.P_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.P_D_ANG_MIN_THRESH):
+                #Orienting the duck
+                robot.CollectionSystem.Flipper.rotate_platform()
+                print("Moving Duck")
+            else:
+                #Duck is oriented
+                robot.CollectionSystem.Flipper.stop_rotation()
+                flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
+                return
+            if Orientation == "Flip" and (flipper_data[0][2] > Global_Static.P_D_MAX_LAYING or flipper_data[0][2] < Global_Static.P_D_MIN_LAYING):
                 #Orienting the duck
                 robot.CollectionSystem.Flipper.rotate_platform()
                 print("Moving Duck")
@@ -182,16 +219,8 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
                 flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
                 return
         elif flipper_data[0][0] >= 2:
-            if flipper_data[0][2] > Global_Static.PILLAR_MAX_THRESH or flipper_data[0][2] < Global_Static.PILLAR_MIN_THRESH:
-                #Orienting the Column
-                robot.CollectionSystem.Flipper.rotate_platform()
-                print(flipper_data[0][2])
-            else:
-                #Oriented
-                robot.CollectionSystem.Flipper.stop_rotation()
-                flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
-                return
-                print("job done")
+            flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
+        
     
     '''
     This area is for Carlos to determine whether the object needs to be sweeped or flipped into the elevator. 
@@ -199,17 +228,17 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     
     '''
     if len(flipper_data) > 0 and flipper_status == FlipperStatus.ORIENTED and elevator_status == ElevatorStatus.READY:
-        duck_standing = camera.is_duck_standing3()
-        if duck_standing != None:
-            if duck_standing == "Flip":
+        if Orientation != None:
+            if Orientation == "Flip":
                 robot.CollectionSystem.Flipper.flip_platform()
                 CurrItem = flipper_data[0][0]
                 print("Did a flip")
-            elif duck_standing == "Push":
+            elif Orientation == "Push":
                 robot.CollectionSystem.Sweep.push()
                 CurrItem = flipper_data[0][0]
-            elif duck_standing == "Empty":
+            elif Orientation == "Empty":
                 pass
+        Orientation = ''
         elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.FILLED
         flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.EMPTY
         return
@@ -219,14 +248,20 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
     if len(elevator_data) > 0 and elevator_status == ElevatorStatus.FILLED:
         #Here I need to do a few things. First is consider whether or not the object is oriented.
         #After that then I need to move the elevator up to the desired height and let the pushers know that I'm ready and to wait for drum response.
-        if elevator_data[0][0] <= 1:
+        if elevator_data[0][0] == 0:
             if elevator_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or elevator_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH:
                 robot.CollectionSystem.Elevator.rotate_platform()
             else:
                 robot.CollectionSystem.Elevator.stop_rotation()
                 elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.ORIENTED_OBJECT
+        if elevator_data[0][0] == 1:
+            if elevator_data[0][2] > Global_Static.P_D_ANG_MAX_THRESH or elevator_data[0][2] < Global_Static.P_D_ANG_MIN_THRESH:
+                robot.CollectionSystem.Elevator.rotate_platform()
+            else:
+                robot.CollectionSystem.Elevator.stop_rotation()
+                elevator_status = robot.CollectionSystem.Elevator.status = ElevatorStatus.ORIENTED_OBJECT
         elif elevator_data[0][0] >= 2:
-            if elevator_data[0][2] > Global_Static.PILLAR_MAX_THRESH or elevator_data[0][2] < Global_Static.PILLAR_MIN_THRESH:
+            if camera.is_pillar_aligned() and elevator_data[0][2] > Global_Static.PILLAR_MAX or elevator_data[0][2] < Global_Static.PILLAR_MIN:
                 robot.CollectionSystem.Elevator.rotate_platform()
             else:
                 robot.CollectionSystem.Elevator.stop_rotation()
