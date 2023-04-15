@@ -16,13 +16,16 @@ bool debug = false;
 #define SAFE_BUFFER_SIZE 80 // Use this to avoid buffer overflow(2 bits for padding)
 #define INPUT_QUALIFIER "input: "
 #define MESSAGE_LENGTH 8
+#define DISSCONNECTED 'D'
+#define CONNECTED 'C'
 char buffer[BUFFER_SIZE - 1];
 String Message;
 char Command = 0;
-char SerialState = RECEIVING;
+char SerialState = DISSCONNECTED;
 int rd = 0, wr, n; // rd = read, wr = write, n = number of bytes in buffer
 const int led_pin = 13;
 int led_on_time = 0;
+bool FirstTime = false;
 // USBSerial Class==========================================================================================================
 class USBSerialMaster
 {
@@ -38,6 +41,7 @@ public:
     {
         if (Serial.available() == 0)
         {
+            SerialState = DISSCONNECTED;
             return;
 
         }; // Turn on LED if data is being received.
@@ -63,5 +67,6 @@ public:
         };
 
         Message = "";
+        SerialState = CONNECTED;
     };
 };

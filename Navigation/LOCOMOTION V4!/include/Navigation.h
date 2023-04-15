@@ -12,9 +12,7 @@
 bool NavigationProcessRunning = true;
 #include <Sensors.h>
 using namespace std;
-#define NUDGE_DISTANCE 10
-#define NUDGE_SPEED 50
-#define NUDGE_ACCEL 1000
+
 struct Orientation
 {
   double Theta; // Difference in angle between the bots current frame of reference
@@ -68,7 +66,41 @@ public:
       InputPose[i][0] = 0;
     };
   };
-
+  void SetSpeeds(int MaxSpeed, int MaxAccel)
+  {
+    motor_1
+        .setMaxSpeed(MaxSpeed)      // steps/s
+        .setAcceleration(MaxAccel); // steps/s^2
+    motor_2
+        .setMaxSpeed(MaxSpeed)      // steps/s
+        .setAcceleration(MaxAccel); // steps/s^2
+    motor_3
+        .setMaxSpeed(MaxSpeed)      // steps/s
+        .setAcceleration(MaxAccel); // steps/s^2
+    motor_4
+        .setMaxSpeed(MaxSpeed)      // steps/s
+        .setAcceleration(MaxAccel); // steps/s^2
+  };
+  void SweepTheBoard(void)
+  {
+   // UpdateDesiredPose(BotOrientation.Theta, SWEEP_START_X, SWEEP_START_Y);
+    //ComputeTranslation(0);
+    Serial.print("\n\n\n");
+    Serial.print(BotOrientation.Theta);
+    Serial.print(BotOrientation.Y);
+    Serial.print(BotOrientation.X);
+    Serial.print("\n\n\n");
+    int SweepY = BotOrientation.Y;
+    for (int i = 0; i < SWEEP_COUNT; i++)
+    {
+      UpdateDesiredPose(BotOrientation.Theta, -SWEEP_MAX_X, SweepY);
+      ComputeTranslation(0);
+      SweepY += SWEEP_DISTANCE_INCREMENT;
+      UpdateDesiredPose(BotOrientation.Theta, WEST_WALL, SweepY);
+      ComputeTranslation(0);
+      SweepY += SWEEP_DISTANCE_INCREMENT;
+    };
+  };
   //
   void BumperProcess(void)
   {
@@ -272,7 +304,7 @@ public:
   bool IsMoving(void)
   {
     return Controller.isRunning();
-  }
+  };
   void UpdateOrientation(double Theta, double X, double Y)
   {
     BotOrientation.Theta = Theta;
@@ -288,14 +320,19 @@ public:
     motor_2.setPosition(0);
     motor_3.setPosition(0);
     motor_4.setPosition(0);
-  }
+  };
 
-  void ComputeTranslation(void) // Process that will move the bot from BotOrientation to InputPose[3][1]. MoveState must be TRANSLATING to run.
+  void ComputeTranslation(bool Rotate)
+  { // Process that will move the bot from BotOrientation to InputPose[3][1]. MoveState must be TRANSLATING to run.
 
-  {
-    if (MoveState != TRANSLATING)
+    // if (Controller.isRunning())
+    // {
+    //   return;
+    // };
+    double DeltaTheta = 0;
+    if (Rotate == true)
     {
-      return;
+      DeltaTheta = (InputPose[0][0] - BotOrientation.Theta); // Compute the angle to rotate
     };
     double DeltaX = (InputPose[1][0] - BotOrientation.X); // Compute the X and Y distances to move
     double DeltaY = (InputPose[2][0] - BotOrientation.Y);
@@ -317,8 +354,11 @@ public:
       Serial.print("Y: ");
       Serial.println(InputPose[2][0]);
     }
-    if (BotOrientation.Theta != 0)
-    {                                                 // If the bot is at an ange
+    if ((BotOrientation.Theta != 0) && (!Rotate))
+    {
+      // If the bot is at an ange
+      Serial.println("");
+      Serial.println("DOING MATRIX TRANSFORMS\n");
       TranslationalMatrix1[2][0] = BotOrientation.X;  // Set X
       TranslationalMatrix1[2][1] = BotOrientation.Y;  // Set Y
       TranslationalMatrix2[2][0] = -BotOrientation.X; // Set X
@@ -327,10 +367,10 @@ public:
       HomogoenousMatrix[0][1] = DeltaY;               // Set Y
       HomogoenousMatrix[1][0] = BotOrientation.X;
       HomogoenousMatrix[1][1] = BotOrientation.Y;
-      RotationalMatrix[0][0] = cos(-BotOrientation.Theta);  // Set cos(Theta)
-      RotationalMatrix[0][1] = -sin(-BotOrientation.Theta); // Set -sin(Theta)
-      RotationalMatrix[1][0] = sin(-BotOrientation.Theta);  // Set sin(Theta)
-      RotationalMatrix[1][1] = cos(-BotOrientation.Theta);  // Set cos(Theta)
+      RotationalMatrix[0][0] = cos(BotOrientation.Theta);  // Set cos(Theta)
+      RotationalMatrix[0][1] = -sin(BotOrientation.Theta); // Set -sin(Theta)
+      RotationalMatrix[1][0] = sin(BotOrientation.Theta);  // Set sin(Theta)
+      RotationalMatrix[1][1] = cos(BotOrientation.Theta);  // Set cos(Theta)
       if (debug == true)
       {
         Serial.println("TranslationalMatrix1");
@@ -357,28 +397,41 @@ public:
         Serial.println("TransformedMatrix");
         PrintMatrix((mtx_type *)TransformedMatrix, 3, 2);
       }
-      InputPose[0][0] = 0;
-      InputPose[1][0] = TransformedMatrix[0][0];
-      InputPose[2][0] = TransformedMatrix[1][0];
-    }
-    else if (BotOrientation.Theta == 0)
+      UpdateDesiredPose(0, TransformedMatrix[0][0], TransformedMatrix[0][1]); // Update the desired pose
+    };
+    if (BotOrientation.Theta == 0)
     {                           // If bot is not at an angle
       InputPose[1][0] = DeltaX; // Set the X and Y distances to move
       InputPose[2][0] = DeltaY;
+      Serial.println(" ");
+      Serial.println(" DID NOT USE MATRIX TRANSFORMATION");
     };
-
+    PrintMatrix((mtx_type *)InputPose, 3, 1);
+    if (Rotate)
+    {
+      Serial.print("\n Rotational Move \n");
+      UpdateDesiredPose(DeltaTheta, 0, 0);
+    };
     MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)InputPose, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
-    UpdateMotorObjects();                                                                                   // Update the stepper objects
-    BotOrientation.X += InputPose[1][0];                                                                    // Update the bots position
+    UpdateMotorObjects();
+    // Update the stepper objects
+    BotOrientation.X += InputPose[1][0]; // Update the bots position
     BotOrientation.Y += InputPose[2][0];
-    MoveState = IDLE;
+    if (Rotate)
+    {
+      BotOrientation.Theta += DeltaTheta;
+      if ((BotOrientation.Theta > PI) || (BotOrientation.Theta < -PI))
+      {
+        BotOrientation.Theta -= PI;
+      };
+    };
   };
   void ComputeRotation(void) // Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
   {
-    if (MoveState != ROTATING)
-    {
-      return;
-    };
+    // if (Controller.isRunning())
+    //{
+    // return;
+    //};
     double DeltaTheta = (InputPose[0][0] - BotOrientation.Theta); // Compute the Theta distance to move
     InputPose[0][0] = DeltaTheta;                                 // Set the Theta distance to move
     InputPose[1][0] = 0;
@@ -399,10 +452,10 @@ public:
     MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)InputPose, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
     UpdateMotorObjects();                                                                                   // Update the stepper objects
     BotOrientation.Theta += DeltaTheta;                                                                     // Update the bots orientation
-    if ((BotOrientation.Theta > PI) || (BotOrientation.Theta < -PI))
+    if ((BotOrientation.Theta > 3.15) || (BotOrientation.Theta < -3.15))
     {
       BotOrientation.Theta -= PI;
-    }
+    };
   };
   void UpdateDesiredPose(double Theta, double X, double Y)
   {
@@ -445,7 +498,7 @@ private:
       {PI / 2},
       {25},
       {25}};
-  mtx_type InputPose[3][1] = {
+  volatile mtx_type InputPose[3][1] = {
       {0},
       {0},
       {0}};
@@ -496,7 +549,7 @@ private:
       {0},
       {0},
       {0}};
-  mtx_type InverseJacobian[4][3] = {
+  const mtx_type InverseJacobian[4][3] = {
       {-STEPS_PER_BOT_RAD, STEPS_PER_DIST_MULT, STEPS_PER_DIST_MULT},
       {-STEPS_PER_BOT_RAD, STEPS_PER_DIST_MULT, -STEPS_PER_DIST_MULT},
       {-STEPS_PER_BOT_RAD, -STEPS_PER_DIST_MULT, STEPS_PER_DIST_MULT},

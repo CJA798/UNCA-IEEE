@@ -63,7 +63,7 @@
 #define OUT_POSITION_YELLOW_DUCK1 (3500)
 #define OUT_POSITION_PINK_DUCK (7780)
 #define OUT_POSITION_YELOW_DUCK2 (9000)
-
+#define SONG_TEMPO (50)
 #define OutYellowAng1 (7)
 #define OutYellowAng2 (8)
 #define OutPinkAng (9)
@@ -73,8 +73,6 @@
 #define STEPS_PER_RAD_DRUM 2069
 #define DRUM_STEPPER_MAX_SPEED 2000
 #define SPECIAL ('*')
-void InitDrumAsSpeaker(void);
-void note(int num, long dur);
 char MegaState = 0;
 // defines pins numbers
 const int stepPin = 41;
@@ -217,8 +215,7 @@ public:
                 NewPosition = OUT_POSITION_RED_PILLAR;
                 break;
             case HOME_DRUM:
-                Homed = false;
-                // HomeDrumStepper();
+                HomeDrumStepper();
                 break;
             case SPECIAL:
                 StartTune();
@@ -240,10 +237,6 @@ public:
 
     void HomeDrumStepper(void)
     { // Call and I will home the stepper. Blocking (returns after stepper is homed)
-        if (Homed)
-        {
-            return;
-        };
         DrumStepper.setMaxSpeed(DRUM_STEPPER_MAX_SPEED);
         // Serial.println("Homing Drum");
         DrumStepper.setTargetRel(-FOUR_PI * STEPS_PER_RAD_DRUM);
@@ -325,19 +318,23 @@ public:
     void StartTune(void)
     {
         InitDrumAsSpeaker();
-        note(e, 200);
-        delay(100);
-        note(e, 200);
-        delay(100);
-        note(e, 400);
-        delay(100);
-        note(c, 200);
-        delay(100);
-        note(d, 200);
-        delay(100);
-        note(g, 400);
-        delay(100);
-        
+        note(e, 2 * SONG_TEMPO);
+        delay(1 * SONG_TEMPO);
+        note(e, 2 * SONG_TEMPO);
+        delay(1 * SONG_TEMPO);
+        dir = !dir;
+        note(e, 4 * SONG_TEMPO);
+        delay(1 * SONG_TEMPO);
+        dir = !dir;
+        note(c, 2 * SONG_TEMPO);
+        delay(1 * SONG_TEMPO);
+        dir = !dir;
+        note(d, 2 * SONG_TEMPO);
+        delay(1 * SONG_TEMPO);
+        dir = !dir;
+        note(g, 4 * SONG_TEMPO);
+        delay(1 * SONG_TEMPO);
+        dir = !dir;
     }
     bool isDone()
     {
@@ -353,7 +350,7 @@ public:
     void note(int num, long dur)
     {
         del = (num * oct) / 10;
-        dir = !dir;
+      //  dir = !dir;
         digitalWrite(dirPin, dir);
         coun = floor((dur * 5 * tempo) / del);
         for (int x = 0; x < coun; x++)

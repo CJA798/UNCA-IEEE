@@ -28,10 +28,6 @@
 #define MAX_MTR_SPEED (800)         // Steps/s maximum is 300000
 #define MAX_MTR_ACCEL (400)         // Steps/s^2 skips at around 15000
 
-#define NORTH_WALL (90)
-#define SOUTH_WALL (1)
-#define EAST_WALL (110)
-#define WEST_WALL (-110)
 #define NORTH ('N')
 #define SOUTH ('S')
 #define EAST ('E')
@@ -42,8 +38,43 @@
 #define NON_BLOCKING (0)
 #define ROTATIONAL (1)
 #define LINEAR (0)
-#define MOTOR_SATURATION_SPEED (4000)
-#define COMPLEX_MOVE_ACCEL (10000)
-#define INPUT_VECT_PROPORTIONAL_RADUIS (1)
-#define MOVE_TIME_PERIOD (200) // ms
-#define PROPORTIONAL_DIVIDER (.1)
+#define NUDGE_DISTANCE 10
+#define NUDGE_SPEED 50
+#define NUDGE_ACCEL 1000
+#define ROTATE_90_CW 1
+#define ROTATE_180_CW 2
+#define ROTATE_90_CCW 3
+#define ROTATE_180_CCW 4
+#define GOTO_NW_POS 5
+#define GOTO_NE_POS 6
+#define GOTO_SW_POS 7
+#define GOTO_SE_POS 8
+#define GOTO_POND_POS 9
+#define DEGREE45 (0.785398)
+#define DEGREE90 (1.570796)
+#define DEGREE180 (3.141592)
+
+// SWEEP STATE MACHINE DELAYS-----------------------------------------------
+#define BOT_STOP_DELAY (150)
+#define SERVO_DROP_DELAY (250)
+
+#define NORTH_WALL (91)
+#define SOUTH_WALL (0)   // prev 1
+#define EAST_WALL (114)  // prev 112
+#define WEST_WALL (-114) // prev 112
+                         // SWEEEP CONSTANTS------
+// Chip Dropper
+#define CHIP_DROP_X (-105)
+#define TOP_CHIP_DROP_Y (90)
+#define BOTTOM_CHIP_DROP_Y (2)
+#define CHIP_DROP_ZERO (90)
+#define DROP_DIST (90)
+#define SWEEP_COUNT (5)
+#define SWEEP_DISTANCE_INCREMENT (10)
+#define SWEEP_MAX_X (95)
+#define SWEEP_START_X (-113)
+#define SWEEP_START_Y (NORTH_WALL)
+
+// Photoresistor
+#define PHOTORESISTOR_PIN (22)
+#define NUM_SAMPLES (50)
