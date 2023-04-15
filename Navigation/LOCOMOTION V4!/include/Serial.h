@@ -25,7 +25,7 @@ char SerialState = DISSCONNECTED;
 int rd = 0, wr, n; // rd = read, wr = write, n = number of bytes in buffer
 const int led_pin = 13;
 int led_on_time = 0;
-bool FirstTime = false;
+
 extern volatile char DrumState;
 // USBSerial Class==========================================================================================================
 class USBSerialMaster

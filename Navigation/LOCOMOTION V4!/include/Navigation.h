@@ -2,7 +2,6 @@
 #include <TeensyStep.h>
 #include <math.h>
 
-#include <Serial.h>
 #include <Drum.h>
 #include <Ports.h>
 
@@ -10,7 +9,6 @@
 #include <MiscFunctions.h>
 
 bool NavigationProcessRunning = true;
-#include <Sensors.h>
 using namespace std;
 
 struct Orientation
@@ -68,7 +66,19 @@ public:
   };
 
   // CONTROLLER FUNCTIONS =================================================================
-
+  void UpdateMotorObjects(void) // Updates motor objects with new target positions and calls the controller object to move them.
+  {
+    motor_1.setTargetRel(NewWheelSteps[0][0]); // update the stepper object
+    motor_2.setTargetRel(NewWheelSteps[1][0]);
+    motor_3.setTargetRel(NewWheelSteps[2][0]);
+    motor_4.setTargetRel(NewWheelSteps[3][0]);
+    if (debug == true)
+    {
+      Serial.println("NewWheelSteps:");
+      PrintMatrix((mtx_type *)NewWheelSteps, 4, 1);
+    };
+    Controller.move(motor_1, motor_2, motor_3, motor_4);
+  }
   void ComputeTranslation(bool Rotate)
   { // Process that will move the bot from BotOrientation to InputPose[3][1]. MoveState must be TRANSLATING to run.
 
@@ -165,55 +175,17 @@ public:
     BotOrientation.X += InputPose[1][0]; // Update the bots position
     BotOrientation.Y += InputPose[2][0];
   };
-  void ComputeRotation(char RotType) // Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
+  void Rotate(char RotType) // Computes bots movement distances for each stepper motor using the bots inverse jacobian matrix
   {
     switch (RotType)
     {
     case RIGHT:
-      InputPose[0][0] = -PI / 2;
       break;
     case LEFT:
-      InputPose[0][0] = PI / 2;
+
       break;
     }
-    double DeltaTheta = (InputPose[0][0] - BotOrientation.Theta); // Compute the Theta distance to move
-    InputPose[0][0] = DeltaTheta;                                 // Set the Theta distance to move
-    InputPose[1][0] = 0;
-    InputPose[2][0] = 0;
-    if (debug == true)
-    {
-      Serial.println("Rotation");
-      Serial.println("Bot Pose");
-      Serial.print("Theta: ");
-      Serial.println(BotOrientation.Theta);
-      Serial.print("X: ");
-      Serial.println(BotOrientation.X);
-      Serial.print("Y: ");
-      Serial.println(BotOrientation.Y);
-      Serial.println("Theta: ");
-      PrintMatrix((mtx_type *)InputPose, 3, 1);
-    };
-    MatrixMultiply((mtx_type *)InverseJacobian, (mtx_type *)InputPose, 4, 3, 1, (mtx_type *)NewWheelSteps); // Multiply our position array with the jacobian matrix to get distances for each wheel
-    UpdateMotorObjects();                                                                                   // Update the stepper objects
-    BotOrientation.Theta += DeltaTheta;                                                                     // Update the bots orientation
-    if ((BotOrientation.Theta > 3.15) || (BotOrientation.Theta < -3.15))
-    {
-      BotOrientation.Theta -= PI;
-    };
   };
-  void UpdateMotorObjects(void) // Updates motor objects with new target positions and calls the controller object to move them.
-  {
-    motor_1.setTargetRel(NewWheelSteps[0][0]); // update the stepper object
-    motor_2.setTargetRel(NewWheelSteps[1][0]);
-    motor_3.setTargetRel(NewWheelSteps[2][0]);
-    motor_4.setTargetRel(NewWheelSteps[3][0]);
-    if (debug == true)
-    {
-      Serial.println("NewWheelSteps:");
-      PrintMatrix((mtx_type *)NewWheelSteps, 4, 1);
-    };
-    Controller.move(motor_1, motor_2, motor_3, motor_4);
-  }
 
   // HELPER FUNCTIONS =====================================================================
   void SetSpeeds(int MaxSpeed, int MaxAccel)

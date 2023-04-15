@@ -10,8 +10,6 @@
 #define BACK_RIGHT_SWITCH 34      //     |__36_____________34__|
 #define BACK_LEFT_SWTICH 32       //
 #define CHIP_DROPPER_PIN 23       // 2 is the pin for the chip dropper
-#define SCL_PIN 19
-#define SDA_PIN 18
 #define RESET_PIN 4
 #define LIMIT_SWITCH_PIN (14)
 // STEPPER MOTOR PINOUT
@@ -26,20 +24,8 @@
 #define STORAGE_MTRSTEP (41)
 #define STORAGE_MTRDIR (40)
 #define IRQ_PIN 2
-
-// Temp pins until we decide actual pins for the shutdown of all the sensors
-// These are for the big sensors L1s
-#define XSHUT_PIN1 25
-#define XSHUT_PIN2 29
-#define XSHUT_PIN3 36
-#define XSHUT_PIN4 (A21)
-
-// These are for the small sensors L0s
-#define SHT_LOX1 26
-#define SHT_LOX2 30
-#define SHT_LOX3 35
-#define SHT_LOX4 (A20)
-
-// MAGNETOMETER-GYROSCOPE
-#define BN0_RST 25
-#define BNO_ADR 24
+#define S0 19
+#define S1 18
+#define S2 17
+#define S3 15
+#define sensorOut 16

@@ -1,13 +1,33 @@
+bool debug;
+// flags
+int Command;
 #include <Arduino.h>
 #include <TeensyThreads.h>
 #include <Navigation.h>
 #include <Servo.h>
+#include <Wire.h>
 // #include <Photoresistor.h>
 //  Photoresistor Settings
+void Home(void);
 
+// Stores frequency read by the photodiodes
+int redFrequency = 0;
+int greenFrequency = 0;
+int blueFrequency = 0;
+
+// stores the red, green and blue colors
+int redColor = 0;
+int greenColor = 0;
+int blueColor = 0;
+
+bool redFlag = 0;
+bool greenFlag = 0;
+bool blueFlag = 0;
+bool whiteFlag = 0;
+bool FirstTime = true;
 bool PhotoresistorChange(void);
-int PhotoresistSum1;
-int PhotoresistSum2;
+float PhotoresistSum1;
+float PhotoresistSum2;
 int DerivativeRollingAverage[20] = {0};
 int DerivativeWriteCnt = 0;
 int DerivativeAvg = 0;
@@ -20,53 +40,43 @@ char SweepState = 0;
 volatile char State;
 Servo ChipDropper;
 DriverObject Driver;
-USBSerialMaster RaspberryPi; // Change SerialState to TRANSMITTING and put message in buffer
+// USBSerialMaster RaspberryPi; // Change SerialState to TRANSMITTING and put message in buffer
 void NavStateMachine(void);
 void SpinMoveTest(void);
+void LEDsetup(void);
+void LEDloop(void);
 //////////////////////  Threads  ///////////////////////
 void SerialCommunicationThread(void)
 {
   while (true)
   {
-    RaspberryPi.SerialProcess();
+    Drum.StartTune();
   };
 };
-char temp = 1;
 //////////////////////  Setup  ///////////////////////
 void setup()
 {
-
-  bool FirstTime = true;
+  analogReadRes(16);
   pinMode(PHOTORESISTOR_PIN, INPUT);
-  RaspberryPi = USBSerialMaster();
   pinMode(LED_BUILTIN, OUTPUT);
   ChipDropper.attach(CHIP_DROPPER_PIN);
   ChipDropper.write(CHIP_DROP_ZERO);
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(150);
-  digitalWrite(LED_BUILTIN, LOW);
-  while (Serial.available() == 0)
-  {
-    delay(100);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(300);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(100);
-    // Drum.StartTune();
-  };
-
-  // Drum.HomeDrumStepper();
-  // debug = true;
-  // debug = false;
-
   threads.addThread(SerialCommunicationThread);
   State = 1;
+  LEDsetup();
   //  Command = HOME_DRUM;
+
+  while (!PhotoresistorChange())
+  {
+    delay(10);
+  };
 };
 
 //////////////////////  Loop  ///////////////////////
 void loop()
 {
+
+  Serial.print("made it past photoresist");
   // TESTING -----------------
   // PhotoresistorChange();
   // Driver.UpdateDesiredPose(0, 0, 45);
@@ -77,110 +87,64 @@ void loop()
   // TestServoDropperStates();
   //  SpinMoveTest();
   // MAIN LOOP -----------------
-  Drum.DrumProcess(); // Function immediately returns if DrumState is not set too NEW_MOVE.
-  if (Command > 0)
-  {
-    if (debug)
-    {
-      Serial.println("Command");
-      Serial.print(Command);
-    };
+  Driver.UpdateDesiredPose(0, 0, 4); // MOVE FORWARD
+  Driver.ComputeTranslation(0);
+  Driver.UpdateDesiredPose(0, WEST_WALL, 0); // GO TO CHIP DROP ONE
+  Driver.ComputeTranslation(0);
+  ChipDropper.write(CHIP_DROP_ZERO - DROP_DIST); // DROP CHIPS
+  Serial.print("made it past chip dropper\n");
+  delay(700);
+  Driver.UpdateDesiredPose(0, WEST_WALL, NORTH_WALL); // GO TO CHIP DROP TWO
+  Driver.ComputeTranslation(0);
+  ChipDropper.write(CHIP_DROP_ZERO + DROP_DIST); // DROP CHIPS
+  delay(700);
 
-    switch (Command)
-    {
-    case InYellowDuck1:
-      if (debug)
-      {
-        Serial.println("InYellowDuck1");
-      };
-      NewPosition = IN_POSITION_YELLOW_DUCK1;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case InYellowDuck2:
-      NewPosition = IN_POSITION_YELLOW_DUCK2;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case InPinkDuck:
-      NewPosition = IN_POSITION_PINK_DUCK;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case InWhiteColumn:
-      NewPosition = IN_POSITION_WHITE_PILLAR;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case InGreenColumn:
-      NewPosition = IN_POSITION_GREEN_PILLAR;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case InRedColumn:
-      NewPosition = IN_POSITION_RED_PILLAR;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case OutYellowDuck1:
-      NewPosition = OUT_POSITION_YELOW_DUCK2;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case OutYellowDuck2:
-      NewPosition = OUT_POSITION_YELLOW_DUCK1;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case OutPinkDuck:
-      NewPosition = OUT_POSITION_PINK_DUCK;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case OutWhiteColumn:
-      NewPosition = OUT_POSITION_WHITE_PILLAR;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case OutGreenColumn:
-      NewPosition = OUT_POSITION_GREEN_PILLAR;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-    case OutRedColumn:
-      NewPosition = OUT_POSITION_RED_PILLAR;
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      break;
-      // case HOME_DRUM: We dont need this state, homing on startup.
-      // HomeDrumStepper();
-      // break;
-    case SPECIAL:
-      Serial.print("finished");
-      Serial.println(Command);
-      Command = 0;
-      Drum.StartTune();
-      Drum.HomeDrumStepper();
-      break;
-    case RUN_STATE_MACHINE: // Returns once our move is complete.
-      NavStateMachine();    // Will keep on progressing through NavStateMachine each
-      break;                // time the loop is ran untill the NavStateMachine is finished. To interrupt the SM send in a new command.
-    default:
-      break;
-    };
+  Driver.UpdateDesiredPose(0, WEST_WALL + 10, 10);
+  Driver.ComputeTranslation(0);
+  Home();
+  Driver.UpdateDesiredPose(0, EAST_WALL, NORTH_WALL);
+  Driver.ComputeTranslation(0);
+  Home();
+  Driver.UpdateDesiredPose(0, EAST_WALL, SOUTH_WALL);
+  Driver.ComputeTranslation(0);
+  Driver.UpdateDesiredPose(0, EAST_WALL, NORTH_WALL);
+  Driver.ComputeTranslation(0);
+  Home();
+  Driver.UpdateDesiredPose(0, WEST_WALL, 10);
+  Driver.ComputeTranslation(0);
+  Driver.UpdateDesiredPose(0, WEST_WALL + 10, NORTH_WALL / 2);
+  Driver.ComputeTranslation(0);
+  Driver.UpdateDesiredPose(0, EAST_WALL + 10, NORTH_WALL - 5);
+  Driver.ComputeTranslation(0);
+  Home();
+  Driver.UpdateDesiredPose(0, EAST_WALL, SOUTH_WALL);
+  Driver.ComputeTranslation(0);
+  Driver.UpdateDesiredPose(0, EAST_WALL, NORTH_WALL + 10);
+  Driver.UpdateDesiredPose(0, WEST_WALL, BotOrientation.Y);
+  Driver.ComputeTranslation(0);
+  Home();
+  Driver.UpdateDesiredPose(0, 0, NORTH_WALL);
+  Driver.ComputeTranslation(0);
+  Driver.UpdateDesiredPose(0, EAST_WALL, SOUTH_WALL);
+  Driver.ComputeTranslation(0);
+  while (true)
+  {
+    Driver.UpdateDesiredPose(0, EAST_WALL - 20, NORTH_WALL - 10);
+    Driver.ComputeTranslation(0);
+
+    Driver.UpdateDesiredPose(0, EAST_WALL + 10, SOUTH_WALL);
+    Driver.ComputeTranslation(0);
+    Driver.UpdateDesiredPose(0, EAST_WALL + 2, NORTH_WALL + 1);
+    BotOrientation.X -= 10;
   };
+}; // DO THE SWEEP
+
+void Home(void)
+{
+  Driver.UpdateDesiredPose(0, 0, 45);
+  Driver.ComputeTranslation(0);
+  Driver.UpdateDesiredPose(0, 0, 0);
+  Driver.ComputeTranslation(0);
 };
 void SpinMoveTest(void)
 {
@@ -520,30 +484,121 @@ void NavStateMachine(void)
 bool PhotoresistorChange(void)
 {
 
-  if (FirstTime) // take an average of 10 readings if it is the first time we are running this
+  if (FirstTime == true) // take an average of 10 readings if it is the first time we are running this
   {
+
     for (int i = 0; i < 10; i++)
     {
+      Serial.print("\n\n FirstTime \n\n");
       PhotoresistSum1 += analogRead(PHOTORESISTOR_PIN);
       delay(1);
+
+      Serial.println(PhotoresistSum1);
     };
-  }
-  else
-  {
-    for (int i = 0; i < 10; i++)
-    { // take an average of 10 readings (for comparison) if we are are not running this for the first time.
-      PhotoresistSum2 += analogRead(PHOTORESISTOR_PIN);
-      delay(1);
-    };
+    PhotoresistSum1 = PhotoresistSum1 / 10;
   };
   FirstTime = false;
-  PhotoresistSum2 = 0;
-  if (PhotoresistSum2 > PhotoresistSum1 + LED_ON_THRESHOLD)
+  // Serial.print("\n\n FirstTime \n\n");
+  Serial.println(PhotoresistSum1);
+  PhotoresistSum2 = analogRead(PHOTORESISTOR_PIN);
+  if (PhotoresistSum2 < (PhotoresistSum1 + THRESHOLD))
   {
-    return true;
+    FirstTime = false;
+    return false;
   }
   else
   {
-    return false;
+
+    Serial.print("==========================================");
+
+    FirstTime = false;
+    return true;
   };
+};
+
+void LEDsetup(void)
+{
+  // Setting the outputs
+  pinMode(S0, OUTPUT);
+  pinMode(S1, OUTPUT);
+  pinMode(S2, OUTPUT);
+  pinMode(S3, OUTPUT);
+
+  // Setting the sensorOut as an input
+  pinMode(sensorOut, INPUT);
+
+  // Setting frequency scaling to 20%
+  digitalWrite(S0, HIGH);
+  digitalWrite(S1, LOW);
+
+  // Begins serial communication
+  // Serial.begin(9600);
+};
+void LEDloop(void)
+{
+  // Setting RED (R) filtered photodiodes to be read
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, LOW);
+
+  // resetting flags
+  redFlag = 0;
+  greenFlag = 0;
+
+  // Reading the output frequency
+  redFrequency = pulseIn(sensorOut, LOW);
+  // Remaping the value of the RED (R) frequency from 0 to 255
+  // redColor = map(redFrequency, 70, 120, 255,0);    //get low and max values by holding sensor close/far from color
+  redColor = map(redFrequency, 30, 80, 255, 0);
+
+  // Printing the RED (R) value
+  Serial.print("R = ");
+  // Serial.print(redFrequency); // replace with redColor once determined
+  Serial.print(redColor);
+  delay(100);
+
+  // Setting GREEN (G) filtered photodiodes to be read
+  digitalWrite(S2, HIGH);
+  digitalWrite(S3, HIGH);
+
+  // Reading the output frequency
+  greenFrequency = pulseIn(sensorOut, LOW);
+  // Remaping the value of the GREEN (G) frequency from 0 to 255
+  // greenColor = map(greenFrequency, 100, 199, 255, 0);
+  greenColor = map(greenFrequency, 80, 170, 255, 0);
+
+  // Printing the GREEN (G) value
+  Serial.print(" G = ");
+  // Serial.print(greenFrequency); // change to greenColor
+  Serial.print(greenColor);
+  delay(100);
+
+  // Setting BLUE (B) filtered photodiodes to be read
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, HIGH);
+
+  // Reading the output frequency
+  blueFrequency = pulseIn(sensorOut, LOW);
+  // Remaping the value of the BLUE (B) frequency from 0 to 255
+  // blueColor = map(blueFrequency, 38, 84, 255, 0);
+  blueColor = map(blueFrequency, 60, 190, 255, 0);
+
+  // Printing the BLUE (B) value
+  Serial.print(" B = ");
+  // Serial.println(blueFrequency);  //change to blueColor
+  Serial.println(blueColor);
+  delay(100);
+
+  // Checks the current detected color and prints
+  // a message in the serial monitor
+
+  if (redColor > greenColor && redColor > blueColor)
+  {
+    Serial.println(" - RED detected!");
+    redFlag = 1;
+  }
+  if (greenColor > redColor && greenColor > blueColor)
+  {
+    Serial.println(" - GREEN detected!");
+    greenFlag = 1;
+  }
 };

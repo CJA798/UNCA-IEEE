@@ -78,11 +78,13 @@
 // Photoresistor
 #define PHOTORESISTOR_PIN (22)
 #define NUM_SAMPLES (50)
-
+#define THRESHOLD (10000)
 #define NEW_MOVE ('+')
 #define WAITING (0)
 
 #define LAST_CASE ('z')
+
+// OE 57
 
 #define RIGHT ('R')
 #define LEFT ('L')
