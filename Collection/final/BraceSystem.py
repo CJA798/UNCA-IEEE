@@ -4,8 +4,9 @@ from pi_servo_hat import PiServoHat
 
 
 #These pins can be changed depending on what is available
-_HOOK_SERVO_CHANNEL = 8
-_BRACE_SERVO_CHANNEL = 7
+_HOOK_SERVO_CHANNEL = 13
+_BRACE_TOP_SERVO_CHANNEL = 15
+_BRACE_BOTTOM_SERVO_CHANNEL = 14
 
 
 #class FlipperPlatformStatus:
@@ -35,11 +36,11 @@ class Brace:
 
 #opens brace
     def BraceShake(self):
-        self.hat.move_servo_position(9, 10)
-        self.hat.move_servo_position(8, 5)
+        self.hat.move_servo_position(_BRACE_TOP_SERVO_CHANNEL, 0)
+        self.hat.move_servo_position(_BRACE_TOP_SERVO_CHANNEL , 75)
         self.hat.sleep(0.5)
-        self.hat.move_servo_position(8, 0)
-        self.hat.move_servo_position(9, 5)
+        self.hat.move_servo_position(_BRACE_TOP_SERVO_CHANNEL, 0)
+        self.hat.move_servo_position(_BRACE_TOP_SERVO_CHANNEL, 75)
         self.hat.sleep(0.5)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -60,14 +61,14 @@ class Brace:
         #state: open or closed
         #value: from 240 to -110
     def BraceInit(self):
-        for i in range(10, 135, 1):
-            self.hat.move_servo_position(9, i)
+        #for i in range(10, 135, 1):
+            self.hat.move_servo_position(_BRACE_TOP_SERVO_CHANNEL, 0)
             sleep(.005)
-        for i in range(0, 53, 1):
-            self.hat.move_servo_position(7, i)
+        #for i in range(0, 53, 1):
+            self.hat.move_servo_position(_BRACE_BOTTOM_SERVO_CHANNEL, 125)
             sleep(.005)
-        for i in range(0, 118, 1):
-            self.hat.move_servo_position(8, i)
+        #for i in range(0, 118, 1):
+            self.hat.move_servo_position(_HOOK_SERVO_CHANNEL, 17)
             sleep(.005)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
