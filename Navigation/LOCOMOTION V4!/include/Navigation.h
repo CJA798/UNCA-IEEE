@@ -83,8 +83,8 @@ public:
   };
   void SweepTheBoard(void)
   {
-   // UpdateDesiredPose(BotOrientation.Theta, SWEEP_START_X, SWEEP_START_Y);
-    //ComputeTranslation(0);
+    // UpdateDesiredPose(BotOrientation.Theta, SWEEP_START_X, SWEEP_START_Y);
+    // ComputeTranslation(0);
     Serial.print("\n\n\n");
     Serial.print(BotOrientation.Theta);
     Serial.print(BotOrientation.Y);

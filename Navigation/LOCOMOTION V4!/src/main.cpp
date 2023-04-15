@@ -39,31 +39,35 @@ void setup()
   digitalWrite(LED_BUILTIN, HIGH);
   delay(150);
   digitalWrite(LED_BUILTIN, LOW);
-
   while (Serial.available() == 0)
   {
-    // Drum.StartTune();
+    delay(100);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(300);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+   // Drum.StartTune();
   };
 
-  Drum.HomeDrumStepper();
- // debug = true;
-  debug = false;
+  // Drum.HomeDrumStepper();
+  // debug = true;
+  // debug = false;
 
   threads.addThread(SerialCommunicationThread);
   State = 1;
-  Command = HOME_DRUM;
+  //  Command = HOME_DRUM;
 };
 
 //////////////////////  Loop  ///////////////////////
 void loop()
 {
   // PhotoresistorChange();
- // Driver.UpdateDesiredPose(0, 0, 45);
- // Driver.ComputeTranslation(0);
- // Driver.UpdateDesiredPose(DEGREE180, 0, 45);
- // Driver.ComputeTranslation(1);
-   Drum.DrumProcess();
- // Driver.SweepTheBoard();
+  // Driver.UpdateDesiredPose(0, 0, 45);
+  // Driver.ComputeTranslation(0);
+  // Driver.UpdateDesiredPose(DEGREE180, 0, 45);
+  // Driver.ComputeTranslation(1);
+  Drum.DrumProcess();
+  // Driver.SweepTheBoard();
   // TestServoDropperStates();
   //  SpinMoveTest();
 };

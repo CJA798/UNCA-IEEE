@@ -23,14 +23,14 @@
     Two White columns
     */
 
-#define InYellowDuck1 ('a')
+#define InYellowDuck1 ('y')
 #define InYellowDuck2 ('f')
 #define InPinkDuck ('b')
 #define InWhiteColumn ('c')
 #define InGreenColumn ('d')
 #define InRedColumn ('e')
 
-#define OutYellowDuck1 ('A')
+#define OutYellowDuck1 ('Y')
 #define OutYellowDuck2 ('F')
 #define OutPinkDuck ('B')
 #define OutWhiteColumn ('C')
@@ -350,7 +350,7 @@ public:
     void note(int num, long dur)
     {
         del = (num * oct) / 10;
-      //  dir = !dir;
+        //  dir = !dir;
         digitalWrite(dirPin, dir);
         coun = floor((dur * 5 * tempo) / del);
         for (int x = 0; x < coun; x++)
