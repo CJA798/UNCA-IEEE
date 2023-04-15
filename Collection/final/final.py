@@ -118,7 +118,7 @@ def outputSerial(serial_stepper, position):
     global DrumStatus
     if DrumStatus == 0:
         serial_stepper.reset_output_buffer()
-        str_data = "Input: " + position + '\n'
+        str_data = "Input: " + position + "\n"
         serial_stepper.write(str_data.encode())
         DrumStatus = 1
     elif DrumStatus == 1:
@@ -174,26 +174,28 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
             #robot.CollectionSystem.Sweep.sweep()
             print("Too many Ducks")
     
-    if Orientation == '':
+    if (Orientation == '' or Orientation == None) and len(flipper_data) > 0:
         Orientation = camera.is_duck_standing3()
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Flipper statuses and what it will be doing. The flipped case is ignored since it will need to consider the item for each case of flip or sweep
     if len(flipper_data) > 0 and flipper_status != FlipperStatus.ORIENTED:
         #Here I have to consider all of the ducks and columns
+        print("Orient Ducky")
         if flipper_data[0][0] == 0:
             if Orientation == "Push" and (flipper_data[0][2] > Global_Static.Y_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.Y_D_ANG_MIN_THRESH):
                 #Orienting the duck
                 robot.CollectionSystem.Flipper.rotate_platform()
-                print("Moving Duck")
+                print("Yellow Duck")
             else:
                 #Duck is oriented
                 robot.CollectionSystem.Flipper.stop_rotation()
                 flipper_status = robot.CollectionSystem.Flipper.status = FlipperStatus.ORIENTED
+                print("done")
                 return
             if Orientation == "Flip" and (flipper_data[0][2] > Global_Static.Y_D_MAX_LAYING or flipper_data[0][2] < Global_Static.Y_D_MIN_LAYING):
                 #Orienting the duck
                 robot.CollectionSystem.Flipper.rotate_platform()
-                print("Moving Duck")
+                print("Yellow Duck Laying")
             else:
                 #Duck is oriented
                 robot.CollectionSystem.Flipper.stop_rotation()
@@ -203,7 +205,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
             if Orientation == "Push" and (flipper_data[0][2] > Global_Static.P_D_ANG_MAX_THRESH or flipper_data[0][2] < Global_Static.P_D_ANG_MIN_THRESH):
                 #Orienting the duck
                 robot.CollectionSystem.Flipper.rotate_platform()
-                print("Moving Duck")
+                print("Pink Duck")
             else:
                 #Duck is oriented
                 robot.CollectionSystem.Flipper.stop_rotation()
@@ -212,7 +214,7 @@ def CollectionStateMachine(robot: Robot, elevator_data, mid_data, flipper_data, 
             if Orientation == "Flip" and (flipper_data[0][2] > Global_Static.P_D_MAX_LAYING or flipper_data[0][2] < Global_Static.P_D_MIN_LAYING):
                 #Orienting the duck
                 robot.CollectionSystem.Flipper.rotate_platform()
-                print("Moving Duck")
+                print("Pink Duck laying")
             else:
                 #Duck is oriented
                 robot.CollectionSystem.Flipper.stop_rotation()
@@ -332,6 +334,7 @@ def drumSerial(item, serial_stepper, robot):
         elif DrumStatus == 1:
             if serial_stepper.in_waiting > 0:
                 DrumStatus = serial_stepper.readline().decode('utf-8').rstrip()
+                print(DrumStatus)
                 print("Read the line")
         elif DrumStatus == "finished" + position:
             DrumStatus = 0
@@ -347,7 +350,7 @@ def positionSelection(item, serial_stepper, robot: Robot):
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Yellow Duck case of the drum
     if item == 0 and yellowDuckCounter == 1:
-        return 'a'
+        return 'y'
     elif item == 0 and yellowDuckCounter == 2:
         return 'f'
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -391,6 +394,13 @@ def main():
     serial_stepper.reset_input_buffer()
     #filename = 'drum_data.txt'
     robot.CollectionSystem.Pushers.RetractPusherBot()
+    serial_stepper.reset_output_buffer()
+    str_data = "s\n"
+    serial_stepper.write(str_data.encode())
+    while True:
+        if serial_stepper.in_waiting > 0:
+            print(serial_stepper.readline().decode('utf-8').rstrip())
+            break
 # Read data from file and split into lines
     '''with open(filename, 'r') as f:
         lines = f.read().splitlines()

@@ -322,10 +322,10 @@ class CameraSystem:
                     score = classification.categories[0].score
                     print("{} ({})".format(category, score))
                     if score < 0.7:
-                        self.is_duck_standing3()
+                        category = self.is_duck_standing3()
                     return category
         print("Unable to classify object")
-        self.is_duck_standing3()
+        
         return None
     ''' TODO: add recursion or while loop on caller'''
 

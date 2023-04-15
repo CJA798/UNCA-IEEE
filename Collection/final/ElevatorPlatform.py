@@ -50,7 +50,7 @@ class Elevator():
 
 
     def stop_rotation(self):
-        self.speed = 52
+        self.speed = 50
         self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL, self.speed)
     
 

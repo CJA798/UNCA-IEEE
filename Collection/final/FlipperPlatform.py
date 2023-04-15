@@ -7,7 +7,7 @@ from pi_servo_hat import PiServoHat
 _ROTATION_SERVO_CHANNEL = 5
 _FLIPPER_SERVO_CHANNEL = 6
 
-_STOP_ORIENTATION = 49
+_STOP_ORIENTATION = 50
 _START_ORIENTATION = 120
 
 _RESET_FLIPPER = 0
@@ -52,7 +52,8 @@ class Flipper:
 
     def rotate_platform(self) -> None:
         ''' This method rotates the orientation platform '''
-        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL,55) #subject to change
+        self.hat.move_servo_position(_ROTATION_SERVO_CHANNEL,70) #subject to change
+        sleep(.1)
         
 
     def stop_rotation(self) -> None:
